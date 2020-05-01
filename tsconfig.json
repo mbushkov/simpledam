@@ -1,0 +1,11 @@
+// This is needed for Vetur to be happy with shortcut imports.
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "app/src/*"
+      ]
+    },
+  }
+}
