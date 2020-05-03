@@ -3,21 +3,21 @@
     <div>Images ({{ imageList.length }}):</div>
 
     <div class="container">
-      <div v-for="image in imageList" 
+      <div v-for="image in imageList" ref="boxes"
         class="image-box" 
 
-        :key="`${image.uid}|${image.preview_timestamp}`" 
+        :key="`${image.uid}|${image.file.preview_timestamp}`" 
         v-bind:class="{ selected: image.uid === primarySelectedUid }"
         v-bind:style="imageBoxStyle" 
 
         v-on:click="clicked(image.uid)">
         <div class="nested">
-          <img v-if="image.preview_timestamp"
+          <img v-if="image.file.preview_timestamp"
             :src="'http://127.0.0.1:30000/images/' + image.uid"
           />
         </div>
         <div class="title">
-          {{ image.path | filename }}
+          {{ image.file.path | filename }} {{ image.metadata.label }}
         </div>
       </div>
     </div>
@@ -27,7 +27,26 @@
 <script lang="ts">
 import Vue from 'vue';
 import { API_SERVICE } from '@/api';
-import { ImageFile, STORE } from '@/store'; // eslint-disable-line no-unused-vars
+import { ImageFile, STORE, Label, Direction, ImageMetadata } from '@/store'; // eslint-disable-line no-unused-vars
+
+const LABELS_MAP: {[key: string]: Label} = {
+  '0': Label.NONE,
+  '1': Label.RED,
+  '2': Label.GREEN,
+  '3': Label.BLUE,
+  '4': Label.BROWN,
+  '5': Label.MAGENTA,
+  '6': Label.ORANGE,
+  '7': Label.YELLOW,
+  '8': Label.CYAN,
+  '9': Label.GRAY,
+};
+
+declare interface Item {
+  uid: string;
+  file: ImageFile;
+  metadata: ImageMetadata;
+}
 
 const ImageGrid = Vue.extend({
   data() {
@@ -45,6 +64,16 @@ const ImageGrid = Vue.extend({
 
   mounted() {
     API_SERVICE.fetchRoot();
+
+    window.addEventListener('keydown', this.keyPressed);
+    window.addEventListener('resize', this.handleResize)
+
+    this.handleResize();
+  },
+
+  beforeDestroy: function () {
+    window.removeEventListener('keydown', this.keyPressed)
+    window.removeEventListener('resize', this.handleResize)
   },
 
   computed: {
@@ -55,9 +84,13 @@ const ImageGrid = Vue.extend({
       };
     },
 
-    imageList() {
+    imageList(): Item[] {
       const cl = STORE.currentList();
-      return cl.items.map(uid => STORE.state.images[uid]);
+      return cl.items.map(uid => ({
+        uid,
+        file: STORE.state.images[uid],
+        metadata: STORE.state.metadata[uid],
+      }));
     },
 
     primarySelectedUid() {
@@ -68,8 +101,46 @@ const ImageGrid = Vue.extend({
   methods: {
     clicked(uid: string) {
       STORE.selectPrimary(uid);
+    },
+
+    keyPressed(event: KeyboardEvent) {
+      const label = LABELS_MAP[event.key];
+      if (label !== undefined) {
+        STORE.labelSelection(label);
+        return;
+      }
+
+      if (event.keyCode === 39) {
+        STORE.movePrimarySelection(Direction.RIGHT);
+        event.preventDefault();
+        return;
+      } else if (event.keyCode === 37) {
+        STORE.movePrimarySelection(Direction.LEFT);
+        event.preventDefault();
+        return;
+      } else if (event.keyCode === 38) {
+        STORE.movePrimarySelection(Direction.UP);
+        event.preventDefault();
+        return;
+      } else if (event.keyCode === 40) {
+        STORE.movePrimarySelection(Direction.DOWN);
+        event.preventDefault();
+        return;
+      }
+    },
+
+    handleResize: function() {
+      STORE.updateColumnCount(Math.floor(this.$el.clientWidth / this.maxSize));
+    },
+  },
+
+  watch: {
+    primarySelectedUid(v:string) {
+      const index = STORE.currentList().items.indexOf(v);
+      const ref = this.$refs['boxes'][index];
+      ref.scrollIntoViewIfNeeded();
     }
-  }
+  },
 });
 
 

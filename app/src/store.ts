@@ -24,7 +24,7 @@ export declare interface ImageFile {
   uid: string;
 }
 
-export declare enum Label {
+export enum Label {
   NONE,
   RED,
   GREEN,
@@ -70,9 +70,10 @@ export declare interface Selection {
 }
 
 export declare interface State {
-  filterSerttings: FilterSettings;
+  filterSettings: FilterSettings;
   filtersInvariant: string;
   
+  columnCount: number,
   selection: Selection;
 
   images: { [key: string]: ImageFile };
@@ -80,14 +81,22 @@ export declare interface State {
   lists: { [key: string]: ImageList };
 }
 
+export enum Direction {
+  UP,
+  DOWN,
+  RIGHT,
+  LEFT,
+}
+
 class Store {
   state: State = Vue.observable({
-    filterSerttings: {
+    filterSettings: {
       selectedLabels: [],
       selectedStarRatings: [],
     },
     filtersInvariant: '',
 
+    columnCount: 1,
     selection: {
       additional: {},
     },
@@ -125,7 +134,77 @@ class Store {
     Vue.set(this.state.selection, 'primary', uid);
   }
 
+  public movePrimarySelection(direction: Direction) {
+    if (!this.state.selection.primary) {
+      return;
+    }
+
+    const l = this.currentList();
+    const curIndex = l.items.indexOf(this.state.selection.primary);
+
+    if (direction === Direction.RIGHT) {
+      if (curIndex < l.items.length) {
+        this.selectPrimary(l.items[curIndex + 1]);
+      }
+    } else if (direction === Direction.LEFT) {
+      if (curIndex > 0) {
+        this.selectPrimary(l.items[curIndex - 1]);
+      }
+    } else if (direction == Direction.DOWN) {
+      this.selectPrimary(l.items[Math.min(curIndex + this.state.columnCount, l.items.length - 1)]);
+    } else if (direction == Direction.UP) {
+      this.selectPrimary(l.items[Math.max(curIndex - this.state.columnCount, 0)]);
+    }
+  }
+
+  public labelSelection(label:Label) {
+    if (!this.state.selection.primary) {
+      return;
+    }
+
+    for (let sel of Object.keys(this.state.selection.additional).concat(this.state.selection.primary)) {
+      Vue.set(this.state.metadata[sel], 'label', label);
+      this.ensureItemInCurrentList(sel);
+    }
+  }
+
+  public updateColumnCount(n:number) {
+    this.state.columnCount = n;
+  }
+
+  public changeLabelFilter(label:Label, state:boolean) {
+    const index = this.state.filterSettings.selectedLabels.indexOf(label);
+    if (state && index === -1) {
+      this.state.filterSettings.selectedLabels.push(label);
+    } else if (!state && index !== -1) {
+      this.state.filterSettings.selectedLabels.splice(index, 1);
+    }
+
+    this.state.filtersInvariant = filterSettingsInvariant(this.state.filterSettings);
+    for (let uid in this.state.images) {
+      this.ensureItemInCurrentList(uid);
+    }
+  }
+
+  public toggleLabelFilter(label:Label) {
+    const present = this.state.filterSettings.selectedLabels.indexOf(label) !== -1;
+    this.changeLabelFilter(label, !present);
+  }
+
+  private isMatchingFilterSettings(mdata:ImageMetadata):boolean {
+    const fs = this.state.filterSettings;
+    const matchesLabel = ((fs.selectedLabels.length === 0) || fs.selectedLabels.indexOf(mdata.label) !== -1);
+    const matchesStarRating = ((fs.selectedStarRatings.length === 0) || fs.selectedStarRatings.indexOf(mdata.starRating) !== -1);
+
+    return matchesLabel && matchesStarRating;
+  }
+
   private ensureItemInCurrentList(uid: string) {
+    const mdata = this.state.metadata[uid];
+    if (!this.isMatchingFilterSettings(mdata)) {
+      return;
+    }
+
     const l = this.currentList();
     if (!l.presenceMap[uid]) {
       Vue.set(l.presenceMap,uid, true);
@@ -136,6 +215,12 @@ class Store {
   private registerImage(imageFile: ImageFile) {
     // console.log('registering image', imageFile);
     Vue.set(this.state.images, imageFile.uid, imageFile);
+
+    const imageMetadata: ImageMetadata = {
+      label: Label.NONE,
+      starRating: 0,
+    };
+    Vue.set(this.state.metadata, imageFile.uid, imageMetadata);
     this.ensureItemInCurrentList(imageFile.uid);
   }
 }
