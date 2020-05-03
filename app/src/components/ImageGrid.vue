@@ -3,7 +3,14 @@
     <div>Images ({{ imageList.length }}):</div>
 
     <div class="container">
-      <div v-for="image in imageList" :key="`${image.uid}|${image.preview_timestamp}`" class="image-box" v-bind:style="imageBoxStyle">
+      <div v-for="image in imageList" 
+        class="image-box" 
+
+        :key="`${image.uid}|${image.preview_timestamp}`" 
+        v-bind:class="{ selected: image.uid === primarySelectedUid }"
+        v-bind:style="imageBoxStyle" 
+
+        v-on:click="clicked(image.uid)">
         <div class="nested">
           <img v-if="image.preview_timestamp"
             :src="'http://127.0.0.1:30000/images/' + image.uid"
@@ -51,8 +58,18 @@ const ImageGrid = Vue.extend({
     imageList() {
       const cl = STORE.currentList();
       return cl.items.map(uid => STORE.state.images[uid]);
+    },
+
+    primarySelectedUid() {
+      return STORE.state.selection.primary;
     }
   },
+
+  methods: {
+    clicked(uid: string) {
+      STORE.selectPrimary(uid);
+    }
+  }
 });
 
 
@@ -64,6 +81,10 @@ export default ImageGrid;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+
+  .image-box.selected {
+    background-color: gray;
+  }
 
   .image-box {
     position: relative;

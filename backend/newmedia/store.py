@@ -122,7 +122,7 @@ def _ThumbnailFile(image_file: ImageFile) -> Tuple[ImageFile, bytes]:
 class DataStore:
 
   def __init__(self, db_path: pathlib.Path):
-    self._info_thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+    self._info_thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=4)
     self._thumbnail_thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=2)
     self._db_path = db_path
     self._conn = None

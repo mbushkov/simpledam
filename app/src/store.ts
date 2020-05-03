@@ -64,9 +64,17 @@ function filterSettingsInvariant(fs:FilterSettings): string {
   return l.map(i => `label:${i}`).concat(s.map(i => `star:${i}`)).join('|');
 }
 
+export declare interface Selection {
+  primary?: string;
+  additional: {[key: string]: boolean};
+}
+
 export declare interface State {
   filterSerttings: FilterSettings;
   filtersInvariant: string;
+  
+  selection: Selection;
+
   images: { [key: string]: ImageFile };
   metadata: { [key: string]: ImageMetadata };
   lists: { [key: string]: ImageList };
@@ -79,6 +87,11 @@ class Store {
       selectedStarRatings: [],
     },
     filtersInvariant: '',
+
+    selection: {
+      additional: {},
+    },
+
     images: {},
     metadata: {},
     lists: {},
@@ -108,6 +121,10 @@ class Store {
     return list;
   }
 
+  public selectPrimary(uid?: string) {
+    Vue.set(this.state.selection, 'primary', uid);
+  }
+
   private ensureItemInCurrentList(uid: string) {
     const l = this.currentList();
     if (!l.presenceMap[uid]) {
@@ -117,7 +134,7 @@ class Store {
   }
 
   private registerImage(imageFile: ImageFile) {
-    console.log('registering image', imageFile);
+    // console.log('registering image', imageFile);
     Vue.set(this.state.images, imageFile.uid, imageFile);
     this.ensureItemInCurrentList(imageFile.uid);
   }

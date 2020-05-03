@@ -8,12 +8,13 @@ class ApiService {
   readonly ws = webSocket(`ws://${this.BASE_ADDRESS}/ws`);
 
   readonly wsLogging = this.ws.subscribe(i => {
-    console.log('Got WebSocket data', i);
+    // console.log('Got WebSocket data', i);
   });
 
   fetchRoot() {
+    // axios.post(this.ROOT + '/scan-path', {path: '/Volumes/Somme/Temp/clavarino_print'}).then(r => {
     axios.post(this.ROOT + '/scan-path', {path: '/Users/bushman/Downloads/test print 2'}).then(r => {
-      console.log(r);
+      // console.log(r);
     });
   }
 }
