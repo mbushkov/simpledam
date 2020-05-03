@@ -12,9 +12,9 @@ setup_args = dict(
     install_requires=[
         "aiohttp[speedups]==3.6.2",
         "aiojobs==0.2.2",
+        "aiosqlite==0.12.0"
         "bson==0.5.9",
-        "lsm-db==0.6.4",
-        "opencv-python==4.2.0.34",
+        "pillow-simd==7.0.0.post3",
     ],
     data_files=[],
 )

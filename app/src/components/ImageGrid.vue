@@ -1,11 +1,11 @@
 <template>
   <div>
-    <div>Images:</div>
+    <div>Images ({{ imageList.length }}):</div>
 
     <div class="container">
-      <div v-for="image in imageList" :key="image.uid" class="image-box" v-bind:style="imageBoxStyle">
+      <div v-for="image in imageList" :key="`${image.uid}|${image.preview_timestamp}`" class="image-box" v-bind:style="imageBoxStyle">
         <div class="nested">
-          <img
+          <img v-if="image.preview_timestamp"
             :src="'http://127.0.0.1:30000/images/' + image.uid"
           />
         </div>
@@ -49,15 +49,8 @@ const ImageGrid = Vue.extend({
     },
 
     imageList() {
-      const s = STORE.state;
-      const newList = [];
-      for (let key in s.images) {
-        newList.push(s.images[key]);
-      }
-      newList.sort((a: ImageFile, b: ImageFile) => {
-        return a.uid.localeCompare(b.uid);
-      });
-      return newList;
+      const cl = STORE.currentList();
+      return cl.items.map(uid => STORE.state.images[uid]);
     }
   },
 });

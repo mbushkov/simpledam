@@ -14,6 +14,7 @@
 			".venv3": true,
 			"**/package-lock.json": true
 		},
-		"vetur.format.defaultFormatter.ts": "vscode-typescript"
+		"vetur.format.defaultFormatter.ts": "vscode-typescript",
+		"python.linting.mypyEnabled": true
 	}
 }

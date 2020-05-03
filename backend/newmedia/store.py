@@ -1,14 +1,16 @@
 import asyncio
-import bson
 import concurrent.futures
 import dataclasses
 import io
+import os
 import pathlib
+import time
 import uuid
+from typing import Iterator, Optional, Tuple
 
-from typing import Iterator
-
-import cv2
+import aiosqlite
+import bson
+from PIL import Image
 
 
 class Error(Exception):
@@ -19,10 +21,24 @@ class ImageProcessingError(Error):
   pass
 
 
+class NotFoundError(Error):
+  pass
+
+
 @dataclasses.dataclass
 class Size:
   width: int
   height: int
+
+  @classmethod
+  def FromJSON(cls, data):
+    if not data:
+      return None
+    else:
+      return Size(data["width"], data["height"])
+
+  def ToJSON(self):
+    return dataclasses.asdict(self)
 
 
 @dataclasses.dataclass
@@ -30,66 +46,169 @@ class ImageFile:
   path: str
   uid: str
   size: Size
-  preview_size: Size
-  preview: bytes
+  preview_size: Optional[Size]
+  preview_timestamp: Optional[int]
 
-  def JsonSummary(self):
-    return {
-        "path": self.path,
-        "uid": self.uid,
-        "size": dataclasses.asdict(self.size),
-        "preview_size": dataclasses.asdict(self.preview_size),
-    }
+  @classmethod
+  def FromJSON(cls, data):
+    return ImageFile(
+        data["path"],
+        data["uid"],
+        Size.FromJSON(data["size"]),
+        Size.FromJSON(data["preview_size"]),
+        data["preview_timestamp"],
+    )
+
+  def ToJSON(self):
+    return dataclasses.asdict(self)
 
 
 MAX_DIMENSION = 1600
 
 
-def _ProcessFile(path: pathlib.Path) -> ImageFile:
-  orig_img = cv2.imread(str(path), cv2.IMREAD_COLOR)
-  if orig_img is None:
-    raise ImageProcessingError("Can't process original file: %s", path)
+def _GetFileInfo(path: pathlib.Path, prev_info: Optional[ImageFile]) -> ImageFile:
+  try:
+    im = Image.open(path)
+    stat = os.stat(path)
+  except IOError as e:
+    raise ImageProcessingError(e)
 
-  height, width, depth = orig_img.shape
-  scale_factor = max(width, height) / 1600
-  target_width = int(width / scale_factor)
-  target_height = int(height / scale_factor)
-  new_img = cv2.resize(orig_img, (target_width, target_height))
+  uid = prev_info and prev_info.uid or uuid.uuid4().hex
+  if prev_info and prev_info.preview_timestamp and (stat.st_mtime * 1000 >
+                                                    prev_info.preview_timestamp):
+    prev_info = None
 
-  retval, buffer = cv2.imencode(".jpg", new_img)
-  preview_bytes = buffer.tobytes()
+  try:
+    width, height = im.size
+    return ImageFile(
+        str(path),
+        uid,
+        Size(width, height),
+        prev_info and prev_info.preview_size or None,
+        prev_info and prev_info.preview_timestamp or None,
+    )
+  finally:
+    im.close()
 
-  return ImageFile(
-      str(path),
-      uuid.uuid4().hex,
-      Size(width, height),
-      Size(target_width, target_height),
-      preview_bytes,
-  )
+
+def _ThumbnailFile(image_file: ImageFile) -> Tuple[ImageFile, bytes]:
+  try:
+    im = Image.open(image_file.path)
+  except IOError as e:
+    raise ImageProcessingError(e)
+
+  try:
+    width, height = im.size
+    im.thumbnail((MAX_DIMENSION, MAX_DIMENSION))
+    target_width, target_height = im.size
+
+    out = io.BytesIO()
+    im.save(out, format='JPEG')
+
+    return (
+        ImageFile(
+            image_file.path,
+            image_file.uid,
+            Size(width, height),
+            Size(target_width, target_height),
+            int(time.time() * 1000),
+        ),
+        out.getvalue(),
+    )
+  finally:
+    im.close()
 
 
 class DataStore:
 
-  _MEM_STORE = {}
-  _THREAD_POOL = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+  def __init__(self, db_path: pathlib.Path):
+    self._info_thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+    self._thumbnail_thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+    self._db_path = db_path
+    self._conn = None
+
+  async def _GetConn(self):
+    if self._conn is None:
+      self._conn = await aiosqlite.connect(self._db_path)
+      await self._conn.executescript("""
+CREATE TABLE IF NOT EXISTS ImageData (
+    uid TEXT PRIMARY KEY,
+    path TEXT,
+    info BLOB NOT NULL,
+    blob BLOB
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS ImageData_path_index
+ON ImageData(path);
+""")
+      await self._conn.commit()
+
+    return self._conn
 
   async def RegisterFile(self, path: pathlib.Path) -> ImageFile:
     loop = asyncio.get_running_loop()
 
-    try:
-      result = await loop.run_in_executor(self._THREAD_POOL, _ProcessFile, path)
-    except cv2.error as e:
-      raise ImageProcessingError(e)
+    prev_info = None
+    prev_blob = None
+    conn = await self._GetConn()
+    async with conn.execute("SELECT info, blob FROM ImageData WHERE path = ?",
+                            (str(path),)) as cursor:
+      async for row in cursor:
+        prev_info = ImageFile.FromJSON(bson.loads(row[0]))
+        prev_blob = row[1]
 
-    serialized = bson.dumps(dataclasses.asdict(result))
+    result = await loop.run_in_executor(self._info_thread_pool, _GetFileInfo, path, prev_info)
+    serialized = bson.dumps(result.ToJSON())
 
-    self._MEM_STORE[result.uid] = serialized
+    await conn.execute_insert(
+        """
+INSERT OR REPLACE INTO ImageData(uid, path, info, blob)
+VALUES (?, ?, ?, ?)
+      """, (result.uid, str(result.path), serialized, prev_blob))
+    await conn.commit()
+
     return result
 
-  async def ReadFile(self, uid: str) -> io.BufferedIOBase:
-    serialized = self._MEM_STORE[uid]
-    data = bson.loads(serialized)
-    return io.BytesIO(data["preview"])
+  async def UpdateFileThumbnail(self, uid: str):
+    loop = asyncio.get_running_loop()
+    image_file = await self.ReadFileInfo(uid)
+
+    updated_image_file, blob = await loop.run_in_executor(self._thumbnail_thread_pool,
+                                                          _ThumbnailFile, image_file)
+    serialized = bson.dumps(updated_image_file.ToJSON())
+
+    conn = await self._GetConn()
+    await conn.execute_insert("""
+UPDATE ImageData
+SET info=?,
+    blob=?
+WHERE uid=?
+      """, (serialized, blob, uid))
+    await conn.commit()
+
+    return updated_image_file
+
+  async def ReadFileInfo(self, uid: str) -> ImageFile:
+    conn = await self._GetConn()
+    async with conn.execute("SELECT info FROM ImageData WHERE uid = ?", (uid,)) as cursor:
+      async for row in cursor:
+        data = bson.loads(row[0])
+        return ImageFile.FromJSON(data)
+
+    raise NotFoundError(uid)
+
+  async def ReadFileBlob(self, uid: str):
+    conn = await self._GetConn()
+    async with conn.execute("SELECT blob FROM ImageData WHERE uid = ?", (uid,)) as cursor:
+      async for row in cursor:
+        return io.BytesIO(row[0])
+
+    raise NotFoundError(uid)
 
 
-DATA_STORE = DataStore()
+DATA_STORE: DataStore
+
+
+def InitDataStore(path: pathlib.Path) -> None:
+  global DATA_STORE
+  DATA_STORE = DataStore(path)

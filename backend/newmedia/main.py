@@ -1,16 +1,22 @@
 import argparse
 import asyncio
+import collections
 import logging
 import os
 import pathlib
 
+from typing import cast
+
 from aiohttp import web
 import aiohttp
+from aiojobs.aiohttp import spawn
+import aiojobs.aiohttp
 
 from newmedia import store
 
 PARSER = argparse.ArgumentParser(description='Newmedia backend server.')
 PARSER.add_argument("--port", type=int, default=30000)
+PARSER.add_argument("--db-file", type=pathlib.Path, required=True)
 
 CORS_HEADERS = {
     "Access-Control-Allow-Origin":
@@ -30,36 +36,27 @@ async def AllowCorsHandler(request: web.Request) -> web.Response:
   return web.Response(headers=CORS_HEADERS)
 
 
-WEB_SOCKET_UPDATE_QUEUE = asyncio.Queue()
+async def SendWebSocketData(request: web.Request, data):
+  coros = [cast(web.WebSocketResponse, ws).send_json(data) for ws in request.app["websockets"]]
+  asyncio.gather(*coros)
 
 
 async def WebSocketHandler(request: web.Request) -> web.WebSocketResponse:
-  ws = web.WebSocketResponse()
+  ws = web.WebSocketResponse(heartbeat=5, compress=False)
   await ws.prepare(request)
 
-  async def QueueLoop():
-    while True:
-      item = await WEB_SOCKET_UPDATE_QUEUE.get()
-      await ws.send_json(item)
+  logging.info("Websocket connection opened")
+  request.app["websockets"].add(ws)
 
-  async def ReceiveLoop():
-    async for msg in ws:
-      if msg.type == aiohttp.WSMsgType.TEXT:
-        logging.info("Got text WebSocket message: %s", msg)
-      elif msg.type == aiohttp.WSMsgType.CLOSING:
-        logging.info("WebSocket connection is about to close.")
-      elif msg.type == aiohttp.WSMsgType.ERROR:
-        logging.error('WebSocket connection closed with exception %s' % ws.exception())
+  async for msg in ws:
+    if msg.type == aiohttp.WSMsgType.TEXT:
+      logging.info("Got text WebSocket message: %s", msg)
+    elif msg.type == aiohttp.WSMsgType.CLOSING:
+      logging.info("WebSocket connection is about to close.")
+    elif msg.type == aiohttp.WSMsgType.ERROR:
+      logging.error('WebSocket connection closed with exception %s' % ws.exception())
 
-  done, pending = await asyncio.wait(
-      [
-          asyncio.create_task(QueueLoop()),
-          asyncio.create_task(ReceiveLoop()),
-      ],
-      return_when=asyncio.FIRST_COMPLETED,
-  )
-  for p in pending:
-    p.cancel()
+  request.app["websockets"].remove(ws)
 
   logging.info("WebSocket connection closed.")
   return ws
@@ -78,20 +75,30 @@ async def ScanPathHandler(request: web.Request) -> web.Response:
     for f in files:
       n, ext = os.path.splitext(f)
       if ext.lower() in SUPPORTED_EXTENSIONS:
-        path = pathlib.Path(root) / f
+        path = str(pathlib.Path(root) / f)
         logging.info("Found path: %s", path)
 
+        image_file = await store.DATA_STORE.RegisterFile(path)
         try:
-          image_file = await store.DATA_STORE.RegisterFile(path)
-          await WEB_SOCKET_UPDATE_QUEUE.put({
+          await SendWebSocketData(request, {
               "action": "FILE_REGISTERED",
-              "image": image_file.JsonSummary(),
+              "image": image_file.ToJSON(),
           })
         except store.ImageProcessingError:
-          await WEB_SOCKET_UPDATE_QUEUE.put({
+          await SendWebSocketData(request, {
               "action": "FILE_REGISTRATION_FAILED",
               "path": str(path),
           })
+
+        async def Thumbnail(image_file):
+          image_file = await store.DATA_STORE.UpdateFileThumbnail(image_file.uid)
+          await SendWebSocketData(request, {
+              "action": "THUMBNAIL_UPDATED",
+              "image": image_file.ToJSON(),
+          })
+
+        if not image_file.preview_timestamp:
+          await spawn(request, Thumbnail(image_file))
 
         logging.info("Processing done.")
 
@@ -103,7 +110,7 @@ _CHUNK_LENGTH = 1048576
 
 async def GetImageHandler(request: web.Request) -> web.StreamResponse:
   uid = request.match_info.get("uid")
-  io_stream = await store.DATA_STORE.ReadFile(uid)
+  io_stream = await store.DATA_STORE.ReadFileBlob(uid)
 
   try:
     headers = dict(CORS_HEADERS.items())
@@ -128,6 +135,7 @@ def main():
   logging.basicConfig(level=logging.INFO)
 
   args = PARSER.parse_args()
+  store.InitDataStore(args.db_file)
 
   app = web.Application()
   app.add_routes([
@@ -137,6 +145,8 @@ def main():
       web.post("/scan-path", ScanPathHandler),
       web.get("/images/{uid}", GetImageHandler),
   ])
+  app["websockets"] = set()
+  aiojobs.aiohttp.setup(app)
   web.run_app(app, host="localhost", port=args.port)
 
 
