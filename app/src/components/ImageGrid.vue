@@ -110,6 +110,10 @@ const ImageGrid = Vue.extend({
         return;
       }
 
+      if (event.key === 'p') {
+        STORE.toggleLabelFilter(Label.RED);
+      }
+
       if (event.keyCode === 39) {
         STORE.movePrimarySelection(Direction.RIGHT);
         event.preventDefault();
@@ -135,10 +139,12 @@ const ImageGrid = Vue.extend({
   },
 
   watch: {
-    primarySelectedUid(v:string) {
-      const index = STORE.currentList().items.indexOf(v);
-      const ref = this.$refs['boxes'][index];
-      ref.scrollIntoViewIfNeeded();
+    primarySelectedUid(v?:string) {
+      if (v !== undefined) {
+        const index = STORE.currentList().items.indexOf(v);
+        const ref = this.$refs['boxes'][index];
+        ref.scrollIntoViewIfNeeded();
+      }
     }
   },
 });

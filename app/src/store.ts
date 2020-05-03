@@ -184,6 +184,7 @@ class Store {
     for (let uid in this.state.images) {
       this.ensureItemInCurrentList(uid);
     }
+    this.selectPrimary(undefined);
   }
 
   public toggleLabelFilter(label:Label) {
@@ -201,14 +202,21 @@ class Store {
 
   private ensureItemInCurrentList(uid: string) {
     const mdata = this.state.metadata[uid];
-    if (!this.isMatchingFilterSettings(mdata)) {
-      return;
-    }
 
     const l = this.currentList();
-    if (!l.presenceMap[uid]) {
-      Vue.set(l.presenceMap,uid, true);
-      l.items.push(uid);
+    if (this.isMatchingFilterSettings(mdata)) {
+      if (!l.presenceMap[uid]) {
+        Vue.set(l.presenceMap,uid, true);
+        l.items.push(uid);
+      }
+    } else {
+      if (l.presenceMap[uid]) {
+        Vue.delete(l.presenceMap, uid);
+        l.items.splice(l.items.indexOf(uid), 1);
+      }
+      if (this.state.selection.primary === uid) {
+        this.selectPrimary(undefined);
+      }
     }
   }
 
