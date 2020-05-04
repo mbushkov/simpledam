@@ -17,6 +17,10 @@ class ApiService {
       // console.log(r);
     });
   }
+
+  thumbnailUrl(uid:string) {
+    return this.ROOT + '/images/' + uid;
+  }
 }
 
 export const API_SERVICE = new ApiService();

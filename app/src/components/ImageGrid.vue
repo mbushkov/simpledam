@@ -10,6 +10,7 @@
         v-bind:class="{ selected: image.uid === primarySelectedUid }"
         v-bind:style="imageBoxStyle" 
 
+        v-on:dragstart="dragStarted(image.uid, $event)"
         v-on:click="clicked(image.uid)">
         <div class="nested">
           <img v-if="image.file.preview_timestamp"
@@ -28,6 +29,10 @@
 import Vue from 'vue';
 import { API_SERVICE } from '@/api';
 import { ImageFile, STORE, Label, Direction, ImageMetadata } from '@/store'; // eslint-disable-line no-unused-vars
+
+// Otherwise it will try to import it from Webpack or whatever you use.
+// https://github.com/electron/electron/issues/7300
+const { ipcRenderer } = window.require("electron");
 
 const LABELS_MAP: {[key: string]: Label} = {
   '0': Label.NONE,
@@ -131,6 +136,11 @@ const ImageGrid = Vue.extend({
         event.preventDefault();
         return;
       }
+    },
+
+    dragStarted(uid:string, event: DragEvent) {
+      event.preventDefault();
+      ipcRenderer.send('ondragstart', STORE.state.images[uid].path, API_SERVICE.thumbnailUrl(uid));
     },
 
     handleResize: function() {

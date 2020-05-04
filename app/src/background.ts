@@ -1,10 +1,11 @@
 'use strict'
 
-import { app, protocol, BrowserWindow } from 'electron'
+import { app, protocol, ipcMain, nativeImage, BrowserWindow } from 'electron'
 import {
   createProtocol, installVueDevtools,
   /* installVueDevtools */
 } from 'vue-cli-plugin-electron-builder/lib'
+import axios, { AxiosResponse } from 'axios';
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -17,7 +18,8 @@ protocol.registerSchemesAsPrivileged([{scheme: 'app', privileges: { secure: true
 function createWindow () {
   // Create the browser window.
   win = new BrowserWindow({ width: 1024, height: 768, webPreferences: {
-    nodeIntegration: false
+    // TODO: try turning this off.
+    nodeIntegration: true
   } })
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
@@ -72,6 +74,15 @@ app.on('ready', async () => {
   }
   createWindow()
 })
+
+ipcMain.on('ondragstart', (event, filePath, url) => {
+  axios.get(url, {responseType: "arraybuffer"}).then((r: AxiosResponse) => {
+    event.sender.startDrag({
+      file: filePath,
+      icon: nativeImage.createFromBuffer(r.data),
+    });
+  })
+});
 
 // Exit cleanly on request from parent process in development mode.
 if (isDevelopment) {
