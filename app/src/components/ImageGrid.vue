@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="host">
     <div>Images ({{ imageList.length }}):</div>
 
     <div class="container">
@@ -24,6 +24,53 @@
     </div>
   </div>
 </template>
+
+<style scoped lang="scss">
+.host {
+  overflow: scroll;
+  background-color: #454545;
+}
+
+.container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+
+  .image-box.selected {
+    background-color: gray;
+  }
+
+  .image-box {
+    position: relative;
+
+    .nested {
+      position: absolute;
+      left: 5px;
+      right: 5px;
+      top: 5px;
+      bottom: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      
+      img {
+        display: block;
+        max-width: 100%;
+        max-height: 100%;
+      }
+    }
+
+    .title {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 30px;
+    }
+  }
+}
+</style>
 
 <script lang="ts">
 import Vue from 'vue';
@@ -163,44 +210,3 @@ const ImageGrid = Vue.extend({
 export default ImageGrid;
 </script>
 
-<style scoped lang="scss">
-.container {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-
-  .image-box.selected {
-    background-color: gray;
-  }
-
-  .image-box {
-    position: relative;
-
-    .nested {
-      position: absolute;
-      left: 5px;
-      right: 5px;
-      top: 5px;
-      bottom: 30px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      
-      img {
-        display: block;
-        max-width: 100%;
-        max-height: 100%;
-      }
-    }
-
-    .title {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 30px;
-    }
-  }
-}
-</style>
