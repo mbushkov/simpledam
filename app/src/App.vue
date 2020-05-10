@@ -8,7 +8,79 @@
 </template>
 
 <style lang="scss">
-$background-color: #282828;
+@import "./styles/variables";
+
+// Import Bulma's core
+@import "~bulma/sass/utilities/_all";
+
+// Set your colors
+$primary: #8c67ef;
+$primary-invert: findColorInvert($primary);
+$twitter: #4099FF;
+$twitter-invert: findColorInvert($twitter);
+$text: #d2d2d2;
+
+// Labels
+$label-none: #ffffff;
+$label-none-invert: findColorInvert($label-none);
+$label-red: #f00000;
+$label-red-invert: findColorInvert($label-red);
+$label-green: #008000;
+$label-green-invert: findColorInvert($label-green);
+$label-blue: #0000f0;
+$label-blue-invert: findColorInvert($label-blue);
+$label-brown: #804000;
+$label-brown-invert: findColorInvert($label-brown);
+$label-magenta: #f000f0;
+$label-magenta-invert: findColorInvert($label-magenta);
+$label-orange: #f08020;
+$label-orange-invert: findColorInvert($label-orange);
+$label-yellow: #f0f000;
+$label-yellow-invert: findColorInvert($label-yellow);
+$label-cyan: #00f0f0;
+$label-cyan-invert: findColorInvert($label-cyan);
+$label-gray: #808080;
+$label-gray-invert: findColorInvert($label-gray);
+
+$label-selected: #ff8a0d;
+$label-selected-invert: findColorInvert($label-selected);
+
+// Setup $colors to use as bulma classes (e.g. 'is-twitter')
+$colors: (
+    "white": ($white, $black),
+    "black": ($black, $white),
+    "light": ($light, $light-invert),
+    "dark": ($dark, $dark-invert),
+    "primary": ($primary, $primary-invert),
+    "info": ($info, $info-invert),
+    "success": ($success, $success-invert),
+    "warning": ($warning, $warning-invert),
+    "danger": ($danger, $danger-invert),
+    "twitter": ($twitter, $twitter-invert),
+
+    "label-none": ($label-none, $label-none-invert),
+    "label-red": ($label-red, $label-red-invert),
+    "label-green": ($label-green, $label-green-invert),
+    "label-blue": ($label-blue, $label-blue-invert),
+    "label-brown": ($label-brown, $label-brown-invert),
+    "label-magenta": ($label-magenta, $label-magenta-invert),
+    "label-orange": ($label-orange, $label-orange-invert),
+    "label-yellow": ($label-yellow, $label-yellow-invert),
+    "label-cyan": ($label-cyan, $label-cyan-invert),
+    "label-gray": ($label-gray, $label-gray-invert),
+
+    "label-selected": ($label-selected, $label-selected-invert),
+);
+
+// Links
+$link: $primary;
+$link-invert: $primary-invert;
+$link-focus-border: $primary;
+
+// Import Bulma and Buefy styles
+@import "~bulma";
+@import "~buefy/src/scss/buefy";
+
 </style>
 
 <style lang="scss" scoped>

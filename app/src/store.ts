@@ -157,6 +157,11 @@ class Store {
     }
   }
 
+  public numItemsMatchingFilter(filterSettings: FilterSettings): number {
+    const invariant = filterSettingsInvariant(filterSettings);
+    return this.state.lists[invariant]?.items.length ?? 0;
+  }
+
   public labelSelection(label:Label) {
     if (!this.state.selection.primary) {
       return;

@@ -3,7 +3,8 @@ import Vuex from 'vuex';
 import VueRx from 'vue-rx';
 import VueCompositionApi from '@vue/composition-api';
 import Buefy from 'buefy'
-import 'buefy/dist/buefy.css'
+
+import '@mdi/font/css/materialdesignicons.css'
 
 import App from './App.vue'
 
