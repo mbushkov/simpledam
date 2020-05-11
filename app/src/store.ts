@@ -119,13 +119,17 @@ class Store {
   ).subscribe();
 
   public currentList(): ImageList {
-    let list = this.state.lists[this.state.filtersInvariant];
+    return this.listForFilterSettingsInvariant(this.state.filtersInvariant);
+  }
+
+  public listForFilterSettingsInvariant(invariant: string): ImageList {
+    let list = this.state.lists[invariant];
     if (list === undefined) {
       list = {
         presenceMap: {},
         items: [],
       };
-      Vue.set(this.state.lists,this.state.filtersInvariant, list);
+      Vue.set(this.state.lists, invariant, list);
     }
     return list;
   }
@@ -168,8 +172,20 @@ class Store {
     }
 
     for (let sel of Object.keys(this.state.selection.additional).concat(this.state.selection.primary)) {
+      const prevLabel = this.state.metadata[sel].label;
       Vue.set(this.state.metadata[sel], 'label', label);
-      this.ensureItemInCurrentList(sel);
+      
+      if (prevLabel !== label) {
+        this.ensureItemInCurrentList(sel);
+        this.ensureItemInList(sel, filterSettingsInvariant({
+          selectedLabels: [label],
+          selectedStarRatings: [],
+        }));
+        this.removeItemFromList(sel, filterSettingsInvariant({
+          selectedLabels: [prevLabel],
+          selectedStarRatings: [],
+        }));
+      }
     }
   }
 
@@ -205,10 +221,19 @@ class Store {
     return matchesLabel && matchesStarRating;
   }
 
-  private ensureItemInCurrentList(uid: string) {
+  private removeItemFromList(uid: string, invariant:string) {
+    const l = this.listForFilterSettingsInvariant(invariant);
+    const li = l.items.indexOf(uid);
+    if (li !== -1) {
+      l.items.splice(li, 1);
+      Vue.delete(l.presenceMap, uid);
+    }
+  }
+
+  private ensureItemInList(uid: string, invariant: string) {
     const mdata = this.state.metadata[uid];
 
-    const l = this.currentList();
+    const l = this.listForFilterSettingsInvariant(invariant);
     if (this.isMatchingFilterSettings(mdata)) {
       if (!l.presenceMap[uid]) {
         Vue.set(l.presenceMap,uid, true);
@@ -223,6 +248,10 @@ class Store {
         this.selectPrimary(undefined);
       }
     }
+  }
+
+  private ensureItemInCurrentList(uid: string) {
+    this.ensureItemInList(uid, this.state.filtersInvariant);
   }
 
   private registerImage(imageFile: ImageFile) {
