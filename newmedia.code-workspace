@@ -15,6 +15,12 @@
 			"**/package-lock.json": true
 		},
 		"vetur.format.defaultFormatter.ts": "vscode-typescript",
-		"python.linting.mypyEnabled": true
+		"python.linting.mypyEnabled": true,
+		"files.exclude": {
+			"**/__pycache__": true,
+			"**/.mypy_cache": true,
+			"**/*.egg-info": true,
+			"**/node_modules": true
+		}
 	}
 }
