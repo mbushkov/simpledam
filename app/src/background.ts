@@ -27,7 +27,6 @@ async function startBackendProcess(): Promise<{ backend: ChildProcessWithoutNull
       binaryPath = path.join(path.dirname(app.getAppPath()), '..', 'Resources', 'bin', 'backend', 'backend');
     }
     const backend = spawn(binaryPath, []);
-    backend.stdin.pipe(process.stdout);
 
     let portLine: string | undefined = undefined;
     backend.stdout.on('data', (data: any) => {
@@ -78,7 +77,8 @@ async function createWindow() {
 
   win.on('closed', () => {
     win = null
-    backend.kill()
+    console.log('[BACKEND]: Killing on windows close.')
+    backend.kill('SIGKILL');
   })
 }
 
@@ -136,10 +136,11 @@ if (isDevelopment) {
       if (data === 'graceful-exit') {
         app.quit()
       }
-    })
+    });
   } else {
     process.on('SIGTERM', () => {
+      console.log('Got SIGTERM');
       app.quit()
-    })
+    });
   }
 }

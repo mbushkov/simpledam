@@ -5,6 +5,7 @@ import logging
 import os
 import pathlib
 import portpicker
+import signal
 import sys
 import threading
 
@@ -58,6 +59,9 @@ async def WebSocketHandler(request: web.Request) -> web.WebSocketResponse:
       logging.info("WebSocket connection is about to close.")
     elif msg.type == aiohttp.WSMsgType.ERROR:
       logging.error('WebSocket connection closed with exception %s' % ws.exception())
+    elif msg.type == aiohttp.WSMsgType.CLOSED:
+      logging.info("WebSocket connection closed exiting.")
+      sys.exit(0)
 
   request.app["websockets"].remove(ws)
 
@@ -134,21 +138,12 @@ async def GetImageHandler(request: web.Request) -> web.StreamResponse:
   return response
 
 
-# StdinReadThread keeps reading from stdin. This ensures we're going to
-# die if the parent process dies.
-def StdinReadThread():
-  try:
-    while True:
-      sys.stdin.read(1024)
-  except IOError:
-    sys.exit(-1)
-
-
 def main():
-  logging.basicConfig(level=logging.INFO)
+  signal.signal(signal.SIGINT, lambda: sys.exit(-1))
+  signal.signal(signal.SIGTERM, lambda: sys.exit(-1))
+  signal.signal(signal.SIGHUP, lambda: sys.exit(-1))
 
-  t = threading.Thread(name="stdin_reader", daemon=True, target=StdinReadThread)
-  t.start()
+  logging.basicConfig(level=logging.INFO)
 
   args = PARSER.parse_args()
   store.InitDataStore(args.db_file)
@@ -167,7 +162,7 @@ def main():
   port = args.port or portpicker.pick_unused_port()
   sys.stdout.write("%d\n" % port)
   sys.stdout.flush()
-  web.run_app(app, host="localhost", port=port)
+  web.run_app(app, host="localhost", port=port, handle_signals=False)
 
 
 if __name__ == '__main__':

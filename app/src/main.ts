@@ -9,8 +9,8 @@ import '@mdi/font/css/materialdesignicons.css'
 import App from './App.vue'
 
 const webFrame = window.require('electron').webFrame;
+webFrame.setZoomFactor(1);
 webFrame.setVisualZoomLevelLimits(1, 1);
-webFrame.setLayoutZoomLevelLimits(0, 0);
 
 Vue.use(Buefy)
 Vue.use(Vuex);
