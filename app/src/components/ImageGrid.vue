@@ -1,25 +1,30 @@
 <template>
-  <div class="host">
+  <div
+    class="host"
+    @dragenter.prevent="containerDragEntered($event)"
+    @dragover.prevent="containerDraggedOver($event)"
+    @drop="containerDropped($event)"
+  >
     <div>Images ({{ imageList.length }}):</div>
 
     <div class="container">
-      <div v-for="image in imageList" ref="boxes"
-        class="image-box" 
-
-        :key="`${image.uid}|${image.file.preview_timestamp}`" 
+      <div
+        v-for="image in imageList"
+        ref="boxes"
+        class="image-box"
+        :key="`${image.uid}|${image.file.preview_timestamp}`"
         v-bind:class="{ selected: image.uid === primarySelectedUid, 'additional-selected': !!additionalSelectedUids[image.uid] }"
-        v-bind:style="imageBoxStyle" 
-
+        v-bind:style="imageBoxStyle"
         v-on:dragstart="dragStarted(image.uid, $event)"
-        v-on:click="clicked(image.uid, $event)">
+        v-on:click="clicked(image.uid, $event)"
+      >
         <div class="nested">
-          <img v-if="image.file.preview_timestamp"
+          <img
+            v-if="image.file.preview_timestamp"
             :src="'http://127.0.0.1:' + port + '/images/' + image.uid"
           />
         </div>
-        <div class="title">
-          {{ image.file.path | filename }} {{ image.metadata.label }}
-        </div>
+        <div class="title">{{ image.file.path | filename }} {{ image.metadata.label }}</div>
       </div>
     </div>
   </div>
@@ -60,7 +65,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      
+
       img {
         display: block;
         max-width: 100%;
@@ -93,7 +98,7 @@ import { ImageFile, STORE, Label, Direction, ImageMetadata } from '@/store'; // 
 // https://github.com/electron/electron/issues/7300
 const { ipcRenderer } = window.require("electron");
 
-const LABELS_MAP: {[key: string]: Label} = {
+const LABELS_MAP: { [key: string]: Label } = {
   '0': Label.NONE,
   '1': Label.RED,
   '2': Label.GREEN,
@@ -128,8 +133,6 @@ const ImageGrid = Vue.extend({
   },
 
   mounted() {
-    API_SERVICE.fetchRoot();
-
     window.addEventListener('keydown', this.keyPressed);
     window.addEventListener('resize', this.handleResize)
 
@@ -142,7 +145,7 @@ const ImageGrid = Vue.extend({
   },
 
   computed: {
-    imageBoxStyle(): {[key: string]: string} {
+    imageBoxStyle(): { [key: string]: string } {
       return {
         'width': `${this.maxSize}px`,
         'height': `${this.maxSize}px`,
@@ -172,6 +175,25 @@ const ImageGrid = Vue.extend({
   },
 
   methods: {
+    containerDragEntered() {
+      // for (let i = 0; i < event.dataTransfer.files.length; ++i) {
+      //   console.log(['drag enter', event.dataTransfer.files.item(i).path, event.dataTransfer.files.item(i).type]);
+      // }
+    },
+
+    containerDraggedOver() {
+    },
+
+    containerDropped(event: DragEvent) {
+      if (!event?.dataTransfer?.files) {
+        return;
+      }
+
+      for (let i = 0; i < event.dataTransfer.files.length; ++i) {
+        API_SERVICE.scanPath(event.dataTransfer.files.item(i)!.path);
+      }
+    },
+
     clicked(uid: string, event: MouseEvent) {
       if (event.metaKey) {
         STORE.toggleAdditionalSelection(uid);
@@ -224,16 +246,16 @@ const ImageGrid = Vue.extend({
       }
     },
 
-    dragStarted(uid:string, event: DragEvent) {
+    dragStarted(uid: string, event: DragEvent) {
       event.preventDefault();
       ipcRenderer.send('ondragstart', STORE.state.images[uid].path, API_SERVICE.thumbnailUrl(uid));
     },
 
-    handleResize: function() {
+    handleResize: function () {
       STORE.updateColumnCount(Math.floor(this.$el.clientWidth / this.maxSize));
     },
 
-    scrollIntoView: function(uid:string) {
+    scrollIntoView: function (uid: string) {
       const index = STORE.currentList().items.indexOf(uid);
       const ref = this.$refs['boxes'][index];
       ref.scrollIntoViewIfNeeded();
@@ -241,7 +263,7 @@ const ImageGrid = Vue.extend({
   },
 
   watch: {
-    lastTouchedUid(v?:string) {
+    lastTouchedUid(v?: string) {
       if (v !== undefined) {
         this.scrollIntoView(v);
       }

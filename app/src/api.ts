@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {webSocket} from 'rxjs/webSocket';
+import { webSocket } from 'rxjs/webSocket';
 
 const GLOBAL_URL_PARAMS = new URLSearchParams(window.location.search);
 export const PORT = Number(GLOBAL_URL_PARAMS.get('port'));
@@ -15,15 +15,21 @@ class ApiService {
     // console.log('Got WebSocket data', i);
   });
 
-  fetchRoot() {
-    // axios.post(this.ROOT + '/scan-path', {path: '/Volumes/Somme/Temp/for_lukasz_large_selection'}).then(r => {
-    // axios.post(this.ROOT + '/scan-path', {path: '/Volumes/Somme/Temp/clavarino_print'}).then(r => {
-    axios.post(this.ROOT + '/scan-path', {path: '/Users/bushman/Downloads/test print 2'}).then(r => {
-      // console.log(r);
+  scanPath(path: string) {
+    axios.post(this.ROOT + '/scan-path', { path }).then(r => {
+      console.log(r);
     });
   }
 
-  thumbnailUrl(uid:string) {
+  // fetchRoot() {
+  // axios.post(this.ROOT + '/scan-path', {path: '/Volumes/Somme/Temp/for_lukasz_large_selection'}).then(r => {
+  // axios.post(this.ROOT + '/scan-path', {path: '/Volumes/Somme/Temp/clavarino_print'}).then(r => {
+  // axios.post(this.ROOT + '/scan-path', {path: '/Users/bushman/Downloads/test print 2'}).then(r => {
+  // console.log(r);
+  // });
+  // }
+
+  thumbnailUrl(uid: string) {
     return this.ROOT + '/images/' + uid;
   }
 }

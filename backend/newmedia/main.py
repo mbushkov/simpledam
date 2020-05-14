@@ -72,42 +72,48 @@ async def WebSocketHandler(request: web.Request) -> web.WebSocketResponse:
 SUPPORTED_EXTENSIONS = frozenset([".jpg", ".jpeg", ".tif"])
 
 
+async def ScanFile(path: str, request: web.Request):
+  image_file = await store.DATA_STORE.RegisterFile(path)
+  try:
+    await SendWebSocketData(request, {
+        "action": "FILE_REGISTERED",
+        "image": image_file.ToJSON(),
+    })
+  except store.ImageProcessingError:
+    await SendWebSocketData(request, {
+        "action": "FILE_REGISTRATION_FAILED",
+        "path": str(path),
+    })
+
+  async def Thumbnail(image_file):
+    image_file = await store.DATA_STORE.UpdateFileThumbnail(image_file.uid)
+    await SendWebSocketData(request, {
+        "action": "THUMBNAIL_UPDATED",
+        "image": image_file.ToJSON(),
+    })
+
+  if not image_file.preview_timestamp:
+    await spawn(request, Thumbnail(image_file))
+
+
 async def ScanPathHandler(request: web.Request) -> web.Response:
   data = await request.json()
   path: str = data["path"]
 
   logging.info("Scanning path: %s", path)
 
-  for root, dirs, files in os.walk(path):
-    for f in files:
-      n, ext = os.path.splitext(f)
-      if ext.lower() in SUPPORTED_EXTENSIONS:
-        path = str(pathlib.Path(root) / f)
-        logging.info("Found path: %s", path)
-
-        image_file = await store.DATA_STORE.RegisterFile(path)
-        try:
-          await SendWebSocketData(request, {
-              "action": "FILE_REGISTERED",
-              "image": image_file.ToJSON(),
-          })
-        except store.ImageProcessingError:
-          await SendWebSocketData(request, {
-              "action": "FILE_REGISTRATION_FAILED",
-              "path": str(path),
-          })
-
-        async def Thumbnail(image_file):
-          image_file = await store.DATA_STORE.UpdateFileThumbnail(image_file.uid)
-          await SendWebSocketData(request, {
-              "action": "THUMBNAIL_UPDATED",
-              "image": image_file.ToJSON(),
-          })
-
-        if not image_file.preview_timestamp:
-          await spawn(request, Thumbnail(image_file))
-
-        logging.info("Processing done.")
+  if os.path.isdir(path):
+    for root, dirs, files in os.walk(path):
+      for f in files:
+        n, ext = os.path.splitext(f)
+        if ext.lower() in SUPPORTED_EXTENSIONS:
+          path = str(pathlib.Path(root) / f)
+          logging.info("Found path: %s", path)
+          await ScanFile(path, request)
+          logging.info("Processing done.")
+  elif os.path.isfile(path):
+    logging.info("Scan file: %s", path)
+    await ScanFile(path, request)
 
   return web.Response(text="ok", content_type="text", headers=CORS_HEADERS)
 

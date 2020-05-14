@@ -13,6 +13,9 @@
 		"[typescript]": {
 			"editor.formatOnSave": true
 		},
+		"[vue]": {
+			"editor.formatOnSave": true
+		},
 		"search.exclude": {
 			".venv3": true,
 			"**/package-lock.json": true
