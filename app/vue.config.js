@@ -8,7 +8,7 @@ module.exports = {
         extraFiles: [
           {
             from: '../backend/dist/backend',
-            to: 'Resouces/bin/backend',
+            to: 'Resources/bin/backend',
             filter: ['**/*'],
           }
         ],

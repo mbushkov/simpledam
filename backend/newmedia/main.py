@@ -6,6 +6,7 @@ import os
 import pathlib
 import portpicker
 import sys
+import threading
 
 from typing import cast
 
@@ -133,8 +134,21 @@ async def GetImageHandler(request: web.Request) -> web.StreamResponse:
   return response
 
 
+# StdinReadThread keeps reading from stdin. This ensures we're going to
+# die if the parent process dies.
+def StdinReadThread():
+  try:
+    while True:
+      sys.stdin.read(1024)
+  except IOError:
+    sys.exit(-1)
+
+
 def main():
   logging.basicConfig(level=logging.INFO)
+
+  t = threading.Thread(name="stdin_reader", daemon=True, target=StdinReadThread)
+  t.start()
 
   args = PARSER.parse_args()
   store.InitDataStore(args.db_file)

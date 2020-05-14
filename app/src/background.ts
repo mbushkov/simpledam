@@ -1,39 +1,41 @@
 'use strict'
 
+import path from 'path';
 import { app, protocol, ipcMain, nativeImage, BrowserWindow } from 'electron'
 import {
   createProtocol, installVueDevtools,
   /* installVueDevtools */
 } from 'vue-cli-plugin-electron-builder/lib'
 import axios, { AxiosResponse } from 'axios';
-import {ChildProcessWithoutNullStreams, spawn} from 'child_process';
+import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let win: BrowserWindow|null;
+let win: BrowserWindow | null;
 
 // Scheme must be registered before the app is ready
-protocol.registerSchemesAsPrivileged([{scheme: 'app', privileges: { secure: true, standard: true } }])
+protocol.registerSchemesAsPrivileged([{ scheme: 'app', privileges: { secure: true, standard: true } }])
 
-async function startBackendProcess(): Promise<{backend: ChildProcessWithoutNullStreams, port: number}> {
-  return new Promise<{backend: ChildProcessWithoutNullStreams, port: number}>((resolve, reject) => {
-    let backend: ChildProcessWithoutNullStreams;
+async function startBackendProcess(): Promise<{ backend: ChildProcessWithoutNullStreams, port: number }> {
+  return new Promise<{ backend: ChildProcessWithoutNullStreams, port: number }>((resolve, reject) => {
+    let binaryPath: string;
     if (isDevelopment) {
-      backend = spawn('newmedia_backend', []);
+      binaryPath = 'newmedia_backend';
     } else {
-      throw new Error('Not implemented');
-      // backend = 
+      binaryPath = path.join(path.dirname(app.getAppPath()), '..', 'Resources', 'bin', 'backend', 'backend');
     }
-    
-    let portLine: string|undefined = undefined;
-    backend.stdout.on('data', (data:any) => {
+    const backend = spawn(binaryPath, []);
+    backend.stdin.pipe(process.stdout);
+
+    let portLine: string | undefined = undefined;
+    backend.stdout.on('data', (data: any) => {
       console.log(`[BACKEND] stdout: ${data}`);
 
       if (!portLine) {
         portLine = (data.toString() as string).split('\n')[0];
-        resolve({backend, port: Number(portLine)});
+        resolve({ backend, port: Number(portLine) });
       }
     });
 
@@ -48,22 +50,22 @@ async function startBackendProcess(): Promise<{backend: ChildProcessWithoutNullS
   });
 }
 
-async function createWindow () {
+async function createWindow() {
   console.log('[BACKEND] Starting process...');
-  const {backend, port} = await startBackendProcess();
+  const { backend, port } = await startBackendProcess();
   console.log(`[BACKEND] Process started (pid=${backend.pid}, port=${port})`);
 
   // Create the browser window.
-  win = new BrowserWindow({ 
+  win = new BrowserWindow({
     title: 'New Media (pre-alpha)',
-    width: 1024, 
-    height: 768, 
+    width: 1024,
+    height: 768,
     webPreferences: {
       // TODO: try turning this off.
       nodeIntegration: true
     }
   });
- 
+
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
     win.loadURL(process.env.WEBPACK_DEV_SERVER_URL + '?port=' + port.toString())
@@ -119,7 +121,7 @@ app.on('ready', async () => {
 })
 
 ipcMain.on('ondragstart', (event, filePath, url) => {
-  axios.get(url, {responseType: "arraybuffer"}).then((r: AxiosResponse) => {
+  axios.get(url, { responseType: "arraybuffer" }).then((r: AxiosResponse) => {
     event.sender.startDrag({
       file: filePath,
       icon: nativeImage.createFromBuffer(r.data),
