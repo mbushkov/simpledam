@@ -7,11 +7,11 @@
         class="image-box" 
 
         :key="`${image.uid}|${image.file.preview_timestamp}`" 
-        v-bind:class="{ selected: image.uid === primarySelectedUid }"
+        v-bind:class="{ selected: image.uid === primarySelectedUid, 'additional-selected': !!additionalSelectedUids[image.uid] }"
         v-bind:style="imageBoxStyle" 
 
         v-on:dragstart="dragStarted(image.uid, $event)"
-        v-on:click="clicked(image.uid)">
+        v-on:click="clicked(image.uid, $event)">
         <div class="nested">
           <img v-if="image.file.preview_timestamp"
             :src="'http://127.0.0.1:30000/images/' + image.uid"
@@ -26,6 +26,7 @@
 </template>
 
 <style scoped lang="scss">
+@import '../styles/variables';
 .host {
   overflow: scroll;
   background-color: #454545;
@@ -36,12 +37,18 @@
   flex-direction: row;
   flex-wrap: wrap;
 
-  .image-box.selected {
-    background-color: gray;
-  }
-
   .image-box {
     position: relative;
+
+    border: 1px solid #454545;
+
+    &.selected {
+      border: 1px solid white;
+    }
+
+    &.additional-selected {
+      border: 1px solid yellow;
+    }
 
     .nested {
       position: absolute;
@@ -67,6 +74,11 @@
       left: 0;
       right: 0;
       height: 30px;
+
+      color: $nm-text-color;
+      font-size: 13px;
+      line-height: 1;
+      font-weight: normal;
     }
   }
 }
@@ -147,12 +159,26 @@ const ImageGrid = Vue.extend({
 
     primarySelectedUid() {
       return STORE.state.selection.primary;
+    },
+
+    additionalSelectedUids() {
+      return STORE.state.selection.additional;
+    },
+
+    lastTouchedUid() {
+      return STORE.state.selection.lastTouched;
     }
   },
 
   methods: {
-    clicked(uid: string) {
-      STORE.selectPrimary(uid);
+    clicked(uid: string, event: MouseEvent) {
+      if (event.metaKey) {
+        STORE.toggleAdditionalSelection(uid);
+      } else if (event.shiftKey) {
+        STORE.selectRange(uid);
+      } else {
+        STORE.selectPrimary(uid);
+      }
     },
 
     keyPressed(event: KeyboardEvent) {
@@ -163,19 +189,35 @@ const ImageGrid = Vue.extend({
       }
 
       if (event.keyCode === 39) {
-        STORE.movePrimarySelection(Direction.RIGHT);
+        if (event.shiftKey) {
+          STORE.moveAdditionalSelection(Direction.RIGHT);
+        } else {
+          STORE.movePrimarySelection(Direction.RIGHT);
+        }
         event.preventDefault();
         return;
       } else if (event.keyCode === 37) {
-        STORE.movePrimarySelection(Direction.LEFT);
+        if (event.shiftKey) {
+          STORE.moveAdditionalSelection(Direction.LEFT);
+        } else {
+          STORE.movePrimarySelection(Direction.LEFT);
+        }
         event.preventDefault();
         return;
       } else if (event.keyCode === 38) {
-        STORE.movePrimarySelection(Direction.UP);
+        if (event.shiftKey) {
+          STORE.moveAdditionalSelection(Direction.UP);
+        } else {
+          STORE.movePrimarySelection(Direction.UP);
+        }
         event.preventDefault();
         return;
       } else if (event.keyCode === 40) {
-        STORE.movePrimarySelection(Direction.DOWN);
+        if (event.shiftKey) {
+          STORE.moveAdditionalSelection(Direction.DOWN);
+        } else {
+          STORE.movePrimarySelection(Direction.DOWN);
+        }
         event.preventDefault();
         return;
       }
@@ -189,16 +231,20 @@ const ImageGrid = Vue.extend({
     handleResize: function() {
       STORE.updateColumnCount(Math.floor(this.$el.clientWidth / this.maxSize));
     },
+
+    scrollIntoView: function(uid:string) {
+      const index = STORE.currentList().items.indexOf(uid);
+      const ref = this.$refs['boxes'][index];
+      ref.scrollIntoViewIfNeeded();
+    }
   },
 
   watch: {
-    primarySelectedUid(v?:string) {
+    lastTouchedUid(v?:string) {
       if (v !== undefined) {
-        const index = STORE.currentList().items.indexOf(v);
-        const ref = this.$refs['boxes'][index];
-        ref.scrollIntoViewIfNeeded();
+        this.scrollIntoView(v);
       }
-    }
+    },
   },
 });
 

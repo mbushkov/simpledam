@@ -65,7 +65,8 @@ function filterSettingsInvariant(fs: FilterSettings): string {
 }
 
 export declare interface Selection {
-  primary?: string;
+  primary: string|undefined;
+  lastTouched: string|undefined;
   additional: { [key: string]: boolean };
 }
 
@@ -98,6 +99,8 @@ class Store {
 
     columnCount: 1,
     selection: {
+      primary: undefined,
+      lastTouched: undefined,
       additional: {},
     },
 
@@ -135,8 +138,77 @@ class Store {
   }
 
   public selectPrimary(uid?: string) {
-    Vue.set(this.state.selection, 'primary', uid);
+    this.state.selection.lastTouched = uid;
+
+    if (this.state.selection.primary !== uid) {
+      this.state.selection.primary = uid;
+      this.state.selection.additional = {};
+    }
   }
+
+  public toggleAdditionalSelection(uid: string) {
+    this.state.selection.lastTouched = uid;
+
+    if (this.state.selection.primary === uid) {
+      let newPrimary = undefined;
+      const aKeys = Object.keys(this.state.selection.additional);
+      if (aKeys.length > 0) {
+        newPrimary = aKeys[0];
+        Vue.delete(this.state.selection.additional, newPrimary);
+      }
+      this.state.selection.primary = newPrimary;
+    } else {
+      if (this.state.selection.primary === undefined) {
+        this.selectPrimary(uid);
+        return;
+      }
+
+      if (this.state.selection.additional[uid]) {
+        Vue.delete(this.state.selection.additional, uid);
+      } else {
+        Vue.set(this.state.selection.additional, uid, true);
+      }
+    }
+  }
+
+  public selectRange(uid: string) {
+    if (!this.state.selection.primary) {
+      return;
+    }
+
+    const l = this.currentList();
+    const primaryIndex = l.items.indexOf(this.state.selection.primary);
+    const newIndex = l.items.indexOf(uid);
+    
+    this.state.selection.additional = {};
+    for (let i = Math.min(primaryIndex, newIndex); i <= Math.max(primaryIndex, newIndex); ++i) {
+      if (i === primaryIndex) {
+        continue;
+      }
+      Vue.set(this.state.selection.additional, l.items[i], true);
+    }
+
+    this.state.selection.lastTouched = uid;
+  }
+
+  private findIndexInDirection(curIndex: number, columnCount: number, length: number, direction: Direction): number|undefined {
+    if (direction === Direction.RIGHT) {
+      if (curIndex < length) {
+        return curIndex + 1;
+      }
+    } else if (direction === Direction.LEFT) {
+      if (curIndex > 0) {
+        return curIndex - 1;
+      }
+    } else if (direction == Direction.DOWN) {
+      return Math.min(curIndex + columnCount, length - 1);
+    } else if (direction == Direction.UP) {
+      return Math.max(curIndex - columnCount, 0);
+    }    
+
+    return undefined;
+  }
+  
 
   public movePrimarySelection(direction: Direction) {
     if (!this.state.selection.primary) {
@@ -145,20 +217,47 @@ class Store {
 
     const l = this.currentList();
     const curIndex = l.items.indexOf(this.state.selection.primary);
-
-    if (direction === Direction.RIGHT) {
-      if (curIndex < l.items.length) {
-        this.selectPrimary(l.items[curIndex + 1]);
-      }
-    } else if (direction === Direction.LEFT) {
-      if (curIndex > 0) {
-        this.selectPrimary(l.items[curIndex - 1]);
-      }
-    } else if (direction == Direction.DOWN) {
-      this.selectPrimary(l.items[Math.min(curIndex + this.state.columnCount, l.items.length - 1)]);
-    } else if (direction == Direction.UP) {
-      this.selectPrimary(l.items[Math.max(curIndex - this.state.columnCount, 0)]);
+    const nextIndex = this.findIndexInDirection(curIndex, this.state.columnCount, l.items.length, direction);
+    if (nextIndex !== undefined) {
+      this.selectPrimary(l.items[nextIndex]);
     }
+  }
+
+  public moveAdditionalSelection(direction: Direction) {
+    if (!this.state.selection.primary) {
+      return;
+    }
+
+    const l = this.currentList();
+    const primaryIndex = l.items.indexOf(this.state.selection.primary);
+    const curIndex = l.items.indexOf(this.state.selection.lastTouched || this.state.selection.primary);
+    const nextIndex = this.findIndexInDirection(curIndex, this.state.columnCount, l.items.length, direction);
+    if (nextIndex === undefined) {
+      return;
+    }
+
+    for (let i = Math.min(primaryIndex, curIndex, nextIndex); i <= Math.max(primaryIndex, curIndex, nextIndex); ++i) {
+      if (i === primaryIndex) {
+        continue;
+      }
+
+      if (nextIndex < primaryIndex) {
+        if (i < nextIndex) {
+          Vue.delete(this.state.selection.additional, l.items[i]);
+        } else {
+          Vue.set(this.state.selection.additional, l.items[i], true);
+        }
+      } else if (nextIndex > primaryIndex) {
+        if (i > nextIndex) {
+          Vue.delete(this.state.selection.additional, l.items[i]);
+        } else {
+          Vue.set(this.state.selection.additional, l.items[i], true);
+        }
+      } else {
+        Vue.delete(this.state.selection.additional, l.items[i]);
+      }
+    }
+    this.state.selection.lastTouched = l.items[nextIndex];
   }
 
   public numItemsMatchingFilter(filterSettings: FilterSettings): number {
@@ -219,11 +318,6 @@ class Store {
     }
     this.selectPrimary(undefined);
   }
-
-  // public toggleLabelFilter(label: Label) {
-  //   const present = this.state.filterSettings.selectedLabels.indexOf(label) !== -1;
-  //   this.changeLabelFilter(label, !present);
-  // }
 
   private isMatchingFilterSettings(mdata: ImageMetadata): boolean {
     const fs = this.state.filterSettings;
