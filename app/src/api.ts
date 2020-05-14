@@ -1,8 +1,12 @@
 import axios from 'axios';
 import {webSocket} from 'rxjs/webSocket';
 
+const GLOBAL_URL_PARAMS = new URLSearchParams(window.location.search);
+export const PORT = Number(GLOBAL_URL_PARAMS.get('port'));
+
+
 class ApiService {
-  readonly BASE_ADDRESS = '127.0.0.1:30000'
+  readonly BASE_ADDRESS = `127.0.0.1:${PORT}`;
   readonly ROOT = 'http://' + this.BASE_ADDRESS;
 
   readonly ws = webSocket(`ws://${this.BASE_ADDRESS}/ws`);

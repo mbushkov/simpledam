@@ -81,6 +81,10 @@ $link-focus-border: $primary;
 @import "~bulma";
 @import "~buefy/src/scss/buefy";
 
+body {
+  user-select: none;
+}
+
 </style>
 
 <style lang="scss" scoped>

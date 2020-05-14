@@ -6,6 +6,8 @@ import {
   /* installVueDevtools */
 } from 'vue-cli-plugin-electron-builder/lib'
 import axios, { AxiosResponse } from 'axios';
+import {ChildProcessWithoutNullStreams, spawn} from 'child_process';
+
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -15,25 +17,66 @@ let win: BrowserWindow|null;
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([{scheme: 'app', privileges: { secure: true, standard: true } }])
 
-function createWindow () {
-  // Create the browser window.
-  win = new BrowserWindow({ width: 1024, height: 768, webPreferences: {
-    // TODO: try turning this off.
-    nodeIntegration: true
-  } })
+async function startBackendProcess(): Promise<{backend: ChildProcessWithoutNullStreams, port: number}> {
+  return new Promise<{backend: ChildProcessWithoutNullStreams, port: number}>((resolve, reject) => {
+    let backend: ChildProcessWithoutNullStreams;
+    if (isDevelopment) {
+      backend = spawn('newmedia_backend', []);
+    } else {
+      throw new Error('Not implemented');
+      // backend = 
+    }
+    
+    let portLine: string|undefined = undefined;
+    backend.stdout.on('data', (data:any) => {
+      console.log(`[BACKEND] stdout: ${data}`);
 
+      if (!portLine) {
+        portLine = (data.toString() as string).split('\n')[0];
+        resolve({backend, port: Number(portLine)});
+      }
+    });
+
+    backend.stderr.on('data', (data) => {
+      console.log(`[BACKEND] stderr: ${data}`);
+    });
+
+    backend.on('close', (code) => {
+      console.log(`[BACKEND] Exited with ${code}`);
+      reject();
+    });
+  });
+}
+
+async function createWindow () {
+  console.log('[BACKEND] Starting process...');
+  const {backend, port} = await startBackendProcess();
+  console.log(`[BACKEND] Process started (pid=${backend.pid}, port=${port})`);
+
+  // Create the browser window.
+  win = new BrowserWindow({ 
+    title: 'New Media (pre-alpha)',
+    width: 1024, 
+    height: 768, 
+    webPreferences: {
+      // TODO: try turning this off.
+      nodeIntegration: true
+    }
+  });
+ 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
-    win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
+    win.loadURL(process.env.WEBPACK_DEV_SERVER_URL + '?port=' + port.toString())
     if (!process.env.IS_TEST) win.webContents.openDevTools()
   } else {
     createProtocol('app')
     // Load the index.html when not in development
-    win.loadURL('app://./index.html')
+    win.loadURL('app://./index.html?port=' + port.toString())
   }
 
   win.on('closed', () => {
     win = null
+    backend.kill()
   })
 }
 
@@ -46,11 +89,11 @@ app.on('window-all-closed', () => {
   }
 })
 
-app.on('activate', () => {
+app.on('activate', async () => {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (win === null) {
-    createWindow()
+    await createWindow()
   }
 })
 
@@ -72,7 +115,7 @@ app.on('ready', async () => {
     }
 
   }
-  createWindow()
+  await createWindow()
 })
 
 ipcMain.on('ondragstart', (event, filePath, url) => {

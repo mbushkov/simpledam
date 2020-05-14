@@ -3,9 +3,15 @@ module.exports = {
     electronBuilder: {
       nodeIntegration: false,
       builderOptions: {
-        chainWebpackRendererProcess: config => {
-          
-        }
+        appId: 'newmedia',
+        productName: 'New Media',
+        extraFiles: [
+          {
+            from: '../backend/dist/backend',
+            to: 'Resouces/bin/backend',
+            filter: ['**/*'],
+          }
+        ],
       }
     }
   }

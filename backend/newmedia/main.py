@@ -4,6 +4,8 @@ import collections
 import logging
 import os
 import pathlib
+import portpicker
+import sys
 
 from typing import cast
 
@@ -15,8 +17,8 @@ import aiojobs.aiohttp
 from newmedia import store
 
 PARSER = argparse.ArgumentParser(description='Newmedia backend server.')
-PARSER.add_argument("--port", type=int, default=30000)
-PARSER.add_argument("--db-file", type=pathlib.Path, required=True)
+PARSER.add_argument("--port", type=int, default=0)
+PARSER.add_argument("--db-file", type=pathlib.Path, default=None)
 
 CORS_HEADERS = {
     "Access-Control-Allow-Origin":
@@ -147,7 +149,11 @@ def main():
   ])
   app["websockets"] = set()
   aiojobs.aiohttp.setup(app)
-  web.run_app(app, host="localhost", port=args.port)
+
+  port = args.port or portpicker.pick_unused_port()
+  sys.stdout.write("%d\n" % port)
+  sys.stdout.flush()
+  web.run_app(app, host="localhost", port=port)
 
 
 if __name__ == '__main__':

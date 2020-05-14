@@ -15,7 +15,11 @@ setup_args = dict(
         "aiosqlite==0.12.0"
         "bson==0.5.9",
         "pillow-simd==7.0.0.post3",
+        "portpicker==1.3.1",
     ],
+    extras_require={
+        "dev": ["pyinstaller==3.6"],
+    },
     data_files=[],
 )
 

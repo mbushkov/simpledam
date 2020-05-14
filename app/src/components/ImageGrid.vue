@@ -14,7 +14,7 @@
         v-on:click="clicked(image.uid, $event)">
         <div class="nested">
           <img v-if="image.file.preview_timestamp"
-            :src="'http://127.0.0.1:30000/images/' + image.uid"
+            :src="'http://127.0.0.1:' + port + '/images/' + image.uid"
           />
         </div>
         <div class="title">
@@ -86,7 +86,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { API_SERVICE } from '@/api';
+import { API_SERVICE, PORT } from '@/api';
 import { ImageFile, STORE, Label, Direction, ImageMetadata } from '@/store'; // eslint-disable-line no-unused-vars
 
 // Otherwise it will try to import it from Webpack or whatever you use.
@@ -116,6 +116,7 @@ const ImageGrid = Vue.extend({
   data() {
     return {
       maxSize: 300,
+      port: PORT.toString(),
     }
   },
 

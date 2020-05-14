@@ -121,10 +121,10 @@ def _ThumbnailFile(image_file: ImageFile) -> Tuple[ImageFile, bytes]:
 
 class DataStore:
 
-  def __init__(self, db_path: pathlib.Path):
+  def __init__(self, db_path: Optional[pathlib.Path] = None):
     self._info_thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=4)
     self._thumbnail_thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=2)
-    self._db_path = db_path
+    self._db_path = db_path or ":memory:"
     self._conn = None
 
   async def _GetConn(self):
@@ -209,6 +209,6 @@ WHERE uid=?
 DATA_STORE: DataStore
 
 
-def InitDataStore(path: pathlib.Path) -> None:
+def InitDataStore(path: Optional[pathlib.Path] = None) -> None:
   global DATA_STORE
   DATA_STORE = DataStore(path)
