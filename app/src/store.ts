@@ -37,7 +37,7 @@ export enum Label {
   GRAY,
 }
 
-type StarRating = 0|1|2|3|4|5;
+type StarRating = 0 | 1 | 2 | 3 | 4 | 5;
 
 export declare interface ImageMetadata {
   starRating: StarRating;
@@ -45,7 +45,7 @@ export declare interface ImageMetadata {
 }
 
 export declare interface ImageList {
-  presenceMap: {[key: string]: boolean};
+  presenceMap: { [key: string]: boolean };
   items: string[];
 }
 
@@ -54,7 +54,7 @@ export declare interface FilterSettings {
   selectedStarRatings: StarRating[];
 }
 
-function filterSettingsInvariant(fs:FilterSettings): string {
+function filterSettingsInvariant(fs: FilterSettings): string {
   const l = [...fs.selectedLabels];
   l.sort();
 
@@ -66,13 +66,13 @@ function filterSettingsInvariant(fs:FilterSettings): string {
 
 export declare interface Selection {
   primary?: string;
-  additional: {[key: string]: boolean};
+  additional: { [key: string]: boolean };
 }
 
 export declare interface State {
   filterSettings: FilterSettings;
   filtersInvariant: string;
-  
+
   columnCount: number,
   selection: Selection;
 
@@ -163,57 +163,69 @@ class Store {
 
   public numItemsMatchingFilter(filterSettings: FilterSettings): number {
     const invariant = filterSettingsInvariant(filterSettings);
-    return this.state.lists[invariant]?.items.length ?? 0;
+    return Object.keys(this.state.lists[invariant]?.presenceMap ?? {}).length;
   }
 
-  public labelSelection(label:Label) {
+  public labelSelection(label: Label) {
     if (!this.state.selection.primary) {
       return;
     }
 
+    const invariant = filterSettingsInvariant({
+      selectedLabels: [label],
+      selectedStarRatings: [],
+    });
+    // Makes sure that the list for this label exists.
+    this.listForFilterSettingsInvariant(invariant);
+
     for (let sel of Object.keys(this.state.selection.additional).concat(this.state.selection.primary)) {
       const prevLabel = this.state.metadata[sel].label;
       Vue.set(this.state.metadata[sel], 'label', label);
-      
+
       if (prevLabel !== label) {
         this.ensureItemInCurrentList(sel);
-        this.ensureItemInList(sel, filterSettingsInvariant({
-          selectedLabels: [label],
-          selectedStarRatings: [],
-        }));
-        this.removeItemFromList(sel, filterSettingsInvariant({
-          selectedLabels: [prevLabel],
-          selectedStarRatings: [],
-        }));
+        this.updateListsPresence(sel, invariant);
       }
     }
   }
 
-  public updateColumnCount(n:number) {
+  public updateColumnCount(n: number) {
     this.state.columnCount = n;
   }
 
-  public changeLabelFilter(label:Label, state:boolean) {
+  public changeLabelFilter(label: Label, state: boolean, allowMultiple: boolean) {
     const index = this.state.filterSettings.selectedLabels.indexOf(label);
-    if (state && index === -1) {
-      this.state.filterSettings.selectedLabels.push(label);
-    } else if (!state && index !== -1) {
-      this.state.filterSettings.selectedLabels.splice(index, 1);
+    if (!state) {
+      if (index !== -1) {
+        this.state.filterSettings.selectedLabels.splice(index, 1);
+      }
+    } else {
+      if (allowMultiple) {
+        if (index === -1) {
+          this.state.filterSettings.selectedLabels.push(label);
+        }
+      } else {
+        this.state.filterSettings.selectedLabels = [label];
+      }
     }
 
     this.state.filtersInvariant = filterSettingsInvariant(this.state.filterSettings);
-    for (let uid in this.state.images) {
-      this.ensureItemInCurrentList(uid);
+    if (this.state.lists[this.state.filtersInvariant]) {
+      this.syncListWithPresenceMap(this.state.filtersInvariant);
+    } else {
+      for (let uid in this.state.images) {
+        this.ensureItemInCurrentList(uid);
+      }  
     }
     this.selectPrimary(undefined);
   }
 
-  public toggleLabelFilter(label:Label) {
-    const present = this.state.filterSettings.selectedLabels.indexOf(label) !== -1;
-    this.changeLabelFilter(label, !present);
-  }
+  // public toggleLabelFilter(label: Label) {
+  //   const present = this.state.filterSettings.selectedLabels.indexOf(label) !== -1;
+  //   this.changeLabelFilter(label, !present);
+  // }
 
-  private isMatchingFilterSettings(mdata:ImageMetadata):boolean {
+  private isMatchingFilterSettings(mdata: ImageMetadata): boolean {
     const fs = this.state.filterSettings;
     const matchesLabel = ((fs.selectedLabels.length === 0) || fs.selectedLabels.indexOf(mdata.label) !== -1);
     const matchesStarRating = ((fs.selectedStarRatings.length === 0) || fs.selectedStarRatings.indexOf(mdata.starRating) !== -1);
@@ -221,22 +233,45 @@ class Store {
     return matchesLabel && matchesStarRating;
   }
 
-  private removeItemFromList(uid: string, invariant:string) {
+  private syncListWithPresenceMap(invariant: string) {
     const l = this.listForFilterSettingsInvariant(invariant);
-    const li = l.items.indexOf(uid);
-    if (li !== -1) {
-      l.items.splice(li, 1);
-      Vue.delete(l.presenceMap, uid);
+    const pmCopy = {...l.presenceMap};
+    const newList = l.items.map(i => {
+      if (pmCopy[i]) {
+        delete pmCopy[i];
+        return i;
+      } else {
+        return undefined;
+      }
+    }).filter((i): i is string => i !== undefined);
+    for (const added of Object.keys(pmCopy)) {
+      newList.push(added);
+    }
+    l.items = newList;
+  }
+
+  private updateListsPresence(uid: string, invariant: string) {
+    for (let key in this.state.lists) {
+      const l = this.state.lists[key];
+      if (key === '' || key.includes(invariant)) {
+        if (!l.presenceMap[uid]) {
+          Vue.set(l.presenceMap, uid, true);
+        }
+      } else {
+        if (l.presenceMap[uid]) {
+          Vue.delete(l.presenceMap, uid);
+        }    
+      }
     }
   }
 
-  private ensureItemInList(uid: string, invariant: string) {
+  private ensureItemInCurrentList(uid: string) {
     const mdata = this.state.metadata[uid];
 
-    const l = this.listForFilterSettingsInvariant(invariant);
+    const l = this.listForFilterSettingsInvariant(this.state.filtersInvariant);
     if (this.isMatchingFilterSettings(mdata)) {
       if (!l.presenceMap[uid]) {
-        Vue.set(l.presenceMap,uid, true);
+        Vue.set(l.presenceMap, uid, true);
         l.items.push(uid);
       }
     } else {
@@ -250,12 +285,7 @@ class Store {
     }
   }
 
-  private ensureItemInCurrentList(uid: string) {
-    this.ensureItemInList(uid, this.state.filtersInvariant);
-  }
-
   private registerImage(imageFile: ImageFile) {
-    // console.log('registering image', imageFile);
     Vue.set(this.state.images, imageFile.uid, imageFile);
 
     const imageMetadata: ImageMetadata = {
@@ -264,6 +294,15 @@ class Store {
     };
     Vue.set(this.state.metadata, imageFile.uid, imageMetadata);
     this.ensureItemInCurrentList(imageFile.uid);
+
+    const invariant = filterSettingsInvariant({
+      selectedLabels: [Label.NONE],
+      selectedStarRatings: [],
+    });
+    // Makes sure that the list for label None exists.
+    this.listForFilterSettingsInvariant(invariant);
+
+    this.updateListsPresence(imageFile.uid, invariant);
   }
 }
 

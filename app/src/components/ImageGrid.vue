@@ -162,10 +162,6 @@ const ImageGrid = Vue.extend({
         return;
       }
 
-      if (event.key === 'p') {
-        STORE.toggleLabelFilter(Label.RED);
-      }
-
       if (event.keyCode === 39) {
         STORE.movePrimarySelection(Direction.RIGHT);
         event.preventDefault();
