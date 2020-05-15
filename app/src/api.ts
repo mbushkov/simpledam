@@ -23,14 +23,31 @@ class ApiService {
   }
 
   saveStore(path: string, state: State): Promise<void> {
-    return axios.post(this.ROOT + '/save', { path, state }).then(r => {
+    const replacer = (key: string, value: unknown) => value === undefined ? null : value;
+    const stringified = JSON.stringify({ path, state }, replacer);
+
+    return axios.post(this.ROOT + '/save', stringified).then(r => {
       console.log(r);
     });
   }
 
+  private replaceNullWithUndefined(obj: any): any {
+    var objKeys = Object.keys(obj);
+    objKeys.forEach((key) => {
+      if (obj[key] === null) {
+        obj[key] = undefined;
+      }
+      if (typeof (obj[key]) == "object") {
+        this.replaceNullWithUndefined(obj[key]);
+      }
+    });
+
+    return obj;
+  }
+
   fetchState(): Promise<State | undefined> {
-    return axios.get(this.ROOT + '/saved-state').then(r => {
-      return r.data['state'] || undefined;
+    return axios.get(this.ROOT + '/saved-state', { responseType: 'text' }).then(r => {
+      return this.replaceNullWithUndefined(r.data['state'] || undefined);
     });
   }
 

@@ -1,9 +1,13 @@
 <template>
   <div id="app">
-    <ToolBar class="tool-bar"></ToolBar>
-    <SideBar class="side-bar"></SideBar>
-    <ImageGrid class="image-grid"></ImageGrid>
-    <StatusBar class="status-bar"></StatusBar>
+    <div v-if="!loaded">Loading...</div>
+
+    <div v-if="loaded">
+      <ToolBar class="tool-bar"></ToolBar>
+      <SideBar class="side-bar"></SideBar>
+      <ImageGrid class="image-grid"></ImageGrid>
+      <StatusBar class="status-bar"></StatusBar>
+    </div>
   </div>
 </template>
 
@@ -215,15 +219,18 @@ export default Vue.extend({
     StatusBar,
     ToolBar,
   },
-  created() {
+  data() {
+    return {
+      loaded: false,
+    };
+  },
+  beforeCreate() {
     API_SERVICE.fetchState().then(s => {
-      if (s === undefined) {
-        return;
+      if (s !== undefined) {
+        STORE.state = Vue.observable(s);
       }
 
-      for (let key in (s as any)) {
-        (STORE.state as any)[key] = (s as any)[key];
-      }
+      (this as any)['loaded'] = true;
     });
   },
 });

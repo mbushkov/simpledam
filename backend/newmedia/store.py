@@ -128,7 +128,7 @@ class DataStore:
     self._info_thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=4)
     self._thumbnail_thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=2)
 
-    self._db_path = db_path or ""
+    self._db_path = db_path and str(db_path) or ""
     self._conn = None
 
   async def _InitSchema(self):

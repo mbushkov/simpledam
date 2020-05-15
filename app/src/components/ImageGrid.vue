@@ -253,6 +253,7 @@ const ImageGrid = Vue.extend({
       } else if (event.shiftKey) {
         STORE.selectRange(uid);
       } else {
+        console.log(['CLICK PRIMARY', uid]);
         STORE.selectPrimary(uid);
       }
     },
