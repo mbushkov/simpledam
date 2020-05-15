@@ -1,7 +1,7 @@
 'use strict'
 
 import path from 'path';
-import { app, protocol, ipcMain, nativeImage, BrowserWindow } from 'electron'
+import { app, protocol, ipcMain, nativeImage, BrowserWindow, Menu, dialog } from 'electron'
 import {
   createProtocol, installVueDevtools,
   /* installVueDevtools */
@@ -18,7 +18,7 @@ let win: BrowserWindow | null;
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([{ scheme: 'app', privileges: { secure: true, standard: true } }])
 
-async function startBackendProcess(): Promise<{ backend: ChildProcessWithoutNullStreams, port: number }> {
+async function startBackendProcess(catalogPath?: string): Promise<{ backend: ChildProcessWithoutNullStreams, port: number }> {
   return new Promise<{ backend: ChildProcessWithoutNullStreams, port: number }>((resolve, reject) => {
     let binaryPath: string;
     if (isDevelopment) {
@@ -26,7 +26,7 @@ async function startBackendProcess(): Promise<{ backend: ChildProcessWithoutNull
     } else {
       binaryPath = path.join(path.dirname(app.getAppPath()), '..', 'Resources', 'bin', 'backend', 'backend');
     }
-    const backend = spawn(binaryPath, []);
+    const backend = spawn(binaryPath, catalogPath ? ["--db-file", catalogPath] : []);
 
     let portLine: string | undefined = undefined;
     backend.stdout.on('data', (data: any) => {
@@ -49,10 +49,10 @@ async function startBackendProcess(): Promise<{ backend: ChildProcessWithoutNull
   });
 }
 
-async function createWindow() {
+async function createWindow(path?: string) {
   console.log('[BACKEND] Starting process...');
-  const { backend, port } = await startBackendProcess();
-  console.log(`[BACKEND] Process started (pid=${backend.pid}, port=${port})`);
+  const { backend, port } = await startBackendProcess(path);
+  console.log(`[BACKEND] Process started (pid=${backend.pid}, port=${port}, path=${path})`);
 
   // Create the browser window.
   win = new BrowserWindow({
@@ -117,6 +117,116 @@ app.on('ready', async () => {
     }
 
   }
+
+  const template: Electron.MenuItemConstructorOptions[] = [
+    {
+      label: 'Electron',
+      submenu: [
+        {
+          role: 'about'
+        },
+        {
+          type: 'separator'
+        },
+        {
+          role: 'services',
+          submenu: []
+        },
+        {
+          type: 'separator'
+        },
+        {
+          role: 'hide'
+        },
+        {
+          role: 'unhide'
+        },
+        {
+          type: 'separator'
+        },
+        {
+          role: 'quit'
+        },
+      ],
+    },
+    {
+      label: 'File',
+      submenu: [
+        {
+          label: 'New Catalog',
+          accelerator: 'CommandOrControl+N',
+          async click() {
+            await createWindow()
+          }
+        },
+        {
+          label: 'Open Catalog...',
+          accelerator: 'CommandOrControl+O',
+          async click() {
+            const paths = dialog.showOpenDialogSync({
+              title: 'Open Catalog',
+              filters: [
+                { name: 'NewMedia Catalogs', extensions: ['nmcatalog'] },
+              ],
+              properties: ['openFile'],
+            });
+            if (paths !== undefined && paths.length > 0) {
+              await createWindow(paths[0]);
+            }
+          }
+        },
+        {
+          type: 'separator'
+        },
+        {
+          label: 'Close',
+          accelerator: 'CommandOrControl+W',
+          click: function () {
+            BrowserWindow.getFocusedWindow()?.close();
+          }
+        },
+        {
+          label: 'Save',
+          accelerator: 'CommandOrControl+S',
+          click: function () {
+            const win = BrowserWindow.getFocusedWindow();
+            win?.webContents.send('save');
+          }
+        },
+      ]
+    },
+    {
+      label: 'Edit',
+      submenu: [
+        {
+          role: 'cut'
+        },
+        {
+          role: 'copy'
+        },
+        {
+          role: 'paste'
+        },
+        {
+          role: 'delete'
+        },
+      ]
+    },
+    {
+      role: 'window',
+      submenu: [
+        {
+          role: 'minimize'
+        },
+        {
+          role: 'close'
+        }
+      ]
+    },
+  ];
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
+
   await createWindow()
 })
 
@@ -133,6 +243,19 @@ ipcMain.on('ondragstart', (event, paths) => {
 
     event.reply('ondragstart-confirmed', true);
   }, 100); // Hell knows why this is needed.
+});
+
+ipcMain.on('show-save-catalog-dialog', async (event) => {
+  const bw = BrowserWindow.getFocusedWindow();
+  if (!bw) {
+    return;
+  }
+
+  const path = (await dialog.showSaveDialog(bw, {
+    title: 'Save Catalog',
+    defaultPath: 'Catalog.nmcatalog',
+  })).filePath;
+  event.reply('show-save-catalog-dialog-reply', path || '');
 });
 
 // Exit cleanly on request from parent process in development mode.

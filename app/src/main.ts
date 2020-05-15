@@ -17,7 +17,7 @@ Vue.use(Vuex);
 Vue.use(VueRx);
 Vue.use(VueCompositionApi);
 
-Vue.config.productionTip = false
+Vue.config.productionTip = false;
 
 new Vue({
   render: h => h(App),

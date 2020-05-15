@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import collections
+import dataclasses
 import logging
 import os
 import pathlib
@@ -17,6 +18,7 @@ from aiojobs.aiohttp import spawn
 import aiojobs.aiohttp
 
 from newmedia import store
+from newmedia import backend_state
 
 PARSER = argparse.ArgumentParser(description='Newmedia backend server.')
 PARSER.add_argument("--port", type=int, default=0)
@@ -38,6 +40,11 @@ async def RootHandler(request: web.Request) -> web.Response:
 
 async def AllowCorsHandler(request: web.Request) -> web.Response:
   return web.Response(headers=CORS_HEADERS)
+
+
+async def SavedStateHandler(request: web.Request) -> web.Response:
+  state = await store.DATA_STORE.GetSavedState()
+  return web.json_response({"state": state}, content_type="text", headers=CORS_HEADERS)
 
 
 async def SendWebSocketData(request: web.Request, data):
@@ -86,13 +93,17 @@ async def ScanFile(path: str, request: web.Request):
     })
 
   async def Thumbnail(image_file):
-    image_file = await store.DATA_STORE.UpdateFileThumbnail(image_file.uid)
+    try:
+      image_file = await store.DATA_STORE.UpdateFileThumbnail(image_file.uid)
+    finally:
+      backend_state.BACKEND_STATE.ChangePreviewQueueSize(-1)
     await SendWebSocketData(request, {
         "action": "THUMBNAIL_UPDATED",
         "image": image_file.ToJSON(),
     })
 
   if not image_file.preview_timestamp:
+    backend_state.BACKEND_STATE.ChangePreviewQueueSize(1)
     await spawn(request, Thumbnail(image_file))
 
 
@@ -144,6 +155,18 @@ async def GetImageHandler(request: web.Request) -> web.StreamResponse:
   return response
 
 
+async def SaveHandler(request: web.Request) -> web.Response:
+  data = await request.json()
+  path: str = data["path"]
+  state = data["state"]
+
+  logging.info("Saving to: %s", path)
+
+  await store.DATA_STORE.SaveStore(path, state)
+
+  return web.Response(text="ok", content_type="text", headers=CORS_HEADERS)
+
+
 def main():
   signal.signal(signal.SIGINT, lambda: sys.exit(-1))
   signal.signal(signal.SIGTERM, lambda: sys.exit(-1))
@@ -158,12 +181,22 @@ def main():
   app.add_routes([
       web.get("/", RootHandler),
       web.get("/ws", WebSocketHandler),
+      web.get("/saved-state", SavedStateHandler),
       web.options("/scan-path", AllowCorsHandler),
       web.post("/scan-path", ScanPathHandler),
+      web.options("/save", AllowCorsHandler),
+      web.post("/save", SaveHandler),
       web.get("/images/{uid}", GetImageHandler),
   ])
   app["websockets"] = set()
   aiojobs.aiohttp.setup(app)
+
+  backend_state.BACKEND_STATE = backend_state.BackendState(app)
+
+  # async def T():
+  #   await store.DATA_STORE._GetConn()
+  #   await store.DATA_STORE.SaveStore("/Users/bushman/Downloads/a.test", {"fii": 42})
+  # asyncio.get_event_loop().create_task(T())
 
   port = args.port or portpicker.pick_unused_port()
   sys.stdout.write("%d\n" % port)

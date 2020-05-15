@@ -12,6 +12,13 @@ module.exports = {
             filter: ['**/*'],
           }
         ],
+        fileAssociations: [
+          {
+            ext: 'nmcatalog',
+            name: 'NewMedia Catalog',
+            role: 'Editor',
+          },
+        ],
       }
     }
   }

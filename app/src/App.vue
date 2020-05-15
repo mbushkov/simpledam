@@ -8,15 +8,15 @@
 </template>
 
 <style lang="scss">
-@import "./styles/variables";
+@import './styles/variables';
 
 // Import Bulma's core
-@import "~bulma/sass/utilities/_all";
+@import '~bulma/sass/utilities/_all';
 
 // Set your colors
 $primary: #8c67ef;
 $primary-invert: findColorInvert($primary);
-$twitter: #4099FF;
+$twitter: #4099ff;
 $twitter-invert: findColorInvert($twitter);
 $text: #d2d2d2;
 
@@ -47,29 +47,90 @@ $label-selected-invert: findColorInvert($label-selected);
 
 // Setup $colors to use as bulma classes (e.g. 'is-twitter')
 $colors: (
-    "white": ($white, $black),
-    "black": ($black, $white),
-    "light": ($light, $light-invert),
-    "dark": ($dark, $dark-invert),
-    "primary": ($primary, $primary-invert),
-    "info": ($info, $info-invert),
-    "success": ($success, $success-invert),
-    "warning": ($warning, $warning-invert),
-    "danger": ($danger, $danger-invert),
-    "twitter": ($twitter, $twitter-invert),
-
-    "label-none": ($label-none, $label-none-invert),
-    "label-red": ($label-red, $label-red-invert),
-    "label-green": ($label-green, $label-green-invert),
-    "label-blue": ($label-blue, $label-blue-invert),
-    "label-brown": ($label-brown, $label-brown-invert),
-    "label-magenta": ($label-magenta, $label-magenta-invert),
-    "label-orange": ($label-orange, $label-orange-invert),
-    "label-yellow": ($label-yellow, $label-yellow-invert),
-    "label-cyan": ($label-cyan, $label-cyan-invert),
-    "label-gray": ($label-gray, $label-gray-invert),
-
-    "label-selected": ($label-selected, $label-selected-invert),
+  'white': (
+    $white,
+    $black
+  ),
+  'black': (
+    $black,
+    $white
+  ),
+  'light': (
+    $light,
+    $light-invert
+  ),
+  'dark': (
+    $dark,
+    $dark-invert
+  ),
+  'primary': (
+    $primary,
+    $primary-invert
+  ),
+  'info': (
+    $info,
+    $info-invert
+  ),
+  'success': (
+    $success,
+    $success-invert
+  ),
+  'warning': (
+    $warning,
+    $warning-invert
+  ),
+  'danger': (
+    $danger,
+    $danger-invert
+  ),
+  'twitter': (
+    $twitter,
+    $twitter-invert
+  ),
+  'label-none': (
+    $label-none,
+    $label-none-invert
+  ),
+  'label-red': (
+    $label-red,
+    $label-red-invert
+  ),
+  'label-green': (
+    $label-green,
+    $label-green-invert
+  ),
+  'label-blue': (
+    $label-blue,
+    $label-blue-invert
+  ),
+  'label-brown': (
+    $label-brown,
+    $label-brown-invert
+  ),
+  'label-magenta': (
+    $label-magenta,
+    $label-magenta-invert
+  ),
+  'label-orange': (
+    $label-orange,
+    $label-orange-invert
+  ),
+  'label-yellow': (
+    $label-yellow,
+    $label-yellow-invert
+  ),
+  'label-cyan': (
+    $label-cyan,
+    $label-cyan-invert
+  ),
+  'label-gray': (
+    $label-gray,
+    $label-gray-invert
+  ),
+  'label-selected': (
+    $label-selected,
+    $label-selected-invert
+  )
 );
 
 // Links
@@ -78,17 +139,16 @@ $link-invert: $primary-invert;
 $link-focus-border: $primary;
 
 // Import Bulma and Buefy styles
-@import "~bulma";
-@import "~buefy/src/scss/buefy";
+@import '~bulma';
+@import '~buefy/src/scss/buefy';
 
 body {
   user-select: none;
 }
-
 </style>
 
 <style lang="scss" scoped>
-@import "./styles/variables";
+@import './styles/variables';
 
 $side-bar-width: 300px;
 $status-bar-height: 20px;
@@ -138,6 +198,14 @@ import ImageGrid from './components/ImageGrid.vue';
 import SideBar from './components/SideBar.vue';
 import StatusBar from './components/StatusBar.vue';
 import ToolBar from './components/ToolBar.vue';
+import { BACKEND_MIRROR } from './backend-mirror';
+import { STORE } from './store';
+import { API_SERVICE } from './api';
+
+// Otherwise it will try to import it from Webpack or whatever you use.
+// https://github.com/electron/electron/issues/7300
+const { ipcRenderer } = window.require("electron");
+
 
 export default Vue.extend({
   name: 'App',
@@ -146,6 +214,30 @@ export default Vue.extend({
     SideBar,
     StatusBar,
     ToolBar,
+  },
+  created() {
+    API_SERVICE.fetchState().then(s => {
+      if (s === undefined) {
+        return;
+      }
+
+      for (let key in (s as any)) {
+        (STORE.state as any)[key] = (s as any)[key];
+      }
+    });
+  },
+});
+
+ipcRenderer.on('save', async () => {
+  if (!BACKEND_MIRROR.state.catalogPath) {
+    ipcRenderer.once('show-save-catalog-dialog-reply', (event: Electron.IpcRendererEvent, path: string) => {
+      console.log(['save new', BACKEND_MIRROR.state.catalogPath, path]);
+      API_SERVICE.saveStore(path, STORE.state);
+    });
+    ipcRenderer.send('show-save-catalog-dialog');
+  } else {
+    console.log(['save existing', BACKEND_MIRROR.state.catalogPath]);
+    API_SERVICE.saveStore(BACKEND_MIRROR.state.catalogPath, STORE.state);
   }
 });
 </script>

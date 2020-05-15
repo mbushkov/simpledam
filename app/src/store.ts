@@ -1,7 +1,6 @@
-import Vue from 'vue';
 import { API_SERVICE } from '@/api';
 import { filter, map } from 'rxjs/operators';
-import { ReplaySubject } from 'rxjs';
+import Vue from 'vue';
 
 declare interface Action {
   action: string;
@@ -108,8 +107,6 @@ class Store {
     metadata: {},
     lists: {},
   });
-
-  state$ = new ReplaySubject<State>(1);
 
   readonly registerImage$ = API_SERVICE.ws.pipe(
     filter((v) => {

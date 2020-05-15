@@ -2,15 +2,18 @@ import asyncio
 import concurrent.futures
 import dataclasses
 import io
+import logging
 import os
 import pathlib
 import time
 import uuid
-from typing import Iterator, Optional, Tuple
+from typing import Any, Dict, Iterator, Optional, Tuple
 
 import aiosqlite
 import bson
 from PIL import Image
+
+from newmedia import backend_state
 
 
 class Error(Exception):
@@ -124,26 +127,95 @@ class DataStore:
   def __init__(self, db_path: Optional[pathlib.Path] = None):
     self._info_thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=4)
     self._thumbnail_thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=2)
-    self._db_path = db_path or ":memory:"
+
+    self._db_path = db_path or ""
     self._conn = None
 
-  async def _GetConn(self):
-    if self._conn is None:
-      self._conn = await aiosqlite.connect(self._db_path)
-      await self._conn.executescript("""
-CREATE TABLE IF NOT EXISTS ImageData (
-    uid TEXT PRIMARY KEY,
-    path TEXT,
-    info BLOB NOT NULL,
+  async def _InitSchema(self):
+    await self._conn.executescript("""
+  CREATE TABLE IF NOT EXISTS RendererState (
+    id TEXT PRIMARY KEY,
     blob BLOB
-);
+  );
 
-CREATE UNIQUE INDEX IF NOT EXISTS ImageData_path_index
-ON ImageData(path);
-""")
-      await self._conn.commit()
+  CREATE TABLE IF NOT EXISTS ImageData (
+      uid TEXT PRIMARY KEY,
+      path TEXT,
+      info BLOB NOT NULL,
+      blob BLOB
+  );
+
+  CREATE UNIQUE INDEX IF NOT EXISTS ImageData_path_index
+  ON ImageData(path);
+  """)
+    await self._conn.commit()
+
+  async def _GetConn(self):
+    if self._conn is not None:
+      return self._conn
+
+    backend_state.BACKEND_STATE.catalog_path = self._db_path
+    self._conn = await aiosqlite.connect(self._db_path)
+
+    if self._db_path:
+      logging.info("Reading %s into a temporary db.", self._db_path)
+      copy_conn = await aiosqlite.connect("")
+
+      def Progress(status, remaining, total):
+        remaining = remaining or 1
+        total = total or 1
+        logging.info("Loading file: %s %d %d", status, remaining, total)
+        backend_state.BACKEND_STATE.SetCatalogOpProgress("load", 1 - round(remaining / total * 100))
+
+      def Backup():
+        self._conn._conn.backup(copy_conn._conn, pages=100, progress=Progress)
+
+      await self._conn._execute(Backup)
+      await self._conn.close()
+      backend_state.BACKEND_STATE.SetCatalogOpProgress(None, None)
+
+      self._conn = copy_conn
+
+    await self._InitSchema()
 
     return self._conn
+
+  async def SaveStore(self, path, renderer_state_json):
+    self._db_path = path
+
+    serialized = bson.dumps(renderer_state_json)
+    conn = await self._GetConn()
+    await conn.execute_insert(
+        """
+INSERT OR REPLACE INTO RendererState(id, blob)
+VALUES ('state', ?)
+      """, (serialized,))
+    await conn.commit()
+
+    copy_conn = await aiosqlite.connect(self._db_path)
+
+    def Progress(status, remaining, total):
+      remaining = remaining or 1
+      total = total or 1
+      logging.info("Saving file: %s %d %d", status, remaining, total)
+      backend_state.BACKEND_STATE.SetCatalogOpProgress("save", 1 - round(remaining / total * 100))
+
+    def Backup():
+      conn._conn.backup(copy_conn._conn, pages=100, progress=Progress)
+
+    await conn._execute(Backup)
+    await copy_conn.close()
+    backend_state.BACKEND_STATE.SetCatalogOpProgress(None, None)
+    backend_state.BACKEND_STATE.catalog_path = path
+
+  async def GetSavedState(self) -> Optional[Dict[str, Any]]:
+    conn = await self._GetConn()
+    cur_state = None
+    async with conn.execute("SELECT blob FROM RendererState", []) as cursor:
+      async for row in cursor:
+        cur_state = bson.loads(row[0])
+
+    return cur_state
 
   async def RegisterFile(self, path: pathlib.Path) -> ImageFile:
     loop = asyncio.get_running_loop()
