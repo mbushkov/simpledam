@@ -14,7 +14,7 @@
       <div
         draggable="true"
         v-for="image in imageList"
-        ref="boxes"
+        :id="'box-' + image.uid"
         class="image-box"
         :key="`${image.uid}|${image.file.preview_timestamp}`"
         v-bind:class="{ selected: image.uid === primarySelectedUid, 'additional-selected': !!additionalSelectedUids[image.uid] }"
@@ -346,9 +346,12 @@ const ImageGrid = Vue.extend({
     },
 
     scrollIntoView: function (uid: string) {
-      const index = STORE.currentList().items.indexOf(uid);
-      const ref = this.$refs['boxes'][index];
-      ref.scrollIntoViewIfNeeded();
+      const container: HTMLDivElement = this.$refs['container'];
+      const res: any = container.querySelector(`#box-${uid}`);
+      res.scrollIntoViewIfNeeded();
+      // const index = STORE.currentList().items.indexOf(uid);
+      // const ref = this.$refs['boxes'][index];
+      // ref.scrollIntoViewIfNeeded();
     }
   },
 
