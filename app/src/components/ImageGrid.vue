@@ -3,12 +3,16 @@
     class="host"
     @dragenter.prevent="containerDragEntered($event)"
     @dragover.prevent="containerDraggedOver($event)"
+    @dragleave="containerDragEnded($event)"
     @drop="containerDropped($event)"
   >
-    <div>Images ({{ imageList.length }}):</div>
+    <!-- <div>Images ({{ imageList.length }}):</div> -->
 
-    <div class="container">
+    <div class="drag-indicator" ref="dragIndicator" v-bind:style="dragIndicatorStyle"></div>
+
+    <div class="container" ref="container">
       <div
+        draggable="true"
         v-for="image in imageList"
         ref="boxes"
         class="image-box"
@@ -35,6 +39,13 @@
 .host {
   overflow: scroll;
   background-color: #454545;
+}
+
+.drag-indicator {
+  position: absolute;
+  width: 3px;
+  background: red;
+  z-index: 100;
 }
 
 .container {
@@ -96,7 +107,7 @@ import { ImageFile, STORE, Label, Direction, ImageMetadata } from '@/store'; // 
 
 // Otherwise it will try to import it from Webpack or whatever you use.
 // https://github.com/electron/electron/issues/7300
-const { ipcRenderer } = window.require("electron");
+// const { ipcRenderer } = window.require("electron");
 
 const LABELS_MAP: { [key: string]: Label } = {
   '0': Label.NONE,
@@ -120,6 +131,7 @@ declare interface Item {
 const ImageGrid = Vue.extend({
   data() {
     return {
+      dragIndicatorVisible: false,
       maxSize: 300,
       port: PORT.toString(),
     }
@@ -145,6 +157,13 @@ const ImageGrid = Vue.extend({
   },
 
   computed: {
+    dragIndicatorStyle(): { [key: string]: string } {
+      return {
+        'display': this.dragIndicatorVisible ? 'block' : 'none',
+        'height': `${this.maxSize}px`,
+      };
+    },
+
     imageBoxStyle(): { [key: string]: string } {
       return {
         'width': `${this.maxSize}px`,
@@ -181,10 +200,36 @@ const ImageGrid = Vue.extend({
       // }
     },
 
-    containerDraggedOver() {
+    containerDraggedOver(event: DragEvent) {
+      const container = this.$refs['container'] as HTMLElement;
+      const rect = container.getBoundingClientRect();
+      const relX = event.pageX - rect.x;
+      const relY = event.pageY - rect.y;
+
+      const destX = Number(Math.min(Math.floor(relX / this.maxSize), STORE.state.columnCount + 1)) * this.maxSize;
+      const destY = Number(Math.floor(relY / this.maxSize)) * this.maxSize;
+
+      this.dragIndicatorVisible = true;
+      const indicatorRef = this.$refs['dragIndicator'];
+      indicatorRef.style.left = `${destX}px`;
+      indicatorRef.style.top = `${destY}px`;
+      indicatorRef.scrollIntoViewIfNeeded();
+      // console.log(['drag over', relX, relY, indicatorRef]);
+    },
+
+    containerDragEnded() {
+      console.log(['drag end']);
+      this.dragIndicatorVisible = false;
     },
 
     containerDropped(event: DragEvent) {
+      this.dragIndicatorVisible = false;
+      console.log(['drop']);
+
+      if (event.dataTransfer.getData('uid')) {
+        console.log('moving');
+      }
+
       if (!event?.dataTransfer?.files) {
         return;
       }
@@ -246,9 +291,25 @@ const ImageGrid = Vue.extend({
       }
     },
 
+    // https://www.html5rocks.com/en/tutorials/dnd/basics/#toc-dnd-files
+    // https://thecssninja.com/demo/gmail_dragout/
     dragStarted(uid: string, event: DragEvent) {
-      event.preventDefault();
-      ipcRenderer.send('ondragstart', STORE.state.images[uid].path, API_SERVICE.thumbnailUrl(uid));
+      if (!event.dataTransfer) {
+        return;
+      }
+
+      console.log(['drag start', uid]);
+      // var dragIcon = document.createElement('img');
+      // dragIcon.src = API_SERVICE.thumbnailUrl(uid);
+      // dragIcon.width = 100;
+      // dragIcon.height = 100;
+      // event.dataTransfer.setDragImage(dragIcon, -10, -10);
+
+      event.dataTransfer.items.add(STORE.state.images[uid].path, 'file');
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData("uid", uid);
+      event.dataTransfer.setData("DownloadURL", API_SERVICE.thumbnailUrl(uid));
+      // ipcRenderer.send('ondragstart', STORE.state.images[uid].path, API_SERVICE.thumbnailUrl(uid));
     },
 
     handleResize: function () {
