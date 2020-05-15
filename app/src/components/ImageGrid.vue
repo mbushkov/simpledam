@@ -132,6 +132,7 @@ const ImageGrid = Vue.extend({
   data() {
     return {
       dragIndicatorVisible: false,
+      dragIndicatorIndex: 0,
       maxSize: 300,
       port: PORT.toString(),
     }
@@ -206,8 +207,12 @@ const ImageGrid = Vue.extend({
       const relX = event.pageX - rect.x;
       const relY = event.pageY - rect.y;
 
-      const destX = Number(Math.min(Math.floor(relX / this.maxSize), STORE.state.columnCount + 1)) * this.maxSize;
-      const destY = Number(Math.floor(relY / this.maxSize)) * this.maxSize;
+      const offX = Number(Math.min(Math.floor(relX / this.maxSize), STORE.state.columnCount + 1));
+      const offY = Number(Math.floor(relY / this.maxSize));
+      this.dragIndicatorIndex = offY * STORE.state.columnCount + offX;
+
+      const destX = offX * this.maxSize;
+      const destY = offY * this.maxSize;
 
       this.dragIndicatorVisible = true;
       const indicatorRef = this.$refs['dragIndicator'];
@@ -224,10 +229,13 @@ const ImageGrid = Vue.extend({
 
     containerDropped(event: DragEvent) {
       this.dragIndicatorVisible = false;
-      console.log(['drop']);
+      console.log(['drop', event]);
 
-      if (event.dataTransfer?.getData('uid')) {
-        console.log('moving');
+      if (event.dataTransfer?.getData('nmUids')) {
+        const nmUids = JSON.parse(event.dataTransfer.getData('nmUids'));
+        console.log('moving', nmUids, this.dragIndicatorIndex);
+        STORE.moveWithinCurrentList(nmUids, this.dragIndicatorIndex);
+        return;
       }
 
       if (!event?.dataTransfer?.files) {
@@ -294,6 +302,19 @@ const ImageGrid = Vue.extend({
     // https://www.html5rocks.com/en/tutorials/dnd/basics/#toc-dnd-files
     // https://thecssninja.com/demo/gmail_dragout/
     dragStarted(uid: string, event: DragEvent) {
+      if (!event.dataTransfer) {
+        return;
+      }
+
+      const uids = new Set<string>([uid]);
+      if (STORE.state.selection.primary) {
+        uids.add(STORE.state.selection.primary);
+      }
+      for (const additionalUid in STORE.state.selection.additional) {
+        uids.add(additionalUid);
+      }
+      const paths = Array.from(uids).map(u => STORE.state.images[u].path);
+      event.dataTransfer.setData('nmUids', JSON.stringify(Array.from(uids)));
 
       // TODO: enable later to display number of images being dragged.
       // const dragIcon = document.createElement('div');
@@ -313,12 +334,7 @@ const ImageGrid = Vue.extend({
 
         event.dataTransfer.effectAllowed = 'move';
       });
-      const paths = new Set<string>([STORE.state.images[uid].path]);
-      paths.add(STORE.state.images[STORE.state.selection.primary].path);
-      for (const additionalUid in STORE.state.selection.additional) {
-        paths.add(STORE.state.images[additionalUid].path);
-      }
-      ipcRenderer.send('ondragstart', Array.from(paths), API_SERVICE.thumbnailUrl(uid));
+      ipcRenderer.send('ondragstart', paths, API_SERVICE.thumbnailUrl(uid));
 
       // event.dataTransfer.setData("uid", uid);
       // event.dataTransfer.setData("DownloadURL", API_SERVICE.thumbnailUrl(uid));

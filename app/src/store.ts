@@ -65,8 +65,8 @@ function filterSettingsInvariant(fs: FilterSettings): string {
 }
 
 export declare interface Selection {
-  primary: string|undefined;
-  lastTouched: string|undefined;
+  primary: string | undefined;
+  lastTouched: string | undefined;
   additional: { [key: string]: boolean };
 }
 
@@ -179,7 +179,7 @@ class Store {
     const l = this.currentList();
     const primaryIndex = l.items.indexOf(this.state.selection.primary);
     const newIndex = l.items.indexOf(uid);
-    
+
     this.state.selection.additional = {};
     for (let i = Math.min(primaryIndex, newIndex); i <= Math.max(primaryIndex, newIndex); ++i) {
       if (i === primaryIndex) {
@@ -191,7 +191,19 @@ class Store {
     this.state.selection.lastTouched = uid;
   }
 
-  private findIndexInDirection(curIndex: number, columnCount: number, length: number, direction: Direction): number|undefined {
+  public moveWithinCurrentList(uids: ReadonlyArray<string>, destIndex: number) {
+    const uidsSet = new Set(uids);
+    const l = this.currentList();
+    const orderedUids: string[] = l.items.filter(i => uidsSet.has(i));
+
+    destIndex = Math.min(destIndex, l.items.length);
+    const newItems: (string | undefined)[] = l.items.map(i => (uidsSet.has(i) ? undefined : i));
+    newItems.splice(destIndex, 0, ...orderedUids);
+
+    l.items = newItems.filter((i): i is string => i !== undefined);
+  }
+
+  private findIndexInDirection(curIndex: number, columnCount: number, length: number, direction: Direction): number | undefined {
     if (direction === Direction.RIGHT) {
       if (curIndex < length) {
         return curIndex + 1;
@@ -204,11 +216,11 @@ class Store {
       return Math.min(curIndex + columnCount, length - 1);
     } else if (direction == Direction.UP) {
       return Math.max(curIndex - columnCount, 0);
-    }    
+    }
 
     return undefined;
   }
-  
+
 
   public movePrimarySelection(direction: Direction) {
     if (!this.state.selection.primary) {
@@ -314,7 +326,7 @@ class Store {
     } else {
       for (let uid in this.state.images) {
         this.ensureItemInCurrentList(uid);
-      }  
+      }
     }
     this.selectPrimary(undefined);
   }
@@ -329,7 +341,7 @@ class Store {
 
   private syncListWithPresenceMap(invariant: string) {
     const l = this.listForFilterSettingsInvariant(invariant);
-    const pmCopy = {...l.presenceMap};
+    const pmCopy = { ...l.presenceMap };
     const newList = l.items.map(i => {
       if (pmCopy[i]) {
         delete pmCopy[i];
@@ -354,7 +366,7 @@ class Store {
       } else {
         if (l.presenceMap[uid]) {
           Vue.delete(l.presenceMap, uid);
-        }    
+        }
       }
     }
   }
