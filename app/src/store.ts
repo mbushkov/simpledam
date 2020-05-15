@@ -112,6 +112,8 @@ class Store {
     filter((v) => {
       return (v as Action).action === 'FILE_REGISTERED' || (v as Action).action === 'THUMBNAIL_UPDATED';
     }),
+    // TODO: buffer only on high throughput (implement cutom operator).
+    // See https://netbasal.com/creating-custom-operators-in-rxjs-32f052d69457?gi=5406b4c675c2
     bufferTime(500),
     map((vList) => {
       const aList = vList as FileRegisteredAction[];
