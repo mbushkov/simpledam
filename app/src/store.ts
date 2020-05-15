@@ -70,6 +70,8 @@ export declare interface Selection {
 }
 
 export declare interface State {
+  version: number;
+
   filterSettings: FilterSettings;
   filtersInvariant: string;
 
@@ -90,13 +92,17 @@ export enum Direction {
 
 class Store {
   state: State = Vue.observable({
+    version: 1,
+
     filterSettings: {
       selectedLabels: [],
       selectedStarRatings: [],
     },
     filtersInvariant: '',
 
+
     columnCount: 1,
+
     selection: {
       primary: undefined,
       lastTouched: undefined,
