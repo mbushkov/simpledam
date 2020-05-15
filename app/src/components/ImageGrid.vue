@@ -107,7 +107,7 @@ import { ImageFile, STORE, Label, Direction, ImageMetadata } from '@/store'; // 
 
 // Otherwise it will try to import it from Webpack or whatever you use.
 // https://github.com/electron/electron/issues/7300
-// const { ipcRenderer } = window.require("electron");
+const { ipcRenderer } = window.require("electron");
 
 const LABELS_MAP: { [key: string]: Label } = {
   '0': Label.NONE,
@@ -226,7 +226,7 @@ const ImageGrid = Vue.extend({
       this.dragIndicatorVisible = false;
       console.log(['drop']);
 
-      if (event.dataTransfer.getData('uid')) {
+      if (event.dataTransfer?.getData('uid')) {
         console.log('moving');
       }
 
@@ -294,22 +294,35 @@ const ImageGrid = Vue.extend({
     // https://www.html5rocks.com/en/tutorials/dnd/basics/#toc-dnd-files
     // https://thecssninja.com/demo/gmail_dragout/
     dragStarted(uid: string, event: DragEvent) {
-      if (!event.dataTransfer) {
-        return;
-      }
 
-      console.log(['drag start', uid]);
-      // var dragIcon = document.createElement('img');
-      // dragIcon.src = API_SERVICE.thumbnailUrl(uid);
-      // dragIcon.width = 100;
-      // dragIcon.height = 100;
+      // TODO: enable later to display number of images being dragged.
+      // const dragIcon = document.createElement('div');
+      // document.body.appendChild(dragIcon);
+      // dragIcon.style.width = '100px';
+      // dragIcon.style.height = '100px';
+      // dragIcon.textContent = 'blah';
+      // dragIcon.style.backgroundColor = 'red';
       // event.dataTransfer.setDragImage(dragIcon, -10, -10);
+      // setTimeout(() => document.body.removeChild(dragIcon), 0);
 
-      event.dataTransfer.items.add(STORE.state.images[uid].path, 'file');
-      event.dataTransfer.effectAllowed = 'move';
-      event.dataTransfer.setData("uid", uid);
-      event.dataTransfer.setData("DownloadURL", API_SERVICE.thumbnailUrl(uid));
-      // ipcRenderer.send('ondragstart', STORE.state.images[uid].path, API_SERVICE.thumbnailUrl(uid));
+      ipcRenderer.once('ondragstart-confirmed', () => {
+        if (!event.dataTransfer) {
+          return;
+        }
+        console.log(['drag start', uid, STORE.state.images[uid].path]);
+
+        event.dataTransfer.effectAllowed = 'move';
+      });
+      const paths = new Set<string>([STORE.state.images[uid].path]);
+      paths.add(STORE.state.images[STORE.state.selection.primary].path);
+      for (const additionalUid in STORE.state.selection.additional) {
+        paths.add(STORE.state.images[additionalUid].path);
+      }
+      ipcRenderer.send('ondragstart', Array.from(paths), API_SERVICE.thumbnailUrl(uid));
+
+      // event.dataTransfer.setData("uid", uid);
+      // event.dataTransfer.setData("DownloadURL", API_SERVICE.thumbnailUrl(uid));
+
     },
 
     handleResize: function () {

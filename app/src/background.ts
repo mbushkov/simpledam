@@ -120,13 +120,19 @@ app.on('ready', async () => {
   await createWindow()
 })
 
-ipcMain.on('ondragstart', (event, filePath, url) => {
-  axios.get(url, { responseType: "arraybuffer" }).then((r: AxiosResponse) => {
-    event.sender.startDrag({
-      file: filePath,
-      icon: nativeImage.createFromBuffer(r.data),
-    });
-  })
+ipcMain.on('ondragstart', (event, paths) => {
+  console.log('here', paths);
+  setTimeout(() => {
+    // Type definiition doesn't account for 'files' property.
+    const params: any = {
+      'files': paths,
+      // Just use any icon - the one set in the web event handler should prevail.
+      'icon': nativeImage.createFromNamedImage('NSActionTemplate', [0, 0, 0]),
+    };
+    event.sender.startDrag(params);
+
+    event.reply('ondragstart-confirmed', true);
+  }, 100); // Hell knows why this is needed.
 });
 
 // Exit cleanly on request from parent process in development mode.
