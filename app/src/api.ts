@@ -13,7 +13,7 @@ class ApiService {
   readonly ws = webSocket(`ws://${this.BASE_ADDRESS}/ws`);
 
   readonly wsLogging = this.ws.subscribe(i => {
-    console.log('Got WebSocket data', i);
+    // console.log('Got WebSocket data', i);
   });
 
   scanPath(path: string): Promise<void> {
@@ -32,6 +32,10 @@ class ApiService {
   }
 
   private replaceNullWithUndefined(obj: any): any {
+    if (obj === null || obj === undefined) {
+      return undefined;
+    }
+
     var objKeys = Object.keys(obj);
     objKeys.forEach((key) => {
       if (obj[key] === null) {

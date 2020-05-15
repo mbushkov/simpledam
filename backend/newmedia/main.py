@@ -53,7 +53,7 @@ async def SendWebSocketData(request: web.Request, data):
 
 
 async def WebSocketHandler(request: web.Request) -> web.WebSocketResponse:
-  ws = web.WebSocketResponse(heartbeat=5, compress=False)
+  ws = web.WebSocketResponse(compress=False)
   await ws.prepare(request)
 
   logging.info("Websocket connection opened")
@@ -76,7 +76,7 @@ async def WebSocketHandler(request: web.Request) -> web.WebSocketResponse:
   return ws
 
 
-SUPPORTED_EXTENSIONS = frozenset([".jpg", ".jpeg", ".tif"])
+SUPPORTED_EXTENSIONS = frozenset([".jpg", ".jpeg", ".tif", ".png"])
 
 
 async def ScanFile(path: str, request: web.Request):

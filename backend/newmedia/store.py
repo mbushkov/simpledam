@@ -97,6 +97,7 @@ def _GetFileInfo(path: pathlib.Path, prev_info: Optional[ImageFile]) -> ImageFil
 def _ThumbnailFile(image_file: ImageFile) -> Tuple[ImageFile, bytes]:
   try:
     im = Image.open(image_file.path)
+    im = im.convert("RGB")
   except IOError as e:
     raise ImageProcessingError(e)
 
@@ -180,6 +181,8 @@ class DataStore:
 
     return self._conn
 
+  # TODO: hold a global lock of some kind while saving the store.
+  # At least make sure no new pictures are registered during the save.
   async def SaveStore(self, path, renderer_state_json):
     self._db_path = path
 

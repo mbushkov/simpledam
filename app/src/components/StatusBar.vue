@@ -4,6 +4,9 @@
     <div
       v-if="backendState.catalogOpName"
     >{{ backendState.catalogOpName }} ({{ backendState.catalogOpProgress }})</div>
+    <div
+      v-if="backendState.previewQueueSize > 0"
+    >{{ backendState.previewQueueSize }} previews pending</div>
   </div>
 </template>
 

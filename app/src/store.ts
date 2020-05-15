@@ -1,5 +1,5 @@
 import { API_SERVICE } from '@/api';
-import { filter, map } from 'rxjs/operators';
+import { filter, map, bufferTime } from 'rxjs/operators';
 import Vue from 'vue';
 
 declare interface Action {
@@ -112,9 +112,10 @@ class Store {
     filter((v) => {
       return (v as Action).action === 'FILE_REGISTERED' || (v as Action).action === 'THUMBNAIL_UPDATED';
     }),
-    map((v) => {
-      const a = v as FileRegisteredAction;
-      this.registerImage(a.image);
+    bufferTime(500),
+    map((vList) => {
+      const aList = vList as FileRegisteredAction[];
+      this.registerImages(aList.map(a => a.image));
     })
   ).subscribe();
 
@@ -406,6 +407,12 @@ class Store {
     this.listForFilterSettingsInvariant(invariant);
 
     this.updateListsPresence(imageFile.uid, invariant);
+  }
+
+  private registerImages(imageFile: ImageFile[]) {
+    for (let im of imageFile) {
+      this.registerImage(im);
+    }
   }
 }
 
