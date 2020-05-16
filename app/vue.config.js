@@ -19,6 +19,7 @@ module.exports = {
             role: 'Editor',
           },
         ],
+        // See https://nklayman.github.io/vue-cli-plugin-electron-builder/guide/configuration.html#webpack-configuration
       }
     }
   }
