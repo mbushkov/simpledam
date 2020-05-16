@@ -10,12 +10,13 @@
         </div>
         <div class="label-count">
           <span class="count">{{ counts[entry.label] }}</span>
-          <b-radio size="is-small" 
-            type="is-label-selected" 
-            native-value="true" 
+          <b-radio
+            size="is-small"
+            type="is-label-selected"
+            native-value="true"
             v-model="entry.selected"
-            v-on:click.native.prevent="labelClicked(entry, $event)">
-          </b-radio>
+            v-on:click.native.prevent="labelClicked(entry, $event)"
+          ></b-radio>
         </div>
       </div>
     </div>
@@ -28,6 +29,7 @@
   background-color: $nm-background-color;
   display: flex;
   flex-direction: column;
+  padding-top: 25px;
 }
 
 .labels {
@@ -80,9 +82,9 @@ declare interface LabelEntry {
 
 function labelEntry(title: string, keyStroke: string, label: Label): LabelEntry {
   return {
-    title, 
-    keyStroke, 
-    label, 
+    title,
+    keyStroke,
+    label,
     selected: false,
   };
 }

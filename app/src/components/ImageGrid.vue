@@ -6,6 +6,20 @@
     @dragleave="containerDragEnded($event)"
     @drop="containerDropped($event)"
   >
+    <b-tabs class="top-tabs" size="is-small" type="is-boxed">
+      <b-tab-item label="Thumbnails"></b-tab-item>
+      <b-tab-item label="Media"></b-tab-item>
+    </b-tabs>
+    <div class="image-toolbar">
+      <div class="cur-file-name"></div>
+      <div class="cur-file-stats"></div>
+      <div class="action-buttons">
+        <b-icon icon="rotate-left-variant" size="is-small" type="label-orange"></b-icon>
+        <b-icon icon="rotate-right-variant" size="is-small" type="label-orange"></b-icon>
+        <b-icon icon="minus-circle-outline" size="is-small" type="label-orange"></b-icon>
+        <b-icon icon="plus-circle-outline" size="is-small" type="label-orange"></b-icon>
+      </div>
+    </div>
     <!-- <div>Images ({{ imageList.length }}):</div> -->
 
     <div class="drag-indicator" ref="dragIndicator" v-bind:style="dragIndicatorStyle"></div>
@@ -39,6 +53,38 @@
 .host {
   overflow: scroll;
   background-color: #454545;
+}
+
+::v-deep .b-tabs .tab-content {
+  display: none !important;
+}
+
+.top-tabs {
+  margin-bottom: 0 !important;
+}
+
+.image-toolbar {
+  background-color: $nm-background-color;
+  height: 25px;
+
+  display: flex;
+  align-items: center;
+
+  .cur-file-name {
+    flex-grow: 1;
+  }
+
+  .action-buttons {
+    .icon {
+      color: $nm-text-color;
+      padding-left: 0.15em;
+      padding-right: 0.15em;
+
+      :hover {
+        background-color: #999999;
+      }
+    }
+  }
 }
 
 .drag-indicator {

@@ -18,11 +18,10 @@
 @import '~bulma/sass/utilities/_all';
 
 // Set your colors
-$primary: #8c67ef;
-$primary-invert: findColorInvert($primary);
-$twitter: #4099ff;
-$twitter-invert: findColorInvert($twitter);
-$text: #d2d2d2;
+$primary: #ff8a0d;
+$primary-invert: $nm-background-color;
+$background: #808080;
+$text: $nm-text-color;
 
 // Labels
 $label-none: #ffffff;
@@ -87,10 +86,6 @@ $colors: (
     $danger,
     $danger-invert
   ),
-  'twitter': (
-    $twitter,
-    $twitter-invert
-  ),
   'label-none': (
     $label-none,
     $label-none-invert
@@ -145,6 +140,10 @@ $link-focus-border: $primary;
 // Import Bulma and Buefy styles
 @import '~bulma';
 @import '~buefy/src/scss/buefy';
+
+.tabs a {
+  padding: 0.2em 0.5em;
+}
 
 body {
   user-select: none;
@@ -237,9 +236,14 @@ export default Vue.extend({
 
 ipcRenderer.on('save', async () => {
   if (!BACKEND_MIRROR.state.catalogPath) {
+    // TODO: once is not really needed here. A global "on" should be enough.
     ipcRenderer.once('show-save-catalog-dialog-reply', (event: Electron.IpcRendererEvent, path: string) => {
-      console.log(['save new', BACKEND_MIRROR.state.catalogPath, path]);
-      API_SERVICE.saveStore(path, STORE.state);
+      if (path) {
+        console.log(['save new', BACKEND_MIRROR.state.catalogPath, path]);
+        API_SERVICE.saveStore(path, STORE.state);
+      } else {
+        console.log('save declined');
+      }
     });
     ipcRenderer.send('show-save-catalog-dialog');
   } else {

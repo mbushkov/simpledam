@@ -177,7 +177,10 @@ def main():
   args = PARSER.parse_args()
   store.InitDataStore(args.db_file)
 
-  app = web.Application()
+  # TODO: max request size is 1 Gb. This creates a natural
+  # limit on the library size. We should look into how to
+  # do streaming updates.
+  app = web.Application(client_max_size=1024 * 1024 * 1024)
   app.add_routes([
       web.get("/", RootHandler),
       web.get("/ws", WebSocketHandler),

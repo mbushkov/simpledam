@@ -3,7 +3,7 @@
 </template>
 
 <style lang="scss" scoped>
-@import "../styles/variables";
+@import '../styles/variables';
 .host {
   background-color: $nm-background-color;
 }
