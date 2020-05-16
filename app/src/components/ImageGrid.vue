@@ -149,7 +149,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { API_SERVICE, PORT } from '@/api';
-import { ImageFile, STORE, Label, Direction, ImageMetadata } from '@/store'; // eslint-disable-line no-unused-vars
+import { ImageFile, STORE, Label, Direction, ImageMetadata } from '@/store';
 
 // Otherwise it will try to import it from Webpack or whatever you use.
 // https://github.com/electron/electron/issues/7300

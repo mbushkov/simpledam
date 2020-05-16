@@ -70,7 +70,7 @@
 </style>
 
 <script lang="ts">
-import { defineComponent, computed, Ref, reactive, watchEffect } from '@vue/composition-api';  // eslint-disable-line no-unused-vars
+import { defineComponent, computed, Ref, reactive, watchEffect } from '@vue/composition-api';
 import { Label, STORE } from '@/store';
 
 declare interface LabelEntry {

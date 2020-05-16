@@ -7,7 +7,7 @@ import {
   /* installVueDevtools */
 } from 'vue-cli-plugin-electron-builder/lib'
 import axios, { AxiosResponse } from 'axios';
-import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
+import { ChildProcess, spawn } from 'child_process';
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
@@ -18,8 +18,8 @@ let win: BrowserWindow | null;
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([{ scheme: 'app', privileges: { secure: true, standard: true } }])
 
-async function startBackendProcess(catalogPath?: string): Promise<{ backend: ChildProcessWithoutNullStreams, port: number }> {
-  return new Promise<{ backend: ChildProcessWithoutNullStreams, port: number }>((resolve, reject) => {
+async function startBackendProcess(catalogPath?: string): Promise<{ backend: ChildProcess, port: number }> {
+  return new Promise<{ backend: ChildProcess, port: number }>((resolve, reject) => {
     let binaryPath: string;
     if (isDevelopment) {
       binaryPath = 'newmedia_backend';
