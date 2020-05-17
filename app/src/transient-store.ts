@@ -11,21 +11,10 @@ export interface SingleImageSettings {
   scale: number;
 }
 
-export enum ThumbnailRatio {
-  NORMAL = 1,
-  RATIO_4x3 = 4 / 3,
-  RATIO_3x4 = 3 / 4,
-}
-
-export interface ThumbnailSettings {
-  ratio: ThumbnailRatio;
-  size: number;
-}
-
 export interface TransientState {
   imageViewerTab: ImageViewerTab;
+  columnCount: number,
   singleImageSettings: SingleImageSettings;
-  thumbnailSettings: ThumbnailSettings;
 }
 
 type ReadonlyTransientState = Immutable<TransientState>;
@@ -33,13 +22,10 @@ type ReadonlyTransientState = Immutable<TransientState>;
 class TransientStore {
   private _state: TransientState = Vue.observable({
     imageViewerTab: ImageViewerTab.THUMBNAILS,
+    columnCount: 1,
     singleImageSettings: {
       autoFit: true,
       scale: 100,
-    },
-    thumbnailSettings: {
-      ratio: ThumbnailRatio.RATIO_4x3,
-      size: 80,
     },
   })
 
@@ -49,6 +35,10 @@ class TransientStore {
 
   setImageViewerTab(tab: ImageViewerTab) {
     this._state.imageViewerTab = tab;
+  }
+
+  setColumnCount(n: number) {
+    this._state.columnCount = n;
   }
 }
 

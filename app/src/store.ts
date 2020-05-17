@@ -2,6 +2,7 @@ import { API_SERVICE } from '@/api';
 import { filter, map, bufferTime } from 'rxjs/operators';
 import Vue from 'vue';
 import { Immutable } from './type-utils';
+import { TRANSIENT_STORE } from './transient-store';
 
 declare interface Action {
   action: string;
@@ -70,13 +71,24 @@ export declare interface Selection {
   additional: { [key: string]: boolean };
 }
 
+export enum ThumbnailRatio {
+  NORMAL = 1,
+  RATIO_4x3 = 4 / 3,
+  RATIO_3x4 = 3 / 4,
+}
+
+export interface ThumbnailSettings {
+  ratio: ThumbnailRatio;
+  size: number;
+}
+
 export declare interface State {
   version: number;
 
   filterSettings: FilterSettings;
   filtersInvariant: string;
 
-  columnCount: number,
+  thumbnailSettings: ThumbnailSettings;
   selection: Selection;
 
   images: { [key: string]: ImageFile };
@@ -103,9 +115,10 @@ class Store {
     },
     filtersInvariant: '',
 
-
-    columnCount: 1,
-
+    thumbnailSettings: {
+      ratio: ThumbnailRatio.RATIO_4x3,
+      size: 80,
+    },
     selection: {
       primary: undefined,
       lastTouched: undefined,
@@ -246,7 +259,7 @@ class Store {
 
     const l = this.currentList();
     const curIndex = l.items.indexOf(this._state.selection.primary);
-    const nextIndex = this.findIndexInDirection(curIndex, this._state.columnCount, l.items.length, direction);
+    const nextIndex = this.findIndexInDirection(curIndex, TRANSIENT_STORE.state.columnCount, l.items.length, direction);
     if (nextIndex !== undefined) {
       this.selectPrimary(l.items[nextIndex]);
     }
@@ -260,7 +273,7 @@ class Store {
     const l = this.currentList();
     const primaryIndex = l.items.indexOf(this._state.selection.primary);
     const curIndex = l.items.indexOf(this._state.selection.lastTouched || this._state.selection.primary);
-    const nextIndex = this.findIndexInDirection(curIndex, this._state.columnCount, l.items.length, direction);
+    const nextIndex = this.findIndexInDirection(curIndex, TRANSIENT_STORE.state.columnCount, l.items.length, direction);
     if (nextIndex === undefined) {
       return;
     }
@@ -315,10 +328,6 @@ class Store {
         this.updateListsPresence(sel, invariant);
       }
     }
-  }
-
-  public updateColumnCount(n: number) {
-    this._state.columnCount = n;
   }
 
   public changeLabelFilter(label: Label, state: boolean, allowMultiple: boolean) {

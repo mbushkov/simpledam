@@ -150,6 +150,7 @@
 import Vue from 'vue';
 import { API_SERVICE, PORT } from '@/api';
 import { ImageFile, STORE, Label, Direction, ImageMetadata } from '@/store';
+import { TRANSIENT_STORE } from '../transient-store';
 
 // Otherwise it will try to import it from Webpack or whatever you use.
 // https://github.com/electron/electron/issues/7300
@@ -253,9 +254,9 @@ const ImageGrid = Vue.extend({
       const relX = event.pageX - rect.x;
       const relY = event.pageY - rect.y;
 
-      const offX = Number(Math.min(Math.floor(relX / this.maxSize), STORE.state.columnCount + 1));
+      const offX = Number(Math.min(Math.floor(relX / this.maxSize), TRANSIENT_STORE.state.columnCount + 1));
       const offY = Number(Math.floor(relY / this.maxSize));
-      this.dragIndicatorIndex = offY * STORE.state.columnCount + offX;
+      this.dragIndicatorIndex = offY * TRANSIENT_STORE.state.columnCount + offX;
 
       const destX = offX * this.maxSize;
       const destY = offY * this.maxSize;
@@ -389,7 +390,7 @@ const ImageGrid = Vue.extend({
     },
 
     handleResize: function () {
-      STORE.updateColumnCount(Math.floor(this.$el.clientWidth / this.maxSize));
+      TRANSIENT_STORE.setColumnCount(Math.floor(this.$el.clientWidth / this.maxSize));
     },
 
     scrollIntoView: function (uid: string) {

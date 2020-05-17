@@ -113,7 +113,7 @@ export default defineComponent({
     const draggedUids: string[] = [];
 
     function handleResize() {
-      STORE.updateColumnCount(Math.floor(el.value!.clientWidth / maxSize.value));
+      TRANSIENT_STORE.setColumnCount(Math.floor(el.value!.clientWidth / maxSize.value));
     }
 
     onMounted(() => {
@@ -135,7 +135,7 @@ export default defineComponent({
       let cur = [];
       for (const uid of cl.items) {
         cur.push(uid);
-        if (cur.length === STORE.state.columnCount) {
+        if (cur.length === TRANSIENT_STORE.state.columnCount) {
           result.push({
             key: cur.join('|'),
             uids: cur,
@@ -214,10 +214,10 @@ export default defineComponent({
       const relX = el.scrollLeft + event.pageX - rect.x;
       const relY = el.scrollTop + event.pageY - rect.y;
 
-      const offX = Number(Math.min(Math.floor(relX / maxSize.value), STORE.state.columnCount + 1));
+      const offX = Number(Math.min(Math.floor(relX / maxSize.value), TRANSIENT_STORE.state.columnCount + 1));
       const offY = Number(Math.floor(relY / maxSize.value));
       // console.log(['over', relX, relY, offX, offY]);
-      dragIndicatorIndex.value = offY * STORE.state.columnCount + offX;
+      dragIndicatorIndex.value = offY * TRANSIENT_STORE.state.columnCount + offX;
 
       const destX = offX * maxSize.value;
       const destY = offY * maxSize.value;
