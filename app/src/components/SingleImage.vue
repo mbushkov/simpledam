@@ -23,7 +23,7 @@
 </style>
 <script lang="ts">
 import { defineComponent, computed, ref, onMounted, onBeforeUnmount, watch } from '@vue/composition-api';
-import { STORE } from '../store';
+import { STORE, Direction } from '../store';
 import { API_SERVICE } from '../api';
 import { TRANSIENT_STORE, ImageViewerTab } from '../transient-store';
 
@@ -116,6 +116,22 @@ export default defineComponent({
 
         event.preventDefault();
         event.stopImmediatePropagation();
+      } else if (event.keyCode === 39) {
+        STORE.movePrimarySelection(Direction.RIGHT);
+        event.preventDefault();
+        return;
+      } else if (event.keyCode === 37) {
+        STORE.movePrimarySelection(Direction.LEFT);
+        event.preventDefault();
+        return;
+      } else if (event.keyCode === 38) {
+        STORE.movePrimarySelection(Direction.LEFT);
+        event.preventDefault();
+        return;
+      } else if (event.keyCode === 40) {
+        STORE.movePrimarySelection(Direction.RIGHT);
+        event.preventDefault();
+        return;
       }
       console.log(['key', event]);
     }
