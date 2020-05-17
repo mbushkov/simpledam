@@ -103,8 +103,22 @@ export default defineComponent({
     const isPrimarySelected = computed(() => props.imageData.selectionType === SelectionType.PRIMARY);
     const isAdditionalSelected = computed(() => props.imageData.selectionType === SelectionType.ADDITIONAL);
 
+    let clickCount = 0;
+    let clickTimer: ReturnType<typeof setTimeout>;
     function clicked(event: MouseEvent) {
-      context.emit('nm-click', props.imageData.uid, event);
+      event.preventDefault();
+
+      ++clickCount;
+      if (clickCount === 1) {
+        context.emit('nm-click', props.imageData.uid, event);
+        clickTimer = setTimeout(() => {
+          clickCount = 0;
+        }, 250);
+      } else {
+        clearTimeout(clickTimer);
+        clickCount = 0;
+        context.emit('nm-dblclick', props.imageData.uid, event);
+      }
     }
 
     function dragStarted(event: DragEvent) {

@@ -31,6 +31,7 @@
             draggable="true"
             :imageData="imageData"
             @nm-click="imageBoxClicked"
+            @nm-dblclick="imageBoxDoubleClicked"
             @nm-dragstart="imageBoxDragStarted"
           ></ImageBox>
         </div>
@@ -70,6 +71,7 @@ import { STORE, Label, Direction } from '@/store';
 import { API_SERVICE } from '@/api';
 import { ImageData, SelectionType } from './ImageBox.vue';
 import ImageBox from './ImageBox.vue';
+import { TRANSIENT_STORE, ImageViewerTab } from '../transient-store';
 
 // Otherwise it will try to import it from Webpack or whatever you use.
 // https://github.com/electron/electron/issues/7300
@@ -369,6 +371,18 @@ export default defineComponent({
       }
     }
 
+    function imageBoxDoubleClicked(uid: string, event: MouseEvent) {
+      console.log(['imageBoxDoubleClicked', uid]);
+      if (event.altKey || event.shiftKey || event.ctrlKey || event.metaKey) {
+        return;
+      }
+
+      TRANSIENT_STORE.setImageViewerTab(ImageViewerTab.MEDIA);
+
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
     watchEffect(() => {
       const lt = STORE.state.selection.lastTouched;
       if (lt === undefined) {
@@ -404,6 +418,7 @@ export default defineComponent({
       containerDragLeft,
       generateImageData,
       imageBoxClicked,
+      imageBoxDoubleClicked,
       imageBoxDragStarted,
       keyPressed,
     };

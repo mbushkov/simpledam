@@ -6,8 +6,8 @@
         <b-tab-item label="Media"></b-tab-item>
       </b-tabs>
     </div>
-    <ImageGrid2 class="grow" v-show="currentTab === Tab.THUMBNAILS"></ImageGrid2>
-    <SingleImage class="grow" v-if="currentTab === Tab.MEDIA"></SingleImage>
+    <ImageGrid2 class="grow" v-show="currentTab === ImageViewerTab.THUMBNAILS"></ImageGrid2>
+    <SingleImage class="grow" v-if="currentTab === ImageViewerTab.MEDIA"></SingleImage>
   </div>
 </template>
 <style lang="scss" scoped>
@@ -40,15 +40,10 @@
 }
 </style>
 <script lang="ts">
-import { defineComponent, ref } from '@vue/composition-api';
+import { defineComponent, computed } from '@vue/composition-api';
 import ImageGrid2 from './ImageGrid2.vue';
 import SingleImage from './SingleImage.vue';
-
-
-enum Tab {
-  THUMBNAILS = 0,
-  MEDIA = 1
-}
+import { TRANSIENT_STORE, ImageViewerTab } from '@/transient-store';
 
 
 export default defineComponent({
@@ -57,11 +52,14 @@ export default defineComponent({
     SingleImage,
   },
   setup() {
-    const currentTab = ref(Tab.THUMBNAILS);
+    const currentTab = computed({
+      get: () => TRANSIENT_STORE.state.imageViewerTab,
+      set: (v) => TRANSIENT_STORE.setImageViewerTab(v)
+    });
 
     return {
       currentTab,
-      Tab,
+      ImageViewerTab,
     };
   }
 });  

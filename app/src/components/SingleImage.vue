@@ -1,5 +1,5 @@
 <template>
-  <div class="single-image" ref="el">
+  <div class="single-image" ref="el" @dblclick.stop.prevent="doubleClicked($event)">
     <img ref="img" :src="imageUrl" :style="imageStyle" class="image" v-if="imageUrl" />
   </div>
 </template>
@@ -25,6 +25,7 @@
 import { defineComponent, computed, ref, onMounted, onBeforeUnmount, watch } from '@vue/composition-api';
 import { STORE } from '../store';
 import { API_SERVICE } from '../api';
+import { TRANSIENT_STORE, ImageViewerTab } from '../transient-store';
 
 
 export default defineComponent({
@@ -158,6 +159,11 @@ export default defineComponent({
       }
     });
 
+    function doubleClicked() {
+      console.log('double clicked');
+      TRANSIENT_STORE.setImageViewerTab(ImageViewerTab.THUMBNAILS);
+    }
+
     onMounted(() => {
       window.addEventListener('keydown', keyPressed);
       window.addEventListener('resize', handleResize)
@@ -173,7 +179,9 @@ export default defineComponent({
       imageUrl,
       imageStyle,
       el,
-      img
+      img,
+
+      doubleClicked,
     };
   }
 });  
