@@ -2,7 +2,6 @@
   <div
     draggable="true"
     class="host"
-    :id="'box-' + imageData.uid"
     :class="{ selected: isPrimarySelected, 'additional-selected': isAdditionalSelected }"
     @dragstart="dragStarted($event)"
     @click="clicked($event)"
@@ -66,7 +65,7 @@
 </style>
 
 <script lang="ts">
-import { defineComponent, computed } from '@vue/composition-api';
+import { defineComponent, computed, SetupContext } from '@vue/composition-api';
 import { PORT } from '@/api';
 import { Label } from '@/store';
 
@@ -75,6 +74,7 @@ export interface ImageData {
   readonly filePath: string;
   readonly hasPreview: boolean;
   readonly label: Label;
+  readonly selectionType: SelectionType;
 }
 
 export enum SelectionType {
@@ -85,7 +85,6 @@ export enum SelectionType {
 
 interface Props {
   readonly imageData: ImageData;
-  readonly selectionType: SelectionType;
 }
 
 export default defineComponent({
@@ -99,17 +98,19 @@ export default defineComponent({
       default: SelectionType.NONE,
     },
   },
-  setup(props: Props) {
+  setup(props: Props, context: SetupContext) {
 
-    const isPrimarySelected = computed(() => props.selectionType === SelectionType.PRIMARY);
-    const isAdditionalSelected = computed(() => props.selectionType === SelectionType.ADDITIONAL);
+    const isPrimarySelected = computed(() => props.imageData.selectionType === SelectionType.PRIMARY);
+    const isAdditionalSelected = computed(() => props.imageData.selectionType === SelectionType.ADDITIONAL);
 
     function clicked(event: MouseEvent) {
       console.log(['clicked', event]);
+      context.emit('nm-click', props.imageData.uid, event);
     }
 
     function dragStarted(event: DragEvent) {
       console.log(['drag started', event]);
+      context.emit('nm-dragstart', props.imageData.uid, event);
     }
 
 
