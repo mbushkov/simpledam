@@ -211,7 +211,7 @@ class Store {
 
   private findIndexInDirection(curIndex: number, columnCount: number, length: number, direction: Direction): number | undefined {
     if (direction === Direction.RIGHT) {
-      if (curIndex < length) {
+      if (curIndex < length - 1) {
         return curIndex + 1;
       }
     } else if (direction === Direction.LEFT) {

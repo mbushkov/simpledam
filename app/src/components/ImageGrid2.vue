@@ -40,9 +40,12 @@
 </template>
 
 <style lang="scss" scoped>
+@import '../styles/variables';
+
 .host {
+  // Check why !important is needed.
+  background-color: $nm-background-color-lighter !important;
   overflow: scroll;
-  background-color: #454545;
 }
 
 .row {
@@ -260,6 +263,10 @@ export default defineComponent({
     }
 
     function keyPressed(event: KeyboardEvent) {
+      if (el.value?.style.display === 'none') {
+        return;
+      }
+
       const label = LABELS_MAP[event.key];
       if (label !== undefined) {
         STORE.labelSelection(label);

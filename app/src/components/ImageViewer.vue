@@ -1,12 +1,13 @@
 <template>
   <div class="host">
     <div class="mode-panel">
-      <b-tabs class="top-tabs" size="is-small" type="is-toggle">
+      <b-tabs class="top-tabs" size="is-small" type="is-toggle" v-model="currentTab">
         <b-tab-item label="Thumbnails"></b-tab-item>
         <b-tab-item label="Media"></b-tab-item>
       </b-tabs>
     </div>
-    <ImageGrid2 class="grow"></ImageGrid2>
+    <ImageGrid2 class="grow" v-show="currentTab === Tab.THUMBNAILS"></ImageGrid2>
+    <SingleImage class="grow" v-if="currentTab === Tab.MEDIA"></SingleImage>
   </div>
 </template>
 <style lang="scss" scoped>
@@ -16,17 +17,20 @@
   background-color: $nm-background-color;
   display: flex;
   flex-direction: column;
+  border: 1px solid black;
 
   .mode-panel {
     display: flex;
     flex-direction: row;
-    justify-content: center;
 
     .top-tabs {
       ::v-deep .tabs li {
         width: 200px;
       }
-      margin-bottom: 0 !important;
+      ::v-deep .tab-content {
+        margin: 0 !important;
+        padding: 0 !important;
+      }
     }
   }
 
@@ -41,16 +45,23 @@ import ImageGrid2 from './ImageGrid2.vue';
 import SingleImage from './SingleImage.vue';
 
 
+enum Tab {
+  THUMBNAILS = 0,
+  MEDIA = 1
+}
+
+
 export default defineComponent({
   components: {
     ImageGrid2,
     SingleImage,
   },
   setup() {
-    const mode = ref('thumbnails');
+    const currentTab = ref(Tab.THUMBNAILS);
 
     return {
-      mode,
+      currentTab,
+      Tab,
     };
   }
 });  
