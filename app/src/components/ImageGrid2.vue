@@ -2,7 +2,8 @@
   <div
     class="host"
     ref="el"
-    @dragenter.prevent
+    @dragenter.prevent="containerDragEntered($event)"
+    @dragleave.prevent="containerDragLeft($event)"
     @dragover.prevent="containerDraggedOver($event)"
     @dragleave="containerDragEnded($event)"
     @drop="containerDropped($event)"
@@ -99,6 +100,9 @@ export default defineComponent({
     const dragIndicatorIndex = ref(0);
     const maxSize = ref(300);
 
+    const draggedPaths = new Map<string, string>();
+    const draggedUids: string[] = [];
+
     function handleResize() {
       STORE.updateColumnCount(Math.floor(el.value!.clientWidth / maxSize.value));
     }
@@ -160,7 +164,7 @@ export default defineComponent({
 
     function containerDropped(event: DragEvent) {
       dragIndicatorVisible.value = false;
-      console.log(['drop', event]);
+      console.log(['drop', event, Array.from(event?.dataTransfer?.items ?? [])]);
 
       if (event.dataTransfer?.getData('nmUids')) {
         const nmUids = JSON.parse(event.dataTransfer.getData('nmUids'));
@@ -173,8 +177,25 @@ export default defineComponent({
         return;
       }
 
+      let fullMatch: boolean = true;
       for (let i = 0; i < event.dataTransfer.files.length; ++i) {
-        API_SERVICE.scanPath(event.dataTransfer.files.item(i)!.path);
+        const p = event.dataTransfer.files.item(i)!.path;
+        if (!draggedPaths.has(p)) {
+          fullMatch = false;
+          break;
+        }
+      }
+
+      // This is needed for cases when an object is briefly dragged outside of the
+      // window. Then the 'nmUid' property is going to be cleared, so we have to
+      // rely on files list to see if we should simply move pictures withing the list.
+      if (fullMatch) {
+        console.log('moving2', draggedUids, dragIndicatorIndex.value);
+        STORE.moveWithinCurrentList(draggedUids, dragIndicatorIndex.value);
+      } else {
+        for (let i = 0; i < event.dataTransfer.files.length; ++i) {
+          API_SERVICE.scanPath(event.dataTransfer.files.item(i)!.path);
+        }
       }
     }
 
@@ -186,7 +207,7 @@ export default defineComponent({
 
       const offX = Number(Math.min(Math.floor(relX / maxSize.value), STORE.state.columnCount + 1));
       const offY = Number(Math.floor(relY / maxSize.value));
-      console.log(['over', relX, relY, offX, offY]);
+      // console.log(['over', relX, relY, offX, offY]);
       dragIndicatorIndex.value = offY * STORE.state.columnCount + offX;
 
       const destX = offX * maxSize.value;
@@ -202,6 +223,14 @@ export default defineComponent({
     function containerDragEnded() {
       console.log(['drag end']);
       dragIndicatorVisible.value = false;
+    }
+
+    function containerDragEntered(event: DragEvent) {
+      console.log(['drag entered', Array.from(event.dataTransfer?.getData('nmUids') ?? [])]);
+    }
+
+    function containerDragLeft(event: DragEvent) {
+      console.log(['drag left', Array.from(event.dataTransfer?.getData('nmUids') ?? [])]);
     }
 
     function generateImageData(uids: string[]): ImageData[] {
@@ -271,7 +300,9 @@ export default defineComponent({
     // https://www.html5rocks.com/en/tutorials/dnd/basics/#toc-dnd-files
     // https://thecssninja.com/demo/gmail_dragout/
     function imageBoxDragStarted(uid: string, event: DragEvent) {
+      console.log('imageBoxDragStarted');
       if (!event.dataTransfer) {
+        console.log(['yo']);
         return;
       }
 
@@ -285,6 +316,10 @@ export default defineComponent({
       const paths = Array.from(uids).map(u => STORE.state.images[u].path);
       event.dataTransfer.setData('nmUids', JSON.stringify(Array.from(uids)));
 
+      draggedPaths.clear();
+      for (const uid of uids) {
+        draggedPaths.set(STORE.state.images[uid].path, uid);
+      }
       // TODO: enable later to display number of images being dragged.
       // const dragIcon = document.createElement('div');
       // document.body.appendChild(dragIcon);
@@ -303,6 +338,9 @@ export default defineComponent({
 
         event.dataTransfer.effectAllowed = 'move';
       });
+      console.log(['paths', paths]);
+
+
       ipcRenderer.send('ondragstart', paths, API_SERVICE.thumbnailUrl(uid));
 
       // event.dataTransfer.setData("uid", uid);
@@ -351,6 +389,8 @@ export default defineComponent({
       containerDraggedOver,
       containerDropped,
       containerDragEnded,
+      containerDragEntered,
+      containerDragLeft,
       generateImageData,
       imageBoxClicked,
       imageBoxDragStarted,

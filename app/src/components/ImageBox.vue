@@ -104,15 +104,12 @@ export default defineComponent({
     const isAdditionalSelected = computed(() => props.imageData.selectionType === SelectionType.ADDITIONAL);
 
     function clicked(event: MouseEvent) {
-      console.log(['clicked', event]);
       context.emit('nm-click', props.imageData.uid, event);
     }
 
     function dragStarted(event: DragEvent) {
-      console.log(['drag started', event]);
       context.emit('nm-dragstart', props.imageData.uid, event);
     }
-
 
     function filename(value: string) {
       const components = value.split('/');
