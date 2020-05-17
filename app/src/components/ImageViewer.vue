@@ -6,7 +6,7 @@
         <b-tab-item label="Media"></b-tab-item>
       </b-tabs>
     </div>
-    <ImageGrid2 class="grow" v-show="currentTab === ImageViewerTab.THUMBNAILS"></ImageGrid2>
+    <ImageGrid class="grow" v-show="currentTab === ImageViewerTab.THUMBNAILS"></ImageGrid>
     <SingleImage class="grow" v-if="currentTab === ImageViewerTab.MEDIA"></SingleImage>
   </div>
 </template>
@@ -41,14 +41,14 @@
 </style>
 <script lang="ts">
 import { defineComponent, computed } from '@vue/composition-api';
-import ImageGrid2 from './ImageGrid2.vue';
+import ImageGrid from './ImageGrid.vue';
 import SingleImage from './SingleImage.vue';
 import { TRANSIENT_STORE, ImageViewerTab } from '@/transient-store';
 
 
 export default defineComponent({
   components: {
-    ImageGrid2,
+    ImageGrid,
     SingleImage,
   },
   setup() {
