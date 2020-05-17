@@ -107,7 +107,7 @@ export default defineComponent({
 
     const dragIndicatorVisible = ref(false);
     const dragIndicatorIndex = ref(0);
-    const maxSize = ref(300);
+    const maxSize = computed(() => STORE.state.thumbnailSettings.size);
 
     const draggedPaths = new Map<string, string>();
     const draggedUids: string[] = [];
@@ -115,6 +115,7 @@ export default defineComponent({
     function handleResize() {
       TRANSIENT_STORE.setColumnCount(Math.floor(el.value!.clientWidth / maxSize.value));
     }
+    watchEffect(handleResize);
 
     onMounted(() => {
       window.addEventListener('resize', handleResize)
@@ -304,6 +305,18 @@ export default defineComponent({
           STORE.moveAdditionalSelection(Direction.DOWN);
         } else {
           STORE.movePrimarySelection(Direction.DOWN);
+        }
+        event.preventDefault();
+        return;
+      } else if (event.key === '=' && event.metaKey && event.shiftKey) {
+        if (STORE.state.thumbnailSettings.size < 640) {
+          STORE.setThumbnailSize(STORE.state.thumbnailSettings.size + 40);
+        }
+        event.preventDefault();
+        return;
+      } else if (event.key === '-' && event.metaKey) {
+        if (STORE.state.thumbnailSettings.size > 80) {
+          STORE.setThumbnailSize(STORE.state.thumbnailSettings.size - 40);
         }
         event.preventDefault();
         return;

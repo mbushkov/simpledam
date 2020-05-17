@@ -117,7 +117,7 @@ class Store {
 
     thumbnailSettings: {
       ratio: ThumbnailRatio.RATIO_4x3,
-      size: 80,
+      size: 200,
     },
     selection: {
       primary: undefined,
@@ -174,6 +174,10 @@ class Store {
       this._state.selection.primary = uid;
       this._state.selection.additional = {};
     }
+  }
+
+  public setThumbnailSize(size: number) {
+    this._state.thumbnailSettings.size = size;
   }
 
   public toggleAdditionalSelection(uid: string) {
