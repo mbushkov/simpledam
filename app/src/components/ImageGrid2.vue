@@ -66,6 +66,7 @@ import { defineComponent, computed, onMounted, onBeforeUnmount, ref, watchEffect
 import { STORE, Label, Direction } from '@/store';
 import { API_SERVICE } from '@/api';
 import { ImageData, SelectionType } from './ImageBox.vue';
+import ImageBox from './ImageBox.vue';
 
 // Otherwise it will try to import it from Webpack or whatever you use.
 // https://github.com/electron/electron/issues/7300
@@ -91,6 +92,9 @@ const LABELS_MAP: { [key: string]: Label } = {
 };
 
 export default defineComponent({
+  components: {
+    ImageBox,
+  },
   setup() {
     const el = ref<HTMLElement>(null);
     const scroller = ref<HTMLElement>(null);
