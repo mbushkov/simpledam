@@ -1,6 +1,7 @@
 import { API_SERVICE } from '@/api';
 import { filter, map, bufferTime } from 'rxjs/operators';
 import Vue from 'vue';
+import { Immutable } from './type-utils';
 
 declare interface Action {
   action: string;
@@ -83,6 +84,8 @@ export declare interface State {
   lists: { [key: string]: ImageList };
 }
 
+export type ReadonlyState = Immutable<State>;
+
 export enum Direction {
   UP,
   DOWN,
@@ -91,7 +94,7 @@ export enum Direction {
 }
 
 class Store {
-  state: State = Vue.observable({
+  private _state: State = Vue.observable({
     version: 1,
 
     filterSettings: {
@@ -114,6 +117,14 @@ class Store {
     lists: {},
   });
 
+  get state(): ReadonlyState {
+    return this._state;
+  }
+
+  replaceState(s: State) {
+    this._state = Vue.observable(s);
+  }
+
   readonly registerImage$ = API_SERVICE.ws.pipe(
     filter((v) => {
       return (v as Action).action === 'FILE_REGISTERED' || (v as Action).action === 'THUMBNAIL_UPDATED';
@@ -128,73 +139,73 @@ class Store {
   ).subscribe();
 
   public currentList(): ImageList {
-    return this.listForFilterSettingsInvariant(this.state.filtersInvariant);
+    return this.listForFilterSettingsInvariant(this._state.filtersInvariant);
   }
 
   public listForFilterSettingsInvariant(invariant: string): ImageList {
-    let list = this.state.lists[invariant];
+    let list = this._state.lists[invariant];
     if (list === undefined) {
       list = {
         presenceMap: {},
         items: [],
       };
-      Vue.set(this.state.lists, invariant, list);
+      Vue.set(this._state.lists, invariant, list);
     }
     return list;
   }
 
   public selectPrimary(uid?: string) {
-    this.state.selection.lastTouched = uid;
+    this._state.selection.lastTouched = uid;
 
-    if (this.state.selection.primary !== uid) {
-      this.state.selection.primary = uid;
-      this.state.selection.additional = {};
+    if (this._state.selection.primary !== uid) {
+      this._state.selection.primary = uid;
+      this._state.selection.additional = {};
     }
   }
 
   public toggleAdditionalSelection(uid: string) {
-    this.state.selection.lastTouched = uid;
+    this._state.selection.lastTouched = uid;
 
-    if (this.state.selection.primary === uid) {
+    if (this._state.selection.primary === uid) {
       let newPrimary = undefined;
-      const aKeys = Object.keys(this.state.selection.additional);
+      const aKeys = Object.keys(this._state.selection.additional);
       if (aKeys.length > 0) {
         newPrimary = aKeys[0];
-        Vue.delete(this.state.selection.additional, newPrimary);
+        Vue.delete(this._state.selection.additional, newPrimary);
       }
-      this.state.selection.primary = newPrimary;
+      this._state.selection.primary = newPrimary;
     } else {
-      if (this.state.selection.primary === undefined) {
+      if (this._state.selection.primary === undefined) {
         this.selectPrimary(uid);
         return;
       }
 
-      if (this.state.selection.additional[uid]) {
-        Vue.delete(this.state.selection.additional, uid);
+      if (this._state.selection.additional[uid]) {
+        Vue.delete(this._state.selection.additional, uid);
       } else {
-        Vue.set(this.state.selection.additional, uid, true);
+        Vue.set(this._state.selection.additional, uid, true);
       }
     }
   }
 
   public selectRange(uid: string) {
-    if (!this.state.selection.primary) {
+    if (!this._state.selection.primary) {
       return;
     }
 
     const l = this.currentList();
-    const primaryIndex = l.items.indexOf(this.state.selection.primary);
+    const primaryIndex = l.items.indexOf(this._state.selection.primary);
     const newIndex = l.items.indexOf(uid);
 
-    this.state.selection.additional = {};
+    this._state.selection.additional = {};
     for (let i = Math.min(primaryIndex, newIndex); i <= Math.max(primaryIndex, newIndex); ++i) {
       if (i === primaryIndex) {
         continue;
       }
-      Vue.set(this.state.selection.additional, l.items[i], true);
+      Vue.set(this._state.selection.additional, l.items[i], true);
     }
 
-    this.state.selection.lastTouched = uid;
+    this._state.selection.lastTouched = uid;
   }
 
   public moveWithinCurrentList(uids: ReadonlyArray<string>, destIndex: number) {
@@ -229,27 +240,27 @@ class Store {
 
 
   public movePrimarySelection(direction: Direction) {
-    if (!this.state.selection.primary) {
+    if (!this._state.selection.primary) {
       return;
     }
 
     const l = this.currentList();
-    const curIndex = l.items.indexOf(this.state.selection.primary);
-    const nextIndex = this.findIndexInDirection(curIndex, this.state.columnCount, l.items.length, direction);
+    const curIndex = l.items.indexOf(this._state.selection.primary);
+    const nextIndex = this.findIndexInDirection(curIndex, this._state.columnCount, l.items.length, direction);
     if (nextIndex !== undefined) {
       this.selectPrimary(l.items[nextIndex]);
     }
   }
 
   public moveAdditionalSelection(direction: Direction) {
-    if (!this.state.selection.primary) {
+    if (!this._state.selection.primary) {
       return;
     }
 
     const l = this.currentList();
-    const primaryIndex = l.items.indexOf(this.state.selection.primary);
-    const curIndex = l.items.indexOf(this.state.selection.lastTouched || this.state.selection.primary);
-    const nextIndex = this.findIndexInDirection(curIndex, this.state.columnCount, l.items.length, direction);
+    const primaryIndex = l.items.indexOf(this._state.selection.primary);
+    const curIndex = l.items.indexOf(this._state.selection.lastTouched || this._state.selection.primary);
+    const nextIndex = this.findIndexInDirection(curIndex, this._state.columnCount, l.items.length, direction);
     if (nextIndex === undefined) {
       return;
     }
@@ -261,30 +272,30 @@ class Store {
 
       if (nextIndex < primaryIndex) {
         if (i < nextIndex) {
-          Vue.delete(this.state.selection.additional, l.items[i]);
+          Vue.delete(this._state.selection.additional, l.items[i]);
         } else {
-          Vue.set(this.state.selection.additional, l.items[i], true);
+          Vue.set(this._state.selection.additional, l.items[i], true);
         }
       } else if (nextIndex > primaryIndex) {
         if (i > nextIndex) {
-          Vue.delete(this.state.selection.additional, l.items[i]);
+          Vue.delete(this._state.selection.additional, l.items[i]);
         } else {
-          Vue.set(this.state.selection.additional, l.items[i], true);
+          Vue.set(this._state.selection.additional, l.items[i], true);
         }
       } else {
-        Vue.delete(this.state.selection.additional, l.items[i]);
+        Vue.delete(this._state.selection.additional, l.items[i]);
       }
     }
-    this.state.selection.lastTouched = l.items[nextIndex];
+    this._state.selection.lastTouched = l.items[nextIndex];
   }
 
   public numItemsMatchingFilter(filterSettings: FilterSettings): number {
     const invariant = filterSettingsInvariant(filterSettings);
-    return Object.keys(this.state.lists[invariant]?.presenceMap ?? {}).length;
+    return Object.keys(this._state.lists[invariant]?.presenceMap ?? {}).length;
   }
 
   public labelSelection(label: Label) {
-    if (!this.state.selection.primary) {
+    if (!this._state.selection.primary) {
       return;
     }
 
@@ -295,9 +306,9 @@ class Store {
     // Makes sure that the list for this label exists.
     this.listForFilterSettingsInvariant(invariant);
 
-    for (let sel of Object.keys(this.state.selection.additional).concat(this.state.selection.primary)) {
-      const prevLabel = this.state.metadata[sel].label;
-      Vue.set(this.state.metadata[sel], 'label', label);
+    for (let sel of Object.keys(this._state.selection.additional).concat(this._state.selection.primary)) {
+      const prevLabel = this._state.metadata[sel].label;
+      Vue.set(this._state.metadata[sel], 'label', label);
 
       if (prevLabel !== label) {
         this.ensureItemInCurrentList(sel);
@@ -307,30 +318,30 @@ class Store {
   }
 
   public updateColumnCount(n: number) {
-    this.state.columnCount = n;
+    this._state.columnCount = n;
   }
 
   public changeLabelFilter(label: Label, state: boolean, allowMultiple: boolean) {
-    const index = this.state.filterSettings.selectedLabels.indexOf(label);
+    const index = this._state.filterSettings.selectedLabels.indexOf(label);
     if (!state) {
       if (index !== -1) {
-        this.state.filterSettings.selectedLabels.splice(index, 1);
+        this._state.filterSettings.selectedLabels.splice(index, 1);
       }
     } else {
       if (allowMultiple) {
         if (index === -1) {
-          this.state.filterSettings.selectedLabels.push(label);
+          this._state.filterSettings.selectedLabels.push(label);
         }
       } else {
-        this.state.filterSettings.selectedLabels = [label];
+        this._state.filterSettings.selectedLabels = [label];
       }
     }
 
-    this.state.filtersInvariant = filterSettingsInvariant(this.state.filterSettings);
-    if (this.state.lists[this.state.filtersInvariant]) {
-      this.syncListWithPresenceMap(this.state.filtersInvariant);
+    this._state.filtersInvariant = filterSettingsInvariant(this._state.filterSettings);
+    if (this._state.lists[this._state.filtersInvariant]) {
+      this.syncListWithPresenceMap(this._state.filtersInvariant);
     } else {
-      for (let uid in this.state.images) {
+      for (let uid in this._state.images) {
         this.ensureItemInCurrentList(uid);
       }
     }
@@ -338,7 +349,7 @@ class Store {
   }
 
   private isMatchingFilterSettings(mdata: ImageMetadata): boolean {
-    const fs = this.state.filterSettings;
+    const fs = this._state.filterSettings;
     const matchesLabel = ((fs.selectedLabels.length === 0) || fs.selectedLabels.indexOf(mdata.label) !== -1);
     const matchesStarRating = ((fs.selectedStarRatings.length === 0) || fs.selectedStarRatings.indexOf(mdata.starRating) !== -1);
 
@@ -363,8 +374,8 @@ class Store {
   }
 
   private updateListsPresence(uid: string, invariant: string) {
-    for (let key in this.state.lists) {
-      const l = this.state.lists[key];
+    for (let key in this._state.lists) {
+      const l = this._state.lists[key];
       if (key === '' || key.includes(invariant)) {
         if (!l.presenceMap[uid]) {
           Vue.set(l.presenceMap, uid, true);
@@ -378,9 +389,9 @@ class Store {
   }
 
   private ensureItemInCurrentList(uid: string) {
-    const mdata = this.state.metadata[uid];
+    const mdata = this._state.metadata[uid];
 
-    const l = this.listForFilterSettingsInvariant(this.state.filtersInvariant);
+    const l = this.listForFilterSettingsInvariant(this._state.filtersInvariant);
     if (this.isMatchingFilterSettings(mdata)) {
       if (!l.presenceMap[uid]) {
         Vue.set(l.presenceMap, uid, true);
@@ -391,20 +402,20 @@ class Store {
         Vue.delete(l.presenceMap, uid);
         l.items.splice(l.items.indexOf(uid), 1);
       }
-      if (this.state.selection.primary === uid) {
+      if (this._state.selection.primary === uid) {
         this.selectPrimary(undefined);
       }
     }
   }
 
   private registerImage(imageFile: ImageFile) {
-    Vue.set(this.state.images, imageFile.uid, imageFile);
+    Vue.set(this._state.images, imageFile.uid, imageFile);
 
     const imageMetadata: ImageMetadata = {
       label: Label.NONE,
       starRating: 0,
     };
-    Vue.set(this.state.metadata, imageFile.uid, imageMetadata);
+    Vue.set(this._state.metadata, imageFile.uid, imageMetadata);
     this.ensureItemInCurrentList(imageFile.uid);
 
     const invariant = filterSettingsInvariant({

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { webSocket } from 'rxjs/webSocket';
-import { State } from './store';
+import { State, ReadonlyState } from './store';
 
 const GLOBAL_URL_PARAMS = new URLSearchParams(window.location.search);
 export const PORT = Number(GLOBAL_URL_PARAMS.get('port'));
@@ -22,7 +22,7 @@ class ApiService {
     });
   }
 
-  saveStore(path: string, state: State): Promise<void> {
+  saveStore(path: string, state: ReadonlyState): Promise<void> {
     const replacer = (key: string, value: unknown) => value === undefined ? null : value;
     const stringified = JSON.stringify({ path, state }, replacer);
 

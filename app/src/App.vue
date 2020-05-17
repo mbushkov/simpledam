@@ -229,7 +229,7 @@ export default Vue.extend({
   beforeCreate() {
     API_SERVICE.fetchState().then(s => {
       if (s !== undefined) {
-        STORE.state = Vue.observable(s);
+        STORE.replaceState(s);
       }
 
       (this as any)['loaded'] = true;
