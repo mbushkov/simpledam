@@ -5,7 +5,7 @@
     <div v-if="loaded">
       <ToolBar class="tool-bar"></ToolBar>
       <SideBar class="side-bar"></SideBar>
-      <ImageGrid2 class="image-grid"></ImageGrid2>
+      <ImageViewer class="image-grid"></ImageViewer>
       <StatusBar class="status-bar"></StatusBar>
     </div>
   </div>
@@ -200,11 +200,10 @@ $tool-bar-height: $status-bar-height * 2;
 
 <script lang="ts">
 import Vue from 'vue';
-// import ImageGrid from './components/ImageGrid.vue';
 import SideBar from './components/SideBar.vue';
 import StatusBar from './components/StatusBar.vue';
 import ToolBar from './components/ToolBar.vue';
-import ImageGrid2 from './components/ImageGrid2.vue';
+import ImageViewer from './components/ImageViewer.vue';
 import { BACKEND_MIRROR } from './backend-mirror';
 import { STORE } from './store';
 import { API_SERVICE } from './api';
@@ -217,11 +216,10 @@ const { ipcRenderer } = window.require("electron");
 export default Vue.extend({
   name: 'App',
   components: {
-    // ImageGrid,
     SideBar,
     StatusBar,
     ToolBar,
-    ImageGrid2,
+    ImageViewer,
   },
   data() {
     return {

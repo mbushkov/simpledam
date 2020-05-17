@@ -59,6 +59,8 @@ async function createWindow(path?: string) {
     title: 'New Media (pre-alpha)',
     width: 1024,
     height: 768,
+    minWidth: 1024,
+    minHeight: 768,
     webPreferences: {
       // TODO: try turning this off.
       nodeIntegration: true
