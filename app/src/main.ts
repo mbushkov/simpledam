@@ -3,7 +3,7 @@ import VueRx from 'vue-rx';
 import VueCompositionApi from '@vue/composition-api';
 import Buefy from 'buefy';
 import VueVirtualScroller from 'vue-virtual-scroller';
-import VueObserveVisibility from 'vue-observe-visibility';
+import VueObserveVisibility from 'vue-observe-visibility'; // required by the virual scroller
 
 import '@mdi/font/css/materialdesignicons.css'
 
@@ -17,7 +17,7 @@ Vue.use(VueRx);
 Vue.use(VueCompositionApi);
 Vue.use(Buefy)
 Vue.use(VueVirtualScroller);
-Vue.use(VueObserveVisibility);
+Vue.use(VueObserveVisibility); // required by the virual scroller
 
 Vue.config.productionTip = false;
 
