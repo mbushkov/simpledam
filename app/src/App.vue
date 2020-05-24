@@ -21,7 +21,7 @@
 @import '~bulma/sass/utilities/_all';
 
 // Set your colors
-$primary: #ff8a0d;
+$primary: $nm-primary-color;
 $primary-invert: $nm-background-color;
 $background: #808080;
 $text: $nm-text-color;

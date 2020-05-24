@@ -1,6 +1,6 @@
 <template>
-  <Pane title="Label">
-    <div class="labels">
+  <Pane title="Rating">
+    <div class="ratings">
       <div class="row" v-for="entry in entries" :key="entry.title">
         <div class="label-name">
           <b-icon :type="{['is-label-' + entry.title]: true}" icon="checkbox-blank" class="icon"></b-icon>
@@ -26,7 +26,7 @@
 <style lang="scss" scoped>
 @import '../../styles/variables';
 
-.labels {
+.ratings {
   display: flex;
   flex-direction: column;
 
