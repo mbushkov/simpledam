@@ -48,7 +48,19 @@ async def SavedStateHandler(request: web.Request) -> web.Response:
 
 
 async def SendWebSocketData(request: web.Request, data):
-  coros = [cast(web.WebSocketResponse, ws).send_json(data) for ws in request.app["websockets"]]
+  # Remove websockets that were closed abnormally. Chromium will close local
+  # websocket connections every time the machine goes to sleep. On the backend
+  # side these websockets won't receive any notification, but their close_code
+  # property will be set correctly.
+  to_remove = set(ws for ws in request.app["websockets"] if ws.close_code is not None)
+  if to_remove:
+    logging.info("found %d dead websockets, removing", len(to_remove))
+    request.app["websockets"].difference_update(to_remove)
+
+  coros = [
+      asyncio.shield(cast(web.WebSocketResponse, ws).send_json(data))
+      for ws in request.app["websockets"]
+  ]
   asyncio.gather(*coros)
 
 
@@ -69,6 +81,8 @@ async def WebSocketHandler(request: web.Request) -> web.WebSocketResponse:
     elif msg.type == aiohttp.WSMsgType.CLOSED:
       logging.info("WebSocket connection closed exiting.")
       sys.exit(0)
+    else:
+      logging.info("Message of type: %s %s", msg.type, msg)
 
   request.app["websockets"].remove(ws)
 

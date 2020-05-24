@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { webSocket } from 'rxjs/webSocket';
 import { State, ReadonlyState } from './store';
+import { retry } from 'rxjs/operators';
 
 const GLOBAL_URL_PARAMS = new URLSearchParams(window.location.search);
 export const PORT = Number(GLOBAL_URL_PARAMS.get('port'));
@@ -10,7 +11,11 @@ class ApiService {
   readonly BASE_ADDRESS = `127.0.0.1:${PORT}`;
   readonly ROOT = 'http://' + this.BASE_ADDRESS;
 
-  readonly ws = webSocket(`ws://${this.BASE_ADDRESS}/ws`);
+  readonly ws = webSocket(`ws://${this.BASE_ADDRESS}/ws`).pipe(
+    // Chromium will close the websocket evert time the system goes to sleep.
+    // Thus, it's necessary to retry.
+    retry(),
+  );
 
   // readonly wsLogging = this.ws.subscribe(i => {
   // console.log('Got WebSocket data', i);
