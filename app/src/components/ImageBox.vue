@@ -9,6 +9,7 @@
     <div class="nested">
       <img
         v-if="imageData.hasPreview"
+        :class="{'rotated-90': isRotated90, 'rotated-180': isRotated180, 'rotated-270': isRotated270 }"
         :src="'http://127.0.0.1:' + port + '/images/' + imageData.uid"
       />
     </div>
@@ -46,6 +47,18 @@
       display: block;
       max-width: 100%;
       max-height: 100%;
+
+      &.rotated-90 {
+        transform: rotate(90deg);
+      }
+
+      &.rotated-180 {
+        transform: rotate(180deg);
+      }
+
+      &.rotated-270 {
+        transform: rotate(270deg);
+      }
     }
   }
 
@@ -67,7 +80,7 @@
 <script lang="ts">
 import { defineComponent, computed, SetupContext } from '@vue/composition-api';
 import { PORT } from '@/api';
-import { Label } from '@/store';
+import { Label, ImageAdjustments, Rotation } from '@/store';
 
 export interface ImageData {
   readonly uid: string;
@@ -75,6 +88,7 @@ export interface ImageData {
   readonly hasPreview: boolean;
   readonly label: Label;
   readonly selectionType: SelectionType;
+  readonly adjustments: ImageAdjustments;
 }
 
 export enum SelectionType {
@@ -102,6 +116,9 @@ export default defineComponent({
 
     const isPrimarySelected = computed(() => props.imageData.selectionType === SelectionType.PRIMARY);
     const isAdditionalSelected = computed(() => props.imageData.selectionType === SelectionType.ADDITIONAL);
+    const isRotated90 = computed(() => props.imageData.adjustments.rotation === Rotation.DEG_90);
+    const isRotated180 = computed(() => props.imageData.adjustments.rotation === Rotation.DEG_180);
+    const isRotated270 = computed(() => props.imageData.adjustments.rotation === Rotation.DEG_270);
 
     let clickCount = 0;
     let clickTimer: ReturnType<typeof setTimeout>;
@@ -133,6 +150,9 @@ export default defineComponent({
     return {
       isPrimarySelected,
       isAdditionalSelected,
+      isRotated90,
+      isRotated180,
+      isRotated270,
 
       port: PORT,
 

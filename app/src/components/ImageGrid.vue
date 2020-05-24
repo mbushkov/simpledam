@@ -260,7 +260,8 @@ export default defineComponent({
           filePath: im.path,
           hasPreview: !!im.preview_timestamp,
           label: mdata.label,
-          selectionType
+          selectionType,
+          adjustments: mdata.adjustments,
         };
       });
     }
@@ -318,6 +319,16 @@ export default defineComponent({
         if (STORE.state.thumbnailSettings.size > 80) {
           STORE.setThumbnailSize(STORE.state.thumbnailSettings.size - 40);
         }
+        event.preventDefault();
+        return;
+      } else if (event.key === ']' && event.metaKey) {
+        console.log('rotating right');
+        STORE.rotateRight();
+        event.preventDefault();
+        return;
+      } else if (event.key === '[' && event.metaKey) {
+        console.log('rotating left');
+        STORE.rotateLeft();
         event.preventDefault();
         return;
       }

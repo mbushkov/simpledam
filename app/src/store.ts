@@ -38,11 +38,26 @@ export enum Label {
   GRAY,
 }
 
+export enum Rotation {
+  NONE = 0,
+  DEG_90 = 90,
+  DEG_180 = 180,
+  DEG_270 = 270,
+}
+
+export declare interface ImageAdjustments {
+  rotation: Rotation;
+  horizontalFlip: boolean;
+  verticalFlip: boolean;
+}
+
 type StarRating = 0 | 1 | 2 | 3 | 4 | 5;
 
 export declare interface ImageMetadata {
   starRating: StarRating;
   label: Label;
+
+  adjustments: ImageAdjustments;
 }
 
 export declare interface ImageList {
@@ -361,6 +376,54 @@ class Store {
     this.selectPrimary(undefined);
   }
 
+  private readonly leftRotationMap = {
+    [Rotation.NONE]: Rotation.DEG_270,
+    [Rotation.DEG_90]: Rotation.NONE,
+    [Rotation.DEG_180]: Rotation.DEG_90,
+    [Rotation.DEG_270]: Rotation.DEG_180,
+  };
+
+  public rotateLeft() {
+    for (const mdata of this.allSelectedMetadata()) {
+      mdata.adjustments.rotation = this.leftRotationMap[mdata.adjustments.rotation];
+    }
+  }
+
+  private readonly rightRotationMap = {
+    [Rotation.NONE]: Rotation.DEG_90,
+    [Rotation.DEG_90]: Rotation.DEG_180,
+    [Rotation.DEG_180]: Rotation.DEG_270,
+    [Rotation.DEG_270]: Rotation.NONE,
+  };
+
+  public rotateRight() {
+    for (const mdata of this.allSelectedMetadata()) {
+      mdata.adjustments.rotation = this.rightRotationMap[mdata.adjustments.rotation];
+    }
+  }
+
+  public flipHorizontally() {
+    for (const mdata of this.allSelectedMetadata()) {
+      mdata.adjustments.horizontalFlip = !mdata.adjustments.horizontalFlip;
+    }
+  }
+
+  public flipVertically() {
+    for (const mdata of this.allSelectedMetadata()) {
+      mdata.adjustments.verticalFlip = !mdata.adjustments.verticalFlip;
+    }
+  }
+
+  private * allSelectedMetadata(): IterableIterator<ImageMetadata> {
+    if (this._state.selection.primary) {
+      yield this._state.metadata[this._state.selection.primary];
+    }
+
+    for (let sel of Object.keys(this._state.selection.additional)) {
+      yield this._state.metadata[sel];
+    }
+  }
+
   private isMatchingFilterSettings(mdata: ImageMetadata): boolean {
     const fs = this._state.filterSettings;
     const matchesLabel = ((fs.selectedLabels.length === 0) || fs.selectedLabels.indexOf(mdata.label) !== -1);
@@ -427,6 +490,11 @@ class Store {
     const imageMetadata: ImageMetadata = {
       label: Label.NONE,
       starRating: 0,
+      adjustments: {
+        rotation: Rotation.NONE,
+        horizontalFlip: false,
+        verticalFlip: false,
+      },
     };
     Vue.set(this._state.metadata, imageFile.uid, imageMetadata);
     this.ensureItemInCurrentList(imageFile.uid);
