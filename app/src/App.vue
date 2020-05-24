@@ -200,7 +200,7 @@ $tool-bar-height: $status-bar-height * 2;
 
 <script lang="ts">
 import Vue from 'vue';
-import SideBar from './components/SideBar.vue';
+import SideBar from './components/sidebar/SideBar.vue';
 import StatusBar from './components/StatusBar.vue';
 import ToolBar from './components/ToolBar.vue';
 import ImageViewer from './components/ImageViewer.vue';
