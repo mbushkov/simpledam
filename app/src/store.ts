@@ -51,10 +51,10 @@ export declare interface ImageAdjustments {
   verticalFlip: boolean;
 }
 
-type StarRating = 0 | 1 | 2 | 3 | 4 | 5;
+export type Rating = 0 | 1 | 2 | 3 | 4 | 5;
 
 export declare interface ImageMetadata {
-  starRating: StarRating;
+  rating: Rating;
   label: Label;
 
   adjustments: ImageAdjustments;
@@ -67,17 +67,17 @@ export declare interface ImageList {
 
 export declare interface FilterSettings {
   selectedLabels: Label[];
-  selectedStarRatings: StarRating[];
+  selectedRatings: Rating[];
 }
 
 function filterSettingsInvariant(fs: FilterSettings): string {
   const l = [...fs.selectedLabels];
   l.sort();
 
-  const s = [...fs.selectedStarRatings];
+  const s = [...fs.selectedRatings];
   s.sort();
 
-  return l.map(i => `label:${i}`).concat(s.map(i => `star:${i}`)).join('|');
+  return l.map(i => `label:${i}`).concat(s.map(i => `rating:${i}`)).join('|');
 }
 
 export declare interface Selection {
@@ -126,7 +126,7 @@ class Store {
 
     filterSettings: {
       selectedLabels: [],
-      selectedStarRatings: [],
+      selectedRatings: [],
     },
     filtersInvariant: '',
 
@@ -157,7 +157,7 @@ class Store {
     filter((v) => {
       return (v as Action).action === 'FILE_REGISTERED' || (v as Action).action === 'THUMBNAIL_UPDATED';
     }),
-    // TODO: buffer only on high throughput (implement cutom operator).
+    // TODO: buffer only on high throughput (implement cutsom operator).
     // See https://netbasal.com/creating-custom-operators-in-rxjs-32f052d69457?gi=5406b4c675c2
     bufferTime(500),
     map((vList) => {
@@ -333,7 +333,7 @@ class Store {
 
     const invariant = filterSettingsInvariant({
       selectedLabels: [label],
-      selectedStarRatings: [],
+      selectedRatings: [],
     });
     // Makes sure that the list for this label exists.
     this.listForFilterSettingsInvariant(invariant);
@@ -350,6 +350,10 @@ class Store {
   }
 
   public changeLabelFilter(label: Label, state: boolean, allowMultiple: boolean) {
+    if (!allowMultiple) {
+      this._state.filterSettings.selectedRatings = [];
+    }
+
     const index = this._state.filterSettings.selectedLabels.indexOf(label);
     if (!state) {
       if (index !== -1) {
@@ -362,6 +366,62 @@ class Store {
         }
       } else {
         this._state.filterSettings.selectedLabels = [label];
+      }
+    }
+
+    this._state.filtersInvariant = filterSettingsInvariant(this._state.filterSettings);
+    if (this._state.lists[this._state.filtersInvariant]) {
+      this.syncListWithPresenceMap(this._state.filtersInvariant);
+    } else {
+      for (let uid in this._state.images) {
+        this.ensureItemInCurrentList(uid);
+      }
+    }
+    this.selectPrimary(undefined);
+  }
+
+  public rateSelection(rating: Rating) {
+    console.log(['rate selection', rating]);
+    if (!this._state.selection.primary) {
+      return;
+    }
+
+    const invariant = filterSettingsInvariant({
+      selectedLabels: [],
+      selectedRatings: [rating],
+    });
+    // Makes sure that the list for this label exists.
+    this.listForFilterSettingsInvariant(invariant);
+
+    for (let sel of Object.keys(this._state.selection.additional).concat(this._state.selection.primary)) {
+      const prevRating = this._state.metadata[sel].rating;
+      Vue.set(this._state.metadata[sel], 'rating', rating);
+
+      if (prevRating !== rating) {
+        this.ensureItemInCurrentList(sel);
+        this.updateListsPresence(sel, invariant);
+      }
+    }
+  }
+
+  public changeRatingFilter(rating: Rating, state: boolean, allowMultiple: boolean) {
+    console.log(['change label filter', rating, state, allowMultiple]);
+    if (!allowMultiple) {
+      this._state.filterSettings.selectedLabels = [];
+    }
+
+    const index = this._state.filterSettings.selectedRatings.indexOf(rating);
+    if (!state) {
+      if (index !== -1) {
+        this._state.filterSettings.selectedRatings.splice(index, 1);
+      }
+    } else {
+      if (allowMultiple) {
+        if (index === -1) {
+          this._state.filterSettings.selectedRatings.push(rating);
+        }
+      } else {
+        this._state.filterSettings.selectedRatings = [rating];
       }
     }
 
@@ -427,7 +487,7 @@ class Store {
   private isMatchingFilterSettings(mdata: ImageMetadata): boolean {
     const fs = this._state.filterSettings;
     const matchesLabel = ((fs.selectedLabels.length === 0) || fs.selectedLabels.indexOf(mdata.label) !== -1);
-    const matchesStarRating = ((fs.selectedStarRatings.length === 0) || fs.selectedStarRatings.indexOf(mdata.starRating) !== -1);
+    const matchesStarRating = ((fs.selectedRatings.length === 0) || fs.selectedRatings.indexOf(mdata.rating) !== -1);
 
     return matchesLabel && matchesStarRating;
   }
@@ -489,7 +549,7 @@ class Store {
 
     const imageMetadata: ImageMetadata = {
       label: Label.NONE,
-      starRating: 0,
+      rating: 0,
       adjustments: {
         rotation: Rotation.NONE,
         horizontalFlip: false,
@@ -499,14 +559,25 @@ class Store {
     Vue.set(this._state.metadata, imageFile.uid, imageMetadata);
     this.ensureItemInCurrentList(imageFile.uid);
 
-    const invariant = filterSettingsInvariant({
+    let invariant = filterSettingsInvariant({
       selectedLabels: [Label.NONE],
-      selectedStarRatings: [],
+      selectedRatings: [],
     });
     // Makes sure that the list for label None exists.
     this.listForFilterSettingsInvariant(invariant);
 
     this.updateListsPresence(imageFile.uid, invariant);
+
+    // Now update the ratings list.
+    invariant = filterSettingsInvariant({
+      selectedLabels: [],
+      selectedRatings: [0],
+    });
+    // Makes sure that the list for label None exists.
+    this.listForFilterSettingsInvariant(invariant);
+
+    this.updateListsPresence(imageFile.uid, invariant);
+
   }
 
   private registerImages(imageFile: ImageFile[]) {

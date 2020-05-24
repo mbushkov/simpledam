@@ -271,6 +271,27 @@ export default defineComponent({
         return;
       }
 
+      if (event.key === '1' && event.metaKey) {
+        STORE.rateSelection(1);
+        event.preventDefault
+        return;
+      } else if (event.key === '2' && event.metaKey) {
+        STORE.rateSelection(2);
+        event.preventDefault
+        return;
+      } else if (event.key === '3' && event.metaKey) {
+        STORE.rateSelection(3);
+        event.preventDefault
+        return;
+      } else if (event.key === '4' && event.metaKey) {
+        STORE.rateSelection(4);
+        event.preventDefault
+        return;
+      } else if (event.key === '5' && event.metaKey) {
+        STORE.rateSelection(5);
+        event.preventDefault
+        return;
+      }
       const label = LABELS_MAP[event.key];
       if (label !== undefined) {
         STORE.labelSelection(label);
@@ -330,6 +351,10 @@ export default defineComponent({
         console.log('rotating left');
         STORE.rotateLeft();
         event.preventDefault();
+        return;
+      } else if (event.key === '0' && event.metaKey) {
+        STORE.rateSelection(0);
+        event.preventDefault
         return;
       }
     }

@@ -115,7 +115,7 @@ export default defineComponent({
       _counts[le.label] = computed(() => {
         return STORE.numItemsMatchingFilter({
           selectedLabels: [le.label],
-          selectedStarRatings: [],
+          selectedRatings: [],
         });
       });
     }

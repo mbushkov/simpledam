@@ -1,21 +1,21 @@
 <template>
   <Pane title="Rating">
     <div class="ratings">
-      <div class="row" v-for="entry in entries" :key="entry.title">
-        <div class="label-name">
-          <b-icon :type="{['is-label-' + entry.title]: true}" icon="checkbox-blank" class="icon"></b-icon>
-          <span
-            class="label-title"
-          >{{ entry.title[0].toUpperCase() + entry.title.slice(1) }} [{{ entry.keyStroke }}]</span>
+      <div class="row" v-for="entry in entries" :key="entry.rating">
+        <div class="rating-name">
+          <span class="rating-title" v-if="entry.rating === 0">None</span>
+          <span class="rating-icons" v-if="entry.rating > 0">
+            <b-rate :disabled="true" :max="entry.rating" size="is-small"></b-rate>
+          </span>
         </div>
-        <div class="label-count">
-          <span class="count">{{ counts[entry.label] }}</span>
+        <div class="rating-count">
+          <span class="count">{{ counts[entry.rating] }}</span>
           <b-radio
             size="is-small"
-            type="is-label-selected"
+            type="is-rating-selected"
             native-value="true"
             v-model="entry.selected"
-            v-on:click.native.prevent="labelClicked(entry, $event)"
+            v-on:click.native.prevent="ratingClicked(entry, $event)"
           ></b-radio>
         </div>
       </div>
@@ -34,20 +34,26 @@
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    height: 24px;
 
-    .label-name {
+    .rating-name {
       display: flex;
       align-items: center;
       color: $nm-text-color;
-      font-size: 13px;
 
-      span.label-title {
+      span.rating-title {
         position: relative;
         top: 1px;
+        font-size: 13px;
+      }
+
+      span.rating-icons {
+        font-size: 15px;
+        color: $nm-text-color;
       }
     }
 
-    .label-count {
+    .rating-count {
       display: flex;
       align-items: center;
       color: $nm-text-color;
@@ -65,21 +71,17 @@
 
 <script lang="ts">
 import { defineComponent, computed, Ref, reactive, watchEffect } from '@vue/composition-api';
-import { Label, STORE } from '@/store';
+import { Rating, STORE } from '@/store';
 import Pane from './Pane.vue';
 
-declare interface LabelEntry {
-  title: string;
-  keyStroke: string;
-  label: Label;
+declare interface RatingEntry {
+  rating: Rating;
   selected: boolean;
 }
 
-function labelEntry(title: string, keyStroke: string, label: Label): LabelEntry {
+function ratingEntry(rating: Rating): RatingEntry {
   return {
-    title,
-    keyStroke,
-    label,
+    rating,
     selected: false,
   };
 }
@@ -90,45 +92,41 @@ export default defineComponent({
     Pane,
   },
   setup() {
-    const entries: LabelEntry[] = reactive([
-      labelEntry("none", "0", Label.NONE),
-      labelEntry("red", "1", Label.RED),
-      labelEntry("green", "2", Label.GREEN),
-      labelEntry("blue", "3", Label.BLUE),
-      labelEntry("brown", "4", Label.BROWN),
-      labelEntry("magenta", "5", Label.MAGENTA),
-      labelEntry("orange", "6", Label.ORANGE),
-      labelEntry("yellow", "7", Label.YELLOW),
-      labelEntry("cyan", "8", Label.CYAN),
-      labelEntry("gray", "9", Label.GRAY),
+    const entries: RatingEntry[] = reactive([
+      ratingEntry(0),
+      ratingEntry(1),
+      ratingEntry(2),
+      ratingEntry(3),
+      ratingEntry(4),
+      ratingEntry(5),
     ]);
 
     watchEffect(() => {
-      const selected = STORE.state.filterSettings.selectedLabels;
+      const selected = STORE.state.filterSettings.selectedRatings;
       for (const le of entries) {
-        le.selected = (selected.indexOf(le.label) !== -1);
+        le.selected = (selected.indexOf(le.rating) !== -1);
       }
     });
 
     const _counts: { [key: number]: Readonly<Ref<number>> } = {};
     for (const le of entries) {
-      _counts[le.label] = computed(() => {
+      _counts[le.rating] = computed(() => {
         return STORE.numItemsMatchingFilter({
-          selectedLabels: [le.label],
-          selectedStarRatings: [],
+          selectedRatings: [le.rating],
+          selectedLabels: [],
         });
       });
     }
     const counts = reactive(_counts);
 
-    function labelClicked(entry: LabelEntry, event: MouseEvent) {
-      STORE.changeLabelFilter(entry.label, !entry.selected, event.metaKey);
+    function ratingClicked(entry: RatingEntry, event: MouseEvent) {
+      STORE.changeRatingFilter(entry.rating, !entry.selected, event.metaKey);
     }
 
     return {
       entries: entries,
       counts: counts,
-      labelClicked,
+      ratingClicked,
     };
   }
 });
