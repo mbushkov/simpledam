@@ -613,43 +613,47 @@ class Store {
   }
 
   private registerImage(imageFile: ImageFile) {
+    const existed = this._state.images[imageFile.uid];
     Vue.set(this._state.images, imageFile.uid, imageFile);
 
     const dname = dirName(imageFile.path);
     Vue.set(this.state.paths, dname, true);
 
-    const imageMetadata: ImageMetadata = {
-      label: Label.NONE,
-      rating: 0,
-      adjustments: {
-        rotation: Rotation.NONE,
-        horizontalFlip: false,
-        verticalFlip: false,
-      },
-    };
-    Vue.set(this._state.metadata, imageFile.uid, imageMetadata);
-    this.ensureItemInCurrentList(imageFile.uid);
+    let invariant: string;
+    if (!existed) {
+      const imageMetadata: ImageMetadata = {
+        label: Label.NONE,
+        rating: 0,
+        adjustments: {
+          rotation: Rotation.NONE,
+          horizontalFlip: false,
+          verticalFlip: false,
+        },
+      };
+      Vue.set(this._state.metadata, imageFile.uid, imageMetadata);
+      this.ensureItemInCurrentList(imageFile.uid);
 
-    let invariant = filterSettingsInvariant({
-      selectedLabels: [Label.NONE],
-      selectedRatings: [],
-      selectedPaths: [],
-    });
-    // Makes sure that the list for label None exists.
-    this.listForFilterSettingsInvariant(invariant);
+      invariant = filterSettingsInvariant({
+        selectedLabels: [Label.NONE],
+        selectedRatings: [],
+        selectedPaths: [],
+      });
+      // Makes sure that the list for label None exists.
+      this.listForFilterSettingsInvariant(invariant);
 
-    this.updateListsPresence(imageFile.uid, invariant);
+      this.updateListsPresence(imageFile.uid, invariant);
 
-    // Now update the ratings list.
-    invariant = filterSettingsInvariant({
-      selectedLabels: [],
-      selectedRatings: [0],
-      selectedPaths: [],
-    });
-    // Makes sure that the list for label None exists.
-    this.listForFilterSettingsInvariant(invariant);
+      // Now update the ratings list.
+      invariant = filterSettingsInvariant({
+        selectedLabels: [],
+        selectedRatings: [0],
+        selectedPaths: [],
+      });
+      // Makes sure that the list for label None exists.
+      this.listForFilterSettingsInvariant(invariant);
 
-    this.updateListsPresence(imageFile.uid, invariant);
+      this.updateListsPresence(imageFile.uid, invariant);
+    }
 
     // Now update the paths.
     invariant = filterSettingsInvariant({
