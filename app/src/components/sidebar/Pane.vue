@@ -57,7 +57,7 @@
 }
 </style>
 <script lang="ts">
-import { defineComponent, computed } from '@vue/composition-api';
+import { defineComponent, } from '@vue/composition-api';
 
 interface Props {
   readonly title: string;
@@ -70,11 +70,8 @@ export default defineComponent({
       required: true,
     },
   },
-  setup(props: Props) {
-    const title = computed(() => props.title);
-
+  setup() {
     return {
-      title,
     };
   }
 });
