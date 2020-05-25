@@ -26,6 +26,7 @@ async function startBackendProcess(catalogPath?: string): Promise<{ backend: Chi
     } else {
       binaryPath = path.join(path.dirname(app.getAppPath()), '..', 'Resources', 'bin', 'backend', 'backend');
     }
+    console.log(`[BACKEND] Starting binary: ${binaryPath}`);
     const backend = spawn(binaryPath, catalogPath ? ["--db-file", catalogPath] : []);
 
     let portLine: string | undefined = undefined;
