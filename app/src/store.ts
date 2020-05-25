@@ -80,6 +80,15 @@ function filterSettingsInvariant(fs: FilterSettings): string {
   return l.map(i => `label:${i}`).concat(s.map(i => `rating:${i}`)).join('|');
 }
 
+function invariantKey(invariant: string): string {
+  const components = invariant.split(':');
+  if (components.length !== 2) {
+    throw new Error('invariantKey requires an invariant of length 1, got: ' + invariant);
+  }
+
+  return components[0];
+}
+
 export declare interface Selection {
   primary: string | undefined;
   lastTouched: string | undefined;
@@ -516,7 +525,7 @@ class Store {
         if (!l.presenceMap[uid]) {
           Vue.set(l.presenceMap, uid, true);
         }
-      } else {
+      } else if (key.includes(invariantKey(invariant))) {  // This should only apply to lists in the same group (i.e. other labels, or other ratings, or other paths).        
         if (l.presenceMap[uid]) {
           Vue.delete(l.presenceMap, uid);
         }
