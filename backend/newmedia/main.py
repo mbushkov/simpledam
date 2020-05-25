@@ -5,20 +5,17 @@ import dataclasses
 import logging
 import os
 import pathlib
-import portpicker
 import signal
 import sys
-import threading
-
 from typing import cast
 
-from aiohttp import web
 import aiohttp
-from aiojobs.aiohttp import spawn
 import aiojobs.aiohttp
+import portpicker
+from aiohttp import web
+from aiojobs.aiohttp import spawn
 
-from newmedia import store
-from newmedia import backend_state
+from newmedia import backend_state, store
 
 PARSER = argparse.ArgumentParser(description='Newmedia backend server.')
 PARSER.add_argument("--port", type=int, default=0)
@@ -80,7 +77,6 @@ async def WebSocketHandler(request: web.Request) -> web.WebSocketResponse:
       logging.error('WebSocket connection closed with exception %s' % ws.exception())
     elif msg.type == aiohttp.WSMsgType.CLOSED:
       logging.info("WebSocket connection closed exiting.")
-      sys.exit(0)
     else:
       logging.info("Message of type: %s %s", msg.type, msg)
 
@@ -181,11 +177,20 @@ async def SaveHandler(request: web.Request) -> web.Response:
   return web.Response(text="ok", content_type="text", headers=CORS_HEADERS)
 
 
-def main():
-  signal.signal(signal.SIGINT, lambda: sys.exit(-1))
-  signal.signal(signal.SIGTERM, lambda: sys.exit(-1))
-  signal.signal(signal.SIGHUP, lambda: sys.exit(-1))
+async def DieIfParentDies():
+  ppid = os.getppid()
+  logging.info("Parent pid %d", ppid)
+  while True:
+    try:
+      os.kill(ppid, 0)
+    except OSError:
+      logging.info("Parent process died, exiting...")
+      sys.exit(0)
 
+    await asyncio.sleep(1)
+
+
+def main():
   logging.basicConfig(level=logging.INFO)
 
   args = PARSER.parse_args()
@@ -208,17 +213,15 @@ def main():
   app["websockets"] = set()
   aiojobs.aiohttp.setup(app)
 
-  backend_state.BACKEND_STATE = backend_state.BackendState(app)
+  # Die if the parent process dies.
+  asyncio.get_event_loop().create_task(DieIfParentDies())
 
-  # async def T():
-  #   await store.DATA_STORE._GetConn()
-  #   await store.DATA_STORE.SaveStore("/Users/bushman/Downloads/a.test", {"fii": 42})
-  # asyncio.get_event_loop().create_task(T())
+  backend_state.BACKEND_STATE = backend_state.BackendState(app)
 
   port = args.port or portpicker.pick_unused_port()
   sys.stdout.write("%d\n" % port)
   sys.stdout.flush()
-  web.run_app(app, host="localhost", port=port, handle_signals=False)
+  web.run_app(app, host="127.0.0.1", port=port, handle_signals=True)
 
 
 if __name__ == '__main__':
