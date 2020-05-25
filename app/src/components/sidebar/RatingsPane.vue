@@ -114,6 +114,7 @@ export default defineComponent({
         return STORE.numItemsMatchingFilter({
           selectedRatings: [le.rating],
           selectedLabels: [],
+          selectedPaths: [],
         });
       });
     }

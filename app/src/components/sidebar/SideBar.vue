@@ -4,10 +4,9 @@
       <LabelsPane></LabelsPane>
       <RatingsPane></RatingsPane>
     </splitpane>
-    <splitpane
-      :size="30"
-      class="splitpane"
-    >TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO</splitpane>
+    <splitpane :size="30" class="splitpane">
+      <PathsPane></PathsPane>
+    </splitpane>
   </splitpane-container>
 </template>
 
@@ -30,12 +29,14 @@
 import { defineComponent } from '@vue/composition-api';
 import LabelsPane from './LabelsPane.vue';
 import RatingsPane from './RatingsPane.vue';
+import PathsPane from './PathsPane.vue';
 
 export default defineComponent({
   // type inference enabled
   components: {
     LabelsPane,
     RatingsPane,
+    PathsPane,
   },
   setup() {
 

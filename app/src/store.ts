@@ -68,6 +68,7 @@ export declare interface ImageList {
 export declare interface FilterSettings {
   selectedLabels: Label[];
   selectedRatings: Rating[];
+  selectedPaths: string[];
 }
 
 function filterSettingsInvariant(fs: FilterSettings): string {
@@ -77,7 +78,18 @@ function filterSettingsInvariant(fs: FilterSettings): string {
   const s = [...fs.selectedRatings];
   s.sort();
 
-  return l.map(i => `label:${i}`).concat(s.map(i => `rating:${i}`)).join('|');
+  const p = [...fs.selectedPaths];
+  p.sort();
+
+  const invariant = l.map(i => `label:${i}`)
+    .concat(s.map(i => `rating:${i}`))
+    .concat(p.map(i => `path:${encodeURIComponent(i)}`))
+    .join('|');
+  if (invariant) {
+    return `|${invariant}|`;
+  } else {
+    return '';
+  }
 }
 
 function invariantKey(invariant: string): string {
@@ -86,7 +98,12 @@ function invariantKey(invariant: string): string {
     throw new Error('invariantKey requires an invariant of length 1, got: ' + invariant);
   }
 
-  return components[0];
+  return components[0].slice(1); // account for the starting '|'
+}
+
+function dirName(path: string): string {
+  const pathComponents = path.split('/');
+  return pathComponents.slice(0, pathComponents.length - 1).join('/');
 }
 
 export declare interface Selection {
@@ -118,6 +135,7 @@ export declare interface State {
   images: { [key: string]: ImageFile };
   metadata: { [key: string]: ImageMetadata };
   lists: { [key: string]: ImageList };
+  paths: { [key: string]: string };
 }
 
 export type ReadonlyState = Immutable<State>;
@@ -136,6 +154,7 @@ class Store {
     filterSettings: {
       selectedLabels: [],
       selectedRatings: [],
+      selectedPaths: [],
     },
     filtersInvariant: '',
 
@@ -152,6 +171,7 @@ class Store {
     images: {},
     metadata: {},
     lists: {},
+    paths: {},
   });
 
   get state(): ReadonlyState {
@@ -343,6 +363,7 @@ class Store {
     const invariant = filterSettingsInvariant({
       selectedLabels: [label],
       selectedRatings: [],
+      selectedPaths: [],
     });
     // Makes sure that the list for this label exists.
     this.listForFilterSettingsInvariant(invariant);
@@ -361,6 +382,7 @@ class Store {
   public changeLabelFilter(label: Label, state: boolean, allowMultiple: boolean) {
     if (!allowMultiple) {
       this._state.filterSettings.selectedRatings = [];
+      this._state.filterSettings.selectedPaths = [];
     }
 
     const index = this._state.filterSettings.selectedLabels.indexOf(label);
@@ -398,6 +420,7 @@ class Store {
     const invariant = filterSettingsInvariant({
       selectedLabels: [],
       selectedRatings: [rating],
+      selectedPaths: [],
     });
     // Makes sure that the list for this label exists.
     this.listForFilterSettingsInvariant(invariant);
@@ -417,6 +440,7 @@ class Store {
     console.log(['change label filter', rating, state, allowMultiple]);
     if (!allowMultiple) {
       this._state.filterSettings.selectedLabels = [];
+      this._state.filterSettings.selectedPaths = [];
     }
 
     const index = this._state.filterSettings.selectedRatings.indexOf(rating);
@@ -431,6 +455,39 @@ class Store {
         }
       } else {
         this._state.filterSettings.selectedRatings = [rating];
+      }
+    }
+
+    this._state.filtersInvariant = filterSettingsInvariant(this._state.filterSettings);
+    if (this._state.lists[this._state.filtersInvariant]) {
+      this.syncListWithPresenceMap(this._state.filtersInvariant);
+    } else {
+      for (let uid in this._state.images) {
+        this.ensureItemInCurrentList(uid);
+      }
+    }
+    this.selectPrimary(undefined);
+  }
+
+  public changePathFilter(path: string, state: boolean, allowMultiple: boolean) {
+    console.log(['change path filter', path, state, allowMultiple]);
+    if (!allowMultiple) {
+      this._state.filterSettings.selectedLabels = [];
+      this._state.filterSettings.selectedRatings = [];
+    }
+
+    const index = this._state.filterSettings.selectedPaths.indexOf(path);
+    if (!state) {
+      if (index !== -1) {
+        this._state.filterSettings.selectedPaths.splice(index, 1);
+      }
+    } else {
+      if (allowMultiple) {
+        if (index === -1) {
+          this._state.filterSettings.selectedPaths.push(path);
+        }
+      } else {
+        this._state.filterSettings.selectedPaths = [path];
       }
     }
 
@@ -493,12 +550,13 @@ class Store {
     }
   }
 
-  private isMatchingFilterSettings(mdata: ImageMetadata): boolean {
+  private isMatchingFilterSettings(image: ImageFile, mdata: ImageMetadata): boolean {
     const fs = this._state.filterSettings;
     const matchesLabel = ((fs.selectedLabels.length === 0) || fs.selectedLabels.indexOf(mdata.label) !== -1);
     const matchesStarRating = ((fs.selectedRatings.length === 0) || fs.selectedRatings.indexOf(mdata.rating) !== -1);
+    const matchedPaths = ((fs.selectedPaths.length === 0) || fs.selectedPaths.indexOf(dirName(image.path)) !== -1);
 
-    return matchesLabel && matchesStarRating;
+    return matchesLabel && matchesStarRating && matchedPaths;
   }
 
   private syncListWithPresenceMap(invariant: string) {
@@ -534,10 +592,11 @@ class Store {
   }
 
   private ensureItemInCurrentList(uid: string) {
+    const image = this._state.images[uid]
     const mdata = this._state.metadata[uid];
 
     const l = this.listForFilterSettingsInvariant(this._state.filtersInvariant);
-    if (this.isMatchingFilterSettings(mdata)) {
+    if (this.isMatchingFilterSettings(image, mdata)) {
       if (!l.presenceMap[uid]) {
         Vue.set(l.presenceMap, uid, true);
         l.items.push(uid);
@@ -556,6 +615,9 @@ class Store {
   private registerImage(imageFile: ImageFile) {
     Vue.set(this._state.images, imageFile.uid, imageFile);
 
+    const dname = dirName(imageFile.path);
+    Vue.set(this.state.paths, dname, true);
+
     const imageMetadata: ImageMetadata = {
       label: Label.NONE,
       rating: 0,
@@ -571,6 +633,7 @@ class Store {
     let invariant = filterSettingsInvariant({
       selectedLabels: [Label.NONE],
       selectedRatings: [],
+      selectedPaths: [],
     });
     // Makes sure that the list for label None exists.
     this.listForFilterSettingsInvariant(invariant);
@@ -581,12 +644,23 @@ class Store {
     invariant = filterSettingsInvariant({
       selectedLabels: [],
       selectedRatings: [0],
+      selectedPaths: [],
     });
     // Makes sure that the list for label None exists.
     this.listForFilterSettingsInvariant(invariant);
 
     this.updateListsPresence(imageFile.uid, invariant);
 
+    // Now update the paths.
+    invariant = filterSettingsInvariant({
+      selectedLabels: [],
+      selectedRatings: [],
+      selectedPaths: [dirName(imageFile.path)],
+    });
+    // Makes sure that the list for label None exists.
+    this.listForFilterSettingsInvariant(invariant);
+
+    this.updateListsPresence(imageFile.uid, invariant);
   }
 
   private registerImages(imageFile: ImageFile[]) {
