@@ -15,7 +15,7 @@
           >
             <SideBar class="side-bar"></SideBar>
           </splitpane>
-          <splitpane>
+          <splitpane class="right-pane">
             <ImageViewer class="image-viewer"></ImageViewer>
           </splitpane>
         </splitpane-container>
@@ -163,17 +163,13 @@ $link-focus-border: $primary;
   background: $nm-background-color;
 }
 
-.splitpanes__pane {
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2) inset;
-}
-
 .splitpanes--vertical > .splitpanes__splitter {
-  min-width: 6px;
+  min-width: $splitter-size;
   background-color: $nm-background-color;
 }
 
 .splitpanes--horizontal > .splitpanes__splitter {
-  min-height: 6px;
+  min-height: $splitter-size;
   background-color: $nm-background-color;
 }
 //
@@ -198,26 +194,30 @@ $tool-bar-height: $status-bar-height * 2;
   margin: 0;
   padding: 0;
 
-  .left-pane {
-    padding-left: 6px;
-
-    .side-bar {
-      width: 100%;
-      height: 100%;
-    }
-  }
-
-  .image-viewer {
-    width: 100%;
-    height: 100%;
-  }
-
   .splitpane-container {
     position: absolute;
     top: $tool-bar-height;
     bottom: $status-bar-height;
     left: 0;
     right: 0;
+
+    .left-pane {
+      padding-left: $splitter-size;
+
+      .side-bar {
+        width: 100%;
+        height: 100%;
+      }
+    }
+
+    .right-pane {
+      padding-right: $splitter-size;
+
+      .image-viewer {
+        width: 100%;
+        height: 100%;
+      }
+    }
   }
 
   .status-bar {

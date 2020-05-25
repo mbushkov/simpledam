@@ -26,6 +26,9 @@
     .top-tabs {
       ::v-deep .tabs li {
         width: 200px;
+        a {
+          border-radius: 0;
+        }
       }
       ::v-deep .tab-content {
         margin: 0 !important;

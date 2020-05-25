@@ -38,8 +38,6 @@
       transform-origin: left top;
     }
   }
-
-  border: 1px solid black;
 }
 </style>
 <script lang="ts">
