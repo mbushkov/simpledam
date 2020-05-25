@@ -1,6 +1,6 @@
 <template>
   <div
-    class="host"
+    class="image-grid"
     ref="el"
     @dragenter.prevent="containerDragEntered($event)"
     @dragleave.prevent="containerDragLeft($event)"
@@ -43,9 +43,8 @@
 <style lang="scss" scoped>
 @import '../styles/variables';
 
-.host {
-  // Check why !important is needed.
-  background-color: $nm-background-color-lighter !important;
+.image-grid {
+  background-color: $nm-background-color-lighter;
   overflow: scroll;
 }
 

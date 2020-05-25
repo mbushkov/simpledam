@@ -20,6 +20,7 @@
     "buefy": "^0.8.17",
     "core-js": "^3.6.4",
     "rxjs": "^6.5.5",
+    "splitpanes": "^2.2.1",
     "vue": "^2.6.11",
     "vue-observe-visibility": "^0.4.6",
     "vue-rx": "^6.2.0",

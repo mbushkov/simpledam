@@ -1,10 +1,10 @@
 <template>
-  <div class="host"></div>
+  <div class="tool-bar"></div>
 </template>
 
 <style lang="scss" scoped>
 @import '../styles/variables';
-.host {
+.tool-bar {
   background-color: $nm-background-color;
 }
 </style>

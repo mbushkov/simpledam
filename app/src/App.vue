@@ -4,8 +4,22 @@
 
     <div v-if="loaded">
       <ToolBar class="tool-bar"></ToolBar>
-      <SideBar class="side-bar"></SideBar>
-      <ImageViewer class="image-grid"></ImageViewer>
+      <div class="splitpane-container">
+        <splitpane-container @resized="splitpanesResized()">
+          <splitpane
+            :size="sideBarSize"
+            :min-size="minSideBarSize"
+            :max-size="maxSideBarSize"
+            class="left-pane"
+            ref="leftPane"
+          >
+            <SideBar class="side-bar"></SideBar>
+          </splitpane>
+          <splitpane>
+            <ImageViewer class="image-viewer"></ImageViewer>
+          </splitpane>
+        </splitpane-container>
+      </div>
       <StatusBar class="status-bar"></StatusBar>
     </div>
   </div>
@@ -144,6 +158,26 @@ $link-focus-border: $primary;
 @import '~bulma';
 @import '~buefy/src/scss/buefy';
 
+// Splitpanes styling.
+.splitpanes {
+  background: $nm-background-color;
+}
+
+.splitpanes__pane {
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2) inset;
+}
+
+.splitpanes--vertical > .splitpanes__splitter {
+  min-width: 6px;
+  background-color: $nm-background-color;
+}
+
+.splitpanes--horizontal > .splitpanes__splitter {
+  min-height: 6px;
+  background-color: $nm-background-color;
+}
+//
+
 .tabs a {
   padding: 0.2em 0.5em;
 }
@@ -156,7 +190,6 @@ body {
 <style lang="scss" scoped>
 @import './styles/variables';
 
-$side-bar-width: 300px;
 $status-bar-height: 20px;
 $tool-bar-height: $status-bar-height * 2;
 
@@ -165,20 +198,26 @@ $tool-bar-height: $status-bar-height * 2;
   margin: 0;
   padding: 0;
 
-  .side-bar {
-    position: absolute;
-    left: 0;
-    top: $tool-bar-height;
-    bottom: $status-bar-height;
-    width: $side-bar-width;
+  .left-pane {
+    padding-left: 6px;
+
+    .side-bar {
+      width: 100%;
+      height: 100%;
+    }
   }
 
-  .image-grid {
+  .image-viewer {
+    width: 100%;
+    height: 100%;
+  }
+
+  .splitpane-container {
     position: absolute;
-    left: $side-bar-width;
-    right: 0;
     top: $tool-bar-height;
     bottom: $status-bar-height;
+    left: 0;
+    right: 0;
   }
 
   .status-bar {
@@ -223,6 +262,10 @@ export default Vue.extend({
   },
   data() {
     return {
+      minSideBarSize: 20,
+      maxSideBarSize: 20,
+      sideBarSize: 20,
+      sideBarSizePx: 250,
       loaded: false,
     };
   },
@@ -234,6 +277,25 @@ export default Vue.extend({
 
       (this as any)['loaded'] = true;
     });
+  },
+  methods: {
+    handleResize() {
+      this.minSideBarSize = 180 / this.$el.clientWidth * 100;
+      this.maxSideBarSize = 50;
+      this.sideBarSize = Math.max(this.minSideBarSize, Math.min(this.sideBarSizePx / this.$el.clientWidth * 100, this.maxSideBarSize));
+    },
+
+    splitpanesResized() {
+      // console.log('event', this.$refs.leftPane.$el.clientWidth);
+      this.sideBarSizePx = (this.$refs.leftPane as Vue).$el.clientWidth;
+    },
+  },
+  mounted() {
+    window.addEventListener('resize', this.handleResize);
+    this.handleResize();
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.handleResize);
   },
 });
 

@@ -1,7 +1,7 @@
 <template>
   <div
     draggable="true"
-    class="host"
+    class="image-box"
     :class="{ selected: isPrimarySelected, 'additional-selected': isAdditionalSelected }"
     @dragstart="dragStarted($event)"
     @click="clicked($event)"
@@ -20,7 +20,7 @@
 <style lang="scss" scoped>
 @import '../styles/variables';
 
-.host {
+.image-box {
   border: 1px solid #454545;
   position: relative;
 

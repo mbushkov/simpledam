@@ -1,5 +1,5 @@
 <template>
-  <div class="host">
+  <div class="image-viewer">
     <div class="mode-panel">
       <b-tabs class="top-tabs" size="is-small" type="is-toggle" v-model="currentTab">
         <b-tab-item label="Thumbnails"></b-tab-item>
@@ -13,7 +13,7 @@
 <style lang="scss" scoped>
 @import '../styles/variables';
 
-.host {
+.image-viewer {
   background-color: $nm-background-color;
   display: flex;
   flex-direction: column;

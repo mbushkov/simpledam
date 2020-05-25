@@ -1,5 +1,5 @@
 <template>
-  <div class="host">
+  <div class="status-bar">
     <div>{{ backendState.catalogPath }}</div>
     <div
       v-if="backendState.catalogOpName"
@@ -12,7 +12,7 @@
 
 <style lang="scss" scoped>
 @import '../styles/variables';
-.host {
+.status-bar {
   background-color: $nm-background-color;
   color: $nm-text-color;
   font-size: 13px;
