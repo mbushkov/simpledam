@@ -3,8 +3,8 @@ module.exports = {
     electronBuilder: {
       nodeIntegration: false,
       builderOptions: {
-        appId: 'newmedia',
-        productName: 'New Media',
+        appId: 'simpledam',
+        productName: 'SimpleDAM',
         extraFiles: [
           {
             from: '../backend/dist/backend',
@@ -15,7 +15,7 @@ module.exports = {
         fileAssociations: [
           {
             ext: 'nmcatalog',
-            name: 'NewMedia Catalog',
+            name: 'SimpleDAM Catalog',
             role: 'Editor',
           },
         ],
