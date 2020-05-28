@@ -40,7 +40,8 @@
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    height: 24px;
+    margin-top: 3px;
+    margin-bottom: 3px;
 
     &.drag-highlighted {
       background-color: $nm-background-color-selected;
@@ -56,12 +57,12 @@
       color: $nm-text-color;
 
       span.path-title {
-        position: relative;
-        top: 1px;
         font-size: 13px;
         width: 100%;
         overflow: hidden;
         text-align: left;
+        line-height: 100%;
+        overflow-wrap: break-word;
       }
     }
 
