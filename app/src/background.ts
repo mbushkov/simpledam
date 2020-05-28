@@ -17,7 +17,9 @@ const isDevelopment = process.env.NODE_ENV !== 'production'
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let win: BrowserWindow | null;
+const windows: BrowserWindow[] = [];
+
+const beforeReadyPaths: string[] = [];
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([{ scheme: 'app', privileges: { secure: true, standard: true } }])
@@ -60,8 +62,8 @@ async function createWindow(path?: string) {
   console.log(`[BACKEND] Process started (pid=${backend.pid}, port=${port}, path=${path})`);
 
   // Create the browser window.
-  win = new BrowserWindow({
-    title: 'New Media (pre-alpha)',
+  const win = new BrowserWindow({
+    title: 'SimpleDAM (pre-alpha)' + (path ? ` - ${path}` : ''),
     width: 1024,
     height: 768,
     minWidth: 1024,
@@ -83,16 +85,24 @@ async function createWindow(path?: string) {
   }
 
   win.on('closed', () => {
-    win = null
     console.log('[BACKEND]: Killing on windows close.')
     backend.kill('SIGKILL');
+    windows.splice(windows.indexOf(win), 1);
   })
+
+  windows.push(win);
 }
 
 app.on('open-file', async (event: Event, path: string) => {
-  if (path.endsWith('.nmcatalog')) {
-    event.preventDefault();
+  if (!path.endsWith('.nmcatalog')) {
+    return;
+  }
+
+  event.preventDefault();
+  if (app.isReady()) {
     await createWindow(path);
+  } else {
+    beforeReadyPaths.push(path);
   }
 });
 
@@ -108,7 +118,7 @@ app.on('window-all-closed', () => {
 app.on('activate', async () => {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
-  if (win === null) {
+  if (windows.length === 0) {
     await createWindow()
   }
 })
@@ -183,7 +193,7 @@ app.on('ready', async () => {
             const paths = dialog.showOpenDialogSync({
               title: 'Open Catalog',
               filters: [
-                { name: 'NewMedia Catalogs', extensions: ['nmcatalog'] },
+                { name: 'SimpleDAM Catalogs', extensions: ['nmcatalog'] },
               ],
               properties: ['openFile'],
             });
@@ -244,8 +254,12 @@ app.on('ready', async () => {
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
 
-  if (!win) {
+  if (beforeReadyPaths.length === 0) {
     await createWindow()
+  } else {
+    for (const p of beforeReadyPaths) {
+      await createWindow(p);
+    }
   }
 })
 
