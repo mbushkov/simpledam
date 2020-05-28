@@ -1,5 +1,9 @@
 'use strict'
 
+// App's icon is taken from here:
+// https://www.metmuseum.org/art/collection/search/13325
+// Portrait of a Gentleman, attributed to Henry Williams
+
 import path from 'path';
 import { app, protocol, ipcMain, nativeImage, BrowserWindow, Menu, dialog } from 'electron'
 import {
@@ -84,6 +88,13 @@ async function createWindow(path?: string) {
     backend.kill('SIGKILL');
   })
 }
+
+app.on('open-file', async (event: Event, path: string) => {
+  if (path.endsWith('.nmcatalog')) {
+    event.preventDefault();
+    await createWindow(path);
+  }
+});
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
@@ -233,7 +244,9 @@ app.on('ready', async () => {
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
 
-  await createWindow()
+  if (!win) {
+    await createWindow()
+  }
 })
 
 ipcMain.on('ondragstart', (event, paths) => {
