@@ -259,6 +259,7 @@ export default defineComponent({
           filePath: im.path,
           hasPreview: !!im.preview_timestamp,
           label: mdata.label,
+          rating: mdata.rating,
           selectionType,
           adjustments: mdata.adjustments,
         };
@@ -288,6 +289,10 @@ export default defineComponent({
         return;
       } else if (event.key === '5' && event.metaKey) {
         STORE.rateSelection(5);
+        event.preventDefault
+        return;
+      } else if (event.key === '0' && event.metaKey) {
+        STORE.rateSelection(0);
         event.preventDefault
         return;
       }
@@ -350,10 +355,6 @@ export default defineComponent({
         console.log('rotating left');
         STORE.rotateLeft();
         event.preventDefault();
-        return;
-      } else if (event.key === '0' && event.metaKey) {
-        STORE.rateSelection(0);
-        event.preventDefault
         return;
       }
     }

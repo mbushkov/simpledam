@@ -13,7 +13,20 @@
         :src="'http://127.0.0.1:' + port + '/images/' + imageData.uid"
       />
     </div>
-    <div class="title">{{ filename(imageData.filePath) }} {{ imageData.label }}</div>
+    <div class="metadata">
+      <div class="ib-label">
+        <b-icon
+          :type="{['is-label-' + labelNames[imageData.label]]: true}"
+          icon="checkbox-blank"
+          size="is-small"
+          class="icon"
+        ></b-icon>
+      </div>
+      <div class="ib-rating">
+        <b-rate :disabled="true" :max="5" v-model="imageData.rating" size="is-small"></b-rate>
+      </div>
+    </div>
+    <div class="title">{{ filename(imageData.filePath) }}</div>
   </div>
 </template>
 
@@ -37,7 +50,7 @@
     left: 5px;
     right: 5px;
     top: 5px;
-    bottom: 30px;
+    bottom: 44px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -67,12 +80,53 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: 30px;
+    height: 22px;
 
     color: $nm-text-color;
     font-size: 13px;
     line-height: 1;
     font-weight: normal;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  .metadata {
+    position: absolute;
+    bottom: 22px;
+    left: 0;
+    right: 0;
+    height: 20px;
+
+    color: $nm-text-color;
+    font-size: 13px;
+    line-height: 1;
+    font-weight: normal;
+
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+
+    .ib-label {
+      font-size: 14px;
+      margin-right: 0.25em;
+    }
+
+    .ib-rating {
+      ::v-deep {
+        .rate .rate-item.set-on .icon {
+          color: $nm-text-color;
+        }
+        .rate .icon {
+          color: $nm-background-color-lighter-tone-up;
+        }
+      }
+    }
   }
 }
 </style>
@@ -80,13 +134,14 @@
 <script lang="ts">
 import { defineComponent, computed, SetupContext } from '@vue/composition-api';
 import { PORT } from '@/api';
-import { Label, ImageAdjustments, Rotation } from '@/store';
+import { Label, ImageAdjustments, Rotation, Rating } from '@/store';
 
 export interface ImageData {
   readonly uid: string;
   readonly filePath: string;
   readonly hasPreview: boolean;
   readonly label: Label;
+  readonly rating: Rating;
   readonly selectionType: SelectionType;
   readonly adjustments: ImageAdjustments;
 }
@@ -113,6 +168,19 @@ export default defineComponent({
     },
   },
   setup(props: Props, context: SetupContext) {
+
+    const labelNames = {
+      [Label.NONE]: 'none',
+      [Label.RED]: 'red',
+      [Label.GREEN]: 'green',
+      [Label.BLUE]: 'blue',
+      [Label.BROWN]: 'brown',
+      [Label.MAGENTA]: 'magenta',
+      [Label.ORANGE]: 'orange',
+      [Label.YELLOW]: 'yellow',
+      [Label.CYAN]: 'cyan',
+      [Label.GRAY]: 'gray',
+    };
 
     const isPrimarySelected = computed(() => props.imageData.selectionType === SelectionType.PRIMARY);
     const isAdditionalSelected = computed(() => props.imageData.selectionType === SelectionType.ADDITIONAL);
@@ -148,6 +216,8 @@ export default defineComponent({
     }
 
     return {
+      labelNames,
+
       isPrimarySelected,
       isAdditionalSelected,
       isRotated90,
