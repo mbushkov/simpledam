@@ -303,6 +303,10 @@ ipcRenderer.on('save', async () => {
   if (!BACKEND_MIRROR.state.catalogPath) {
     // TODO: once is not really needed here. A global "on" should be enough.
     ipcRenderer.once('show-save-catalog-dialog-reply', (event: Electron.IpcRendererEvent, path: string) => {
+      if (!path.endsWith('.nmcatalog')) {
+        path += '.nmcatalog'
+      }
+
       if (path) {
         console.log(['save new', BACKEND_MIRROR.state.catalogPath, path]);
         API_SERVICE.saveStore(path, STORE.state);
