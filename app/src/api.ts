@@ -18,11 +18,17 @@ class ApiService {
   );
 
   // readonly wsLogging = this.ws.subscribe(i => {
-  // console.log('Got WebSocket data', i);
+  //   console.log('Got WebSocket data', i);
   // });
 
   scanPath(path: string): Promise<void> {
     return axios.post(this.ROOT + '/scan-path', { path }).then(r => {
+      console.log(r);
+    });
+  }
+
+  movePath(src: string, dest: string): Promise<void> {
+    return axios.post(this.ROOT + '/move-path', { src, dest }).then(r => {
       console.log(r);
     });
   }

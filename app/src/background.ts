@@ -102,6 +102,9 @@ app.on('activate', async () => {
   }
 })
 
+// TODO: add support for https://www.electronjs.org/docs/api/power-save-blocker
+// The app shouldn't be suspended at least on import.
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -234,7 +237,7 @@ app.on('ready', async () => {
 })
 
 ipcMain.on('ondragstart', (event, paths) => {
-  console.log('here', paths);
+  // console.log('here', paths);
   setTimeout(() => {
     // Type definiition doesn't account for 'files' property.
     const params: any = {

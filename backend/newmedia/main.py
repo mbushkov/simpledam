@@ -90,8 +90,8 @@ SUPPORTED_EXTENSIONS = frozenset([".jpg", ".jpeg", ".tif", ".png"])
 
 
 async def ScanFile(path: str, request: web.Request):
-  image_file = await store.DATA_STORE.RegisterFile(path)
   try:
+    image_file = await store.DATA_STORE.RegisterFile(path)
     await SendWebSocketData(request, {
         "action": "FILE_REGISTERED",
         "image": image_file.ToJSON(),
@@ -137,6 +137,26 @@ async def ScanPathHandler(request: web.Request) -> web.Response:
     await ScanFile(path, request)
 
   return web.Response(text="ok", content_type="text", headers=CORS_HEADERS)
+
+
+async def MovePathHandler(request: web.Request) -> web.Response:
+  data = await request.json()
+  src: str = data["src"]
+  dest: str = data["dest"]
+
+  try:
+    image_file = await store.DATA_STORE.MoveFile(pathlib.Path(src), pathlib.Path(dest))
+    await SendWebSocketData(request, {
+        "action": "FILE_REGISTERED",
+        "image": image_file.ToJSON(),
+    })
+
+    return web.Response(text="ok", content_type="text", headers=CORS_HEADERS)
+  except store.Error as e:
+    return web.Response(status=520,
+                        text=f"{e.__class__.__name__}:{str(e)}",
+                        content_type="text",
+                        headers=CORS_HEADERS)
 
 
 _CHUNK_LENGTH = 1048576
@@ -208,6 +228,8 @@ def main():
       web.post("/scan-path", ScanPathHandler),
       web.options("/save", AllowCorsHandler),
       web.post("/save", SaveHandler),
+      web.options("/move-path", AllowCorsHandler),
+      web.post("/move-path", MovePathHandler),
       web.get("/images/{uid}", GetImageHandler),
   ])
   app["websockets"] = set()

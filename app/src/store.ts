@@ -619,6 +619,9 @@ class Store {
     const dname = dirName(imageFile.path);
     Vue.set(this.state.paths, dname, true);
 
+    // Update the current list.
+    this.ensureItemInCurrentList(imageFile.uid);
+
     let invariant: string;
     if (!existed) {
       const imageMetadata: ImageMetadata = {

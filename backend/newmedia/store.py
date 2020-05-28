@@ -28,6 +28,22 @@ class NotFoundError(Error):
   pass
 
 
+class SourceFileNotFoundError(NotFoundError):
+  pass
+
+
+class DestinationDirNotFoundError(NotFoundError):
+  pass
+
+
+class DestinationIsNotDirError(Error):
+  pass
+
+
+class DestinationFileExistsError(Error):
+  pass
+
+
 @dataclasses.dataclass
 class Size:
   width: int
@@ -243,6 +259,44 @@ VALUES (?, ?, ?, ?)
     await conn.commit()
 
     return result
+
+  async def MoveFile(self, src: pathlib.Path, dest: pathlib.Path) -> ImageFile:
+    conn = await self._GetConn()
+
+    if not src.exists() or not src.is_file():
+      raise SourceFileNotFoundError(src)
+
+    if dest.exists():
+      raise DestinationFileExistsError(dest)
+
+    dest_dir = pathlib.Path(*dest.parents)
+    if not dest_dir.exists() or not dest_dir.is_dir():
+      raise DestinationDirNotFoundError(dest_dir)
+
+    uid = None
+    image_file = None
+    async with conn.execute("SELECT uid, info FROM ImageData WHERE path = ?",
+                            (str(src),)) as cursor:
+      async for row in cursor:
+        uid = row[0]
+        data = bson.loads(row[1])
+        image_file = ImageFile.FromJSON(data)
+
+    logging.info(f"Moving file (uid={uid}): {src} -> {dest}")
+    if image_file is None:
+      src.replace(dest)
+      return await self.RegisterFile(dest)
+    else:
+      os.rename(src, dest)
+      image_file.path = str(dest)
+      serialized = bson.dumps(image_file.ToJSON())
+      await conn.execute_insert("UPDATE ImageData SET path = ?, info = ? WHERE uid = ?", (
+          str(dest),
+          serialized,
+          uid,
+      ))
+      await conn.commit()
+      return image_file
 
   async def UpdateFileThumbnail(self, uid: str):
     loop = asyncio.get_running_loop()
