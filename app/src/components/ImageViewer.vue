@@ -6,8 +6,8 @@
         <b-tab-item label="Media"></b-tab-item>
       </b-tabs>
     </div>
-    <ImageGrid class="grow" v-show="currentTab === ImageViewerTab.THUMBNAILS"></ImageGrid>
-    <SingleImage class="grow" v-if="currentTab === ImageViewerTab.MEDIA"></SingleImage>
+    <ImageGrid ref="imageGridRef" class="grow" v-show="currentTab === ImageViewerTab.THUMBNAILS"></ImageGrid>
+    <SingleImage ref="singleImageRef" class="grow" v-if="currentTab === ImageViewerTab.MEDIA"></SingleImage>
   </div>
 </template>
 <style lang="scss" scoped>
@@ -43,7 +43,7 @@
 }
 </style>
 <script lang="ts">
-import { defineComponent, computed } from '@vue/composition-api';
+import { defineComponent, computed, ref } from '@vue/composition-api';
 import ImageGrid from './ImageGrid.vue';
 import SingleImage from './SingleImage.vue';
 import { TRANSIENT_STORE, ImageViewerTab } from '@/transient-store';
@@ -55,14 +55,32 @@ export default defineComponent({
     SingleImage,
   },
   setup() {
+    const imageGridRef = ref(undefined);
+    const singleImageRef = ref(undefined);
+
     const currentTab = computed({
       get: () => TRANSIENT_STORE.state.imageViewerTab,
       set: (v) => TRANSIENT_STORE.setImageViewerTab(v)
     });
 
+    function handleResize() {
+      if (imageGridRef.value) {
+        console.log(['imagegridref', imageGridRef.value]);
+        (imageGridRef.value as any).handleResize();
+      }
+      if (singleImageRef.value) {
+        console.log(['singleImageref', singleImageRef.value]);
+        (singleImageRef.value as any).handleResize();
+      }
+    }
+
     return {
+      imageGridRef,
+      singleImageRef,
+
       currentTab,
       ImageViewerTab,
+      handleResize,
     };
   }
 });  

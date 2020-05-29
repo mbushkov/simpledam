@@ -5,7 +5,7 @@
     <div v-if="loaded">
       <ToolBar class="tool-bar"></ToolBar>
       <div class="splitpane-container">
-        <splitpane-container @resized="splitpanesResized()">
+        <splitpane-container @resize="splitpanesResizing()" @resized="splitpanesResized()">
           <splitpane
             :size="sideBarSize"
             :min-size="minSideBarSize"
@@ -16,7 +16,7 @@
             <SideBar class="side-bar"></SideBar>
           </splitpane>
           <splitpane class="right-pane">
-            <ImageViewer class="image-viewer"></ImageViewer>
+            <ImageViewer class="image-viewer" ref="imageViewerRef"></ImageViewer>
           </splitpane>
         </splitpane-container>
       </div>
@@ -316,12 +316,19 @@ export default Vue.extend({
     handleResize() {
       this.minSideBarSize = 180 / this.$el.clientWidth * 100;
       this.maxSideBarSize = 50;
-      this.sideBarSize = Math.max(this.minSideBarSize, Math.min(this.sideBarSizePx / this.$el.clientWidth * 100, this.maxSideBarSize));
+      // this.sideBarSize = Math.max(this.minSideBarSize, Math.min(this.sideBarSizePx / this.$el.clientWidth * 100, this.maxSideBarSize));
+    },
+
+    splitpanesResizing() {
+      console.log('split pane resizeing');
+      Vue.nextTick((this.$refs['imageViewerRef'] as any).handleResize);
     },
 
     splitpanesResized() {
-      // console.log('event', this.$refs.leftPane.$el.clientWidth);
+      // console.log('event', this.$refs.leftPane.$el.clientWidth);]
+      console.log('split pane resized', this.$refs['imageViewerRef']);
       this.sideBarSizePx = (this.$refs.leftPane as Vue).$el.clientWidth;
+      Vue.nextTick((this.$refs['imageViewerRef'] as any).handleResize);
     },
   },
   mounted() {
