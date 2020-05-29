@@ -11,7 +11,7 @@ from typing import Any, Dict, Iterator, Optional, Tuple
 
 import aiosqlite
 import bson
-from PIL import Image
+from PIL import Image, ImageMath
 
 from newmedia import backend_state
 
@@ -113,6 +113,10 @@ def _GetFileInfo(path: pathlib.Path, prev_info: Optional[ImageFile]) -> ImageFil
 def _ThumbnailFile(image_file: ImageFile) -> Tuple[ImageFile, bytes]:
   try:
     im = Image.open(image_file.path)
+    # Grayscale tiffs first have to be normalized to have values ranging from 0 to 255 (IIUC, floating point values are ok).
+    if im.mode.startswith("I;"):
+      im = im.convert("F")
+      im = ImageMath.eval('im/256', {'im': im}).convert('L')
     im = im.convert("RGB")
   except IOError as e:
     raise ImageProcessingError(e)
