@@ -45,7 +45,7 @@
 
 .image-grid {
   background-color: $nm-background-color-lighter;
-  overflow: scroll;
+  overflow: auto;
 }
 
 .row {

@@ -180,11 +180,40 @@ $link-focus-border: $primary;
 
 html {
   background-color: inherit;
+  overflow: auto;
 }
 
 body {
   user-select: none;
   background-color: $nm-background-color !important;
+}
+
+::-webkit-scrollbar {
+  background-color: transparent;
+}
+/* Let's get this party started */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+  background: rgba(94, 94, 94, 0.95);
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+}
+::-webkit-scrollbar-thumb:window-inactive {
+  background: rgba(94, 94, 94, 0.4);
 }
 </style>
 

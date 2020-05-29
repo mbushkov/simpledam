@@ -78,7 +78,9 @@ async function createWindow(path?: string) {
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
     win.loadURL(process.env.WEBPACK_DEV_SERVER_URL + '?port=' + port.toString())
-    if (!process.env.IS_TEST) win.webContents.openDevTools()
+    if (!process.env.IS_TEST) {
+      win.webContents.openDevTools();
+    }
   } else {
     createProtocol('app')
     // Load the index.html when not in development

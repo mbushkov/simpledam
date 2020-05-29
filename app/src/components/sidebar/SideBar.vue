@@ -20,7 +20,7 @@
     border: 1px solid black;
     display: flex;
     flex-direction: column;
-    overflow: scroll;
+    overflow: auto;
   }
 }
 </style>
