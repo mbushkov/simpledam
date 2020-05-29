@@ -178,8 +178,13 @@ $link-focus-border: $primary;
   padding: 0.2em 0.5em;
 }
 
+html {
+  background-color: inherit;
+}
+
 body {
   user-select: none;
+  background-color: $nm-background-color !important;
 }
 </style>
 

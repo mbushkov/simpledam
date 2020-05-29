@@ -68,6 +68,7 @@ async function createWindow(path?: string) {
     height: 768,
     minWidth: 1024,
     minHeight: 768,
+    backgroundColor: '#282828',
     webPreferences: {
       // TODO: try turning this off.
       nodeIntegration: true
