@@ -20,13 +20,13 @@
         <div class="drag-indicator" ref="dragIndicator" :style="dragIndicatorStyle"></div>
       </template>
 
-      <template v-slot="{ item }">
+      <template v-slot="{ item, active }">
         <div class="row" style="rowStyle">
           <ImageBox
             v-for="imageData in generateImageData(item.uids)"
             :key="imageData.uid"
             class="image-box"
-            :name="'box-' + imageData.uid"
+            :name="active ? ('box-' + imageData.uid) : ''"
             :style="imageBoxStyle"
             draggable="true"
             :imageData="imageData"
@@ -458,11 +458,11 @@ export default defineComponent({
         return;
       }
 
+      // Due to reuse of elements, we have to be careful not to scroll to an element
+      // that was previously shown for the saem key.
       const container = (scroller.value! as any).$el as HTMLDivElement;
-      const res: HTMLElement | null = container.querySelector(`[name=box-${lt}]`);
-      if (res) {
-        (res as any).scrollIntoViewIfNeeded();
-      }
+      const res = container.querySelector(`[name=box-${lt}]`);
+      (res as any).scrollIntoViewIfNeeded();
     })
 
     return {
