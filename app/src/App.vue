@@ -5,7 +5,11 @@
     <div v-if="loaded">
       <ToolBar class="tool-bar"></ToolBar>
       <div class="splitpane-container">
-        <splitpane-container @resize="splitpanesResizing()" @resized="splitpanesResized()">
+        <splitpane-container
+          @ready="splitpanesReady()"
+          @resize="splitpanesResizing()"
+          @resized="splitpanesResized()"
+        >
           <splitpane
             :size="sideBarSize"
             :min-size="minSideBarSize"
@@ -298,7 +302,7 @@ export default Vue.extend({
   data() {
     return {
       minSideBarSize: 20,
-      maxSideBarSize: 20,
+      maxSideBarSize: 50,
       sideBarSize: 20,
       sideBarSizePx: 250,
       loaded: false,
@@ -315,9 +319,17 @@ export default Vue.extend({
   },
   methods: {
     handleResize() {
-      this.minSideBarSize = 180 / this.$el.clientWidth * 100;
-      this.maxSideBarSize = 50;
+      // this.minSideBarSize = 180 / this.$el.clientWidth * 100;
+      // this.maxSideBarSize = 50;
       // this.sideBarSize = Math.max(this.minSideBarSize, Math.min(this.sideBarSizePx / this.$el.clientWidth * 100, this.maxSideBarSize));
+    },
+
+    splitpanesReady() {
+      // TODO: this is a horrible hack - rewrite vue inifinite scroller to make this unnecessary.
+      setTimeout(() => {
+        console.log('split panes ready');
+        (this.$refs['imageViewerRef'] as any).handleResize();
+      }, 1000);
     },
 
     splitpanesResizing() {
