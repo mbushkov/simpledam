@@ -273,8 +273,10 @@ class Store {
     const uidsSet = new Set(uids);
     const l = this.currentList();
     const orderedUids: string[] = l.items.filter(i => uidsSet.has(i));
+    console.log(['ordered uids', orderedUids]);
 
     destIndex = Math.min(destIndex, l.items.length);
+    console.log(['dest index', destIndex]);
     const newItems: (string | undefined)[] = l.items.map(i => (uidsSet.has(i) ? undefined : i));
     newItems.splice(destIndex, 0, ...orderedUids);
 

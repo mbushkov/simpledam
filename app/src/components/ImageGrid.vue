@@ -373,6 +373,21 @@ export default defineComponent({
         return;
       }
 
+      if (uid !== STORE.state.selection.primary) {
+        const prevAdditional = { ...STORE.state.selection.additional };
+        const prevPrimary = STORE.state.selection.primary;
+        STORE.selectPrimary(uid);
+        if (prevPrimary && (Object.keys(prevAdditional).length > 0)) {
+          for (const puid in prevAdditional) {
+            if (uid === puid) {
+              continue;
+            }
+            STORE.toggleAdditionalSelection(puid);
+          }
+          STORE.toggleAdditionalSelection(prevPrimary);
+        }
+      }
+
       const uids = new Set<string>([uid]);
       if (STORE.state.selection.primary) {
         uids.add(STORE.state.selection.primary);
