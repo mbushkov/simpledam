@@ -46,14 +46,6 @@
 .image-grid {
   background-color: $nm-background-color-lighter;
   overflow: auto;
-
-  ::-webkit-scrollbar-thumb {
-    background: rgba(114, 114, 114, 1);
-  }
-
-  ::-webkit-scrollbar-thumb:window-inactive {
-    background: rgba(114, 114, 114, 0.6);
-  }
 }
 
 .row {
@@ -276,6 +268,7 @@ export default defineComponent({
 
     function keyPressed(event: KeyboardEvent) {
       if (el.value?.style.display === 'none') {
+        console.log('nothing to process');
         return;
       }
 

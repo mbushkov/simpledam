@@ -81,7 +81,7 @@ export default defineComponent({
 
     const el = ref<HTMLDivElement>(null);
 
-    watch(autoFit, (newVal: boolean) => {
+    watch([autoFit, imageUrl, curRotation], ([newVal]) => {
       console.log(['AUTO FIT', newVal]);
       if (!newVal) {
         return;
@@ -96,10 +96,9 @@ export default defineComponent({
         return;
       }
 
-
       context.root.$nextTick(() => {
-        let clientWidth = el.value?.clientWidth ?? 1;
-        let clientHeight = el.value?.clientHeight ?? 1;
+        let clientWidth = el.value?.getBoundingClientRect().width ?? 1;
+        let clientHeight = el.value?.getBoundingClientRect().height ?? 1;
         if (isRotated90.value || isRotated270.value) {
           let temp = clientWidth;
           clientWidth = clientHeight;
@@ -193,7 +192,6 @@ export default defineComponent({
         clientHeight = temp;
       }
 
-
       if (clientWidth > 0 && clientHeight > 0) {
         console.log([el.value!.clientHeight, clientHeight]);
         const offsetX = Math.max(0, (el.value!.clientWidth - clientWidth) / 2);
@@ -204,7 +202,7 @@ export default defineComponent({
       }
     }
 
-    watch(scale, (newValue, oldValue) => {
+    watch([scale, imageUrl, curRotation], ([newValue, oldValue]) => {
       const im = STORE.state.images[STORE.state.selection.primary ?? ''];
       if (!im || !im.preview_size) {
         return;
@@ -222,7 +220,6 @@ export default defineComponent({
         img.value!.style.height = `${newHeight}px`;
 
         handleResize();
-
 
         // console.log(['SCROLL', scale.value, im.preview_size.width * (newValue - oldValue) / 50, im.preview_size.height * (newValue - oldValue) / 50,]);
         el.value!.scrollTo(

@@ -40,6 +40,14 @@
   .grow {
     flex-grow: 1;
   }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(114, 114, 114, 1);
+  }
+
+  ::-webkit-scrollbar-thumb:window-inactive {
+    background: rgba(114, 114, 114, 0.6);
+  }
 }
 </style>
 <script lang="ts">
