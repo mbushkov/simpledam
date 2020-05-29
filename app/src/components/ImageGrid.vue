@@ -30,6 +30,7 @@
             :style="imageBoxStyle"
             draggable="true"
             :imageData="imageData"
+            :shortVersion="shortImageBoxVersion"
             @nm-click="imageBoxClicked"
             @nm-dblclick="imageBoxDoubleClicked"
             @nm-dragstart="imageBoxDragStarted"
@@ -170,6 +171,9 @@ export default defineComponent({
       };
     });
 
+    const shortImageBoxVersion = computed(() => {
+      return STORE.state.thumbnailSettings.size <= 80;
+    });
 
     function containerDropped(event: DragEvent) {
       dragIndicatorVisible.value = false;
@@ -454,6 +458,7 @@ export default defineComponent({
       dragIndicatorVisible,
       dragIndicatorIndex,
       maxSize,
+      shortImageBoxVersion,
 
       dragIndicatorStyle,
       uidGroups,

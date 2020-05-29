@@ -14,7 +14,7 @@
       />
     </div>
     <div class="metadata">
-      <div class="ib-label">
+      <div class="ib-label" v-if="!isShortVersion">
         <b-icon
           :type="{['is-label-' + labelNames[imageData.label]]: true}"
           icon="checkbox-blank"
@@ -26,7 +26,10 @@
         <b-rate :disabled="true" :max="5" v-model="imageData.rating" size="is-small"></b-rate>
       </div>
     </div>
-    <div class="title">{{ filename(imageData.filePath) }}</div>
+    <div
+      class="title"
+      :class="{['has-text-label-' + labelNames[imageData.label]]: isShortVersion}"
+    >{{ filename(imageData.filePath) }}</div>
   </div>
 </template>
 
@@ -154,6 +157,7 @@ export enum SelectionType {
 
 interface Props {
   readonly imageData: ImageData;
+  readonly shortVersion: boolean;
 }
 
 export default defineComponent({
@@ -162,9 +166,9 @@ export default defineComponent({
       type: Object,
       required: true,
     },
-    selectionType: {
-      type: Number,
-      default: SelectionType.NONE,
+    shortVersion: {
+      type: Boolean,
+      default: false,
     },
   },
   setup(props: Props, context: SetupContext) {
@@ -187,6 +191,7 @@ export default defineComponent({
     const isRotated90 = computed(() => props.imageData.adjustments.rotation === Rotation.DEG_90);
     const isRotated180 = computed(() => props.imageData.adjustments.rotation === Rotation.DEG_180);
     const isRotated270 = computed(() => props.imageData.adjustments.rotation === Rotation.DEG_270);
+    const isShortVersion = computed(() => props.shortVersion);
 
     let clickCount = 0;
     let clickTimer: ReturnType<typeof setTimeout>;
@@ -223,6 +228,7 @@ export default defineComponent({
       isRotated90,
       isRotated180,
       isRotated270,
+      isShortVersion,
 
       port: PORT,
 
