@@ -99,7 +99,7 @@ async function createWindow(catalogPath?: string) {
   } else {
     createProtocol('app')
     // Load the index.html when not in development
-    win.loadURL('app://./index.html?port=' + port.toString())
+    win.loadURL('app://./index.html?port=' + port.toString() + '&secret=' + secret)
   }
 
   win.on('closed', () => {
