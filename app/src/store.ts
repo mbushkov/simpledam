@@ -1,5 +1,5 @@
 import { API_SERVICE } from '@/api';
-import { filter, map, bufferTime } from 'rxjs/operators';
+import { filter, map, bufferTime, catchError } from 'rxjs/operators';
 import Vue from 'vue';
 import { Immutable } from './type-utils';
 import { TRANSIENT_STORE } from './transient-store';
@@ -192,7 +192,11 @@ class Store {
     map((vList) => {
       const aList = vList as FileRegisteredAction[];
       this.registerImages(aList.map(a => a.image));
-    })
+    }),
+    catchError((err, caught) => {  // defensive approach
+      console.log('Error: ', err);
+      return caught;
+    }),
   ).subscribe();
 
   public currentList(): ImageList {
@@ -621,9 +625,6 @@ class Store {
     const dname = dirName(imageFile.path);
     Vue.set(this.state.paths, dname, true);
 
-    // Update the current list.
-    this.ensureItemInCurrentList(imageFile.uid);
-
     let invariant: string;
     if (!existed) {
       const imageMetadata: ImageMetadata = {
@@ -658,6 +659,9 @@ class Store {
       this.listForFilterSettingsInvariant(invariant);
 
       this.updateListsPresence(imageFile.uid, invariant);
+    } else {
+      // Update the current list.
+      this.ensureItemInCurrentList(imageFile.uid);
     }
 
     // Now update the paths.
