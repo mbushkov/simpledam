@@ -105,7 +105,6 @@ export default defineComponent({
     const maxSize = computed(() => STORE.state.thumbnailSettings.size);
 
     const draggedPaths = new Map<string, string>();
-    const draggedUids: string[] = [];
 
     function handleResize() {
       TRANSIENT_STORE.setColumnCount(Math.floor(el.value!.clientWidth / maxSize.value));
@@ -171,39 +170,44 @@ export default defineComponent({
     });
 
     function containerDropped(event: DragEvent) {
-      dragIndicatorVisible.value = false;
-      console.log(['drop', event, Array.from(event?.dataTransfer?.items ?? [])]);
+      try {
+        dragIndicatorVisible.value = false;
+        console.log(['drop', event, Array.from(event?.dataTransfer?.items ?? [])]);
 
-      if (event.dataTransfer?.getData('nmUids')) {
-        const nmUids = JSON.parse(event.dataTransfer.getData('nmUids'));
-        console.log('moving', nmUids, dragIndicatorIndex.value);
-        STORE.moveWithinCurrentList(nmUids, dragIndicatorIndex.value);
-        return;
-      }
-
-      if (!event?.dataTransfer?.files) {
-        return;
-      }
-
-      let fullMatch: boolean = true;
-      for (let i = 0; i < event.dataTransfer.files.length; ++i) {
-        const p = event.dataTransfer.files.item(i)!.path;
-        if (!draggedPaths.has(p)) {
-          fullMatch = false;
-          break;
+        if (event.dataTransfer?.getData('nmUids')) {
+          const nmUids = JSON.parse(event.dataTransfer.getData('nmUids'));
+          console.log('moving', nmUids, dragIndicatorIndex.value);
+          STORE.moveWithinCurrentList(nmUids, dragIndicatorIndex.value);
+          return;
         }
-      }
 
-      // This is needed for cases when an object is briefly dragged outside of the
-      // window. Then the 'nmUid' property is going to be cleared, so we have to
-      // rely on files list to see if we should simply move pictures withing the list.
-      if (fullMatch) {
-        console.log('moving2', draggedUids, dragIndicatorIndex.value);
-        STORE.moveWithinCurrentList(draggedUids, dragIndicatorIndex.value);
-      } else {
+        if (!event?.dataTransfer?.files) {
+          return;
+        }
+
+        let fullMatch: boolean = true;
+        console.log('Num dragged files: ', event.dataTransfer.files.length);
         for (let i = 0; i < event.dataTransfer.files.length; ++i) {
-          API_SERVICE.scanPath(event.dataTransfer.files.item(i)!.path);
+          const p = event.dataTransfer.files.item(i)!.path;
+          if (!draggedPaths.has(p)) {
+            fullMatch = false;
+            break;
+          }
         }
+
+        // This is needed for cases when an object is briefly dragged outside of the
+        // window. Then the 'nmUid' property is going to be cleared, so we have to
+        // rely on files list to see if we should simply move pictures withing the list.
+        if (fullMatch) {
+          console.log('moving2', draggedPaths.values(), dragIndicatorIndex.value);
+          STORE.moveWithinCurrentList([...draggedPaths.values()], dragIndicatorIndex.value);
+        } else {
+          for (let i = 0; i < event.dataTransfer.files.length; ++i) {
+            API_SERVICE.scanPath(event.dataTransfer.files.item(i)!.path);
+          }
+        }
+      } finally {
+        draggedPaths.clear();
       }
     }
 
@@ -453,7 +457,11 @@ export default defineComponent({
       // that was previously shown for the saem key.
       const container = (scroller.value! as any).$el as HTMLDivElement;
       const res = container.querySelector(`[name=box-${lt}]`);
-      (res as any).scrollIntoViewIfNeeded();
+      if (res) {
+        (res as any).scrollIntoViewIfNeeded();
+      } else {
+        // TODO: calculate the position and scroll accordingly.
+      }
     })
 
     return {
