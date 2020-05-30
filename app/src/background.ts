@@ -10,8 +10,9 @@ import {
   createProtocol, installVueDevtools,
   /* installVueDevtools */
 } from 'vue-cli-plugin-electron-builder/lib'
-import axios, { AxiosResponse } from 'axios';
 import { ChildProcess, spawn } from 'child_process';
+
+app.commandLine.appendSwitch('host-rules', 'MAP * 127.0.0.1');
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 

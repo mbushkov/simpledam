@@ -23,7 +23,7 @@ PARSER.add_argument("--db-file", type=pathlib.Path, default=None)
 
 CORS_HEADERS = {
     "Access-Control-Allow-Origin":
-        "*",
+        "http://localhost/",
     "Access-Control-Allow-Methods":
         "GET,POST,PUT,DELETE,OPTIONS",
     "Access-Control-Allow-Headers":

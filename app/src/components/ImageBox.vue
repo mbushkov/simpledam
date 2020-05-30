@@ -10,7 +10,7 @@
       <img
         v-if="imageData.hasPreview"
         :class="{'rotated-90': isRotated90, 'rotated-180': isRotated180, 'rotated-270': isRotated270 }"
-        :src="'http://127.0.0.1:' + port + '/images/' + imageData.uid"
+        :src="'http://localhost:' + port + '/images/' + imageData.uid"
       />
     </div>
     <div class="metadata">
