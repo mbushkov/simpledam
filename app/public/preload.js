@@ -5,7 +5,7 @@ contextBridge.exposeInMainWorld(
   {
     dragStart(paths, thumbnailUrl, callbackFn) {
       ipcRenderer.once('ondragstart-confirmed', callbackFn);
-      ipcRenderer.send('dragstart', paths, thumbnailUrl);
+      ipcRenderer.send('ondragstart', paths, thumbnailUrl);
     },
 
     onSave(callbackFn) {
