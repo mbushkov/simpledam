@@ -18,6 +18,7 @@
 		},
 		"search.exclude": {
 			".venv3": true,
+			"**/bin": true,
 			"**/package-lock.json": true
 		},
 		"vetur.format.defaultFormatter.ts": "vscode-typescript",
