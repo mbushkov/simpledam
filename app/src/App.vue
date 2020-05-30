@@ -286,10 +286,6 @@ import { BACKEND_MIRROR } from './backend-mirror';
 import { STORE } from './store';
 import { API_SERVICE } from './api';
 
-// Otherwise it will try to import it from Webpack or whatever you use.
-// https://github.com/electron/electron/issues/7300
-const { ipcRenderer } = window.require("electron");
-
 
 export default Vue.extend({
   name: 'App',
@@ -353,22 +349,21 @@ export default Vue.extend({
   },
 });
 
-ipcRenderer.on('save', async () => {
+(window as any).electron.onSave(async () => {
   if (!BACKEND_MIRROR.state.catalogPath) {
     // TODO: once is not really needed here. A global "on" should be enough.
-    ipcRenderer.once('show-save-catalog-dialog-reply', (event: Electron.IpcRendererEvent, path: string) => {
-      if (!path.endsWith('.nmcatalog')) {
-        path += '.nmcatalog'
-      }
-
+    (window as any).electron.showSaveCatalogDialog((path: string) => {
       if (path) {
+        if (!path.endsWith('.nmcatalog')) {
+          path += '.nmcatalog'
+        }
+
         console.log(['save new', BACKEND_MIRROR.state.catalogPath, path]);
         API_SERVICE.saveStore(path, STORE.state);
       } else {
         console.log('save declined');
       }
     });
-    ipcRenderer.send('show-save-catalog-dialog');
   } else {
     console.log(['save existing', BACKEND_MIRROR.state.catalogPath]);
     API_SERVICE.saveStore(BACKEND_MIRROR.state.catalogPath, STORE.state);

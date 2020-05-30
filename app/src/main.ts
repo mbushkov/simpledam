@@ -11,10 +11,6 @@ import 'splitpanes/dist/splitpanes.css'
 
 import App from './App.vue'
 
-const webFrame = window.require('electron').webFrame;
-webFrame.setZoomFactor(1);
-webFrame.setVisualZoomLevelLimits(1, 1);
-
 Vue.use(VueRx);
 Vue.use(VueCompositionApi);
 Vue.use(Buefy)

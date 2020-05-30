@@ -73,11 +73,6 @@ import { ImageData, SelectionType } from './ImageBox.vue';
 import ImageBox from './ImageBox.vue';
 import { TRANSIENT_STORE, ImageViewerTab } from '../transient-store';
 
-// Otherwise it will try to import it from Webpack or whatever you use.
-// https://github.com/electron/electron/issues/7300
-const { ipcRenderer } = window.require("electron");
-
-
 interface Row {
   key: string;
   uids: string[];
@@ -412,7 +407,7 @@ export default defineComponent({
       // event.dataTransfer.setDragImage(dragIcon, -10, -10);
       // setTimeout(() => document.body.removeChild(dragIcon), 0);
 
-      ipcRenderer.once('ondragstart-confirmed', () => {
+      (window as any).electron.dragStart(paths, API_SERVICE.thumbnailUrl(uid), () => {
         if (!event.dataTransfer) {
           return;
         }
@@ -420,10 +415,6 @@ export default defineComponent({
 
         event.dataTransfer.effectAllowed = 'move';
       });
-      console.log(['paths', paths]);
-
-
-      ipcRenderer.send('ondragstart', paths, API_SERVICE.thumbnailUrl(uid));
 
       // event.dataTransfer.setData("uid", uid);
       // event.dataTransfer.setData("DownloadURL", API_SERVICE.thumbnailUrl(uid));

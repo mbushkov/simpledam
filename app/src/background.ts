@@ -56,22 +56,26 @@ async function startBackendProcess(catalogPath?: string): Promise<{ backend: Chi
   });
 }
 
-async function createWindow(path?: string) {
+// Globally defined path for static files.
+declare let __static: string;
+
+async function createWindow(catalogPath?: string) {
   console.log('[BACKEND] Starting process...');
-  const { backend, port } = await startBackendProcess(path);
-  console.log(`[BACKEND] Process started (pid=${backend.pid}, port=${port}, path=${path})`);
+  const { backend, port } = await startBackendProcess(catalogPath);
+  console.log(`[BACKEND] Process started (pid=${backend.pid}, port=${port}, path=${catalogPath})`);
 
   // Create the browser window.
   const win = new BrowserWindow({
-    title: 'SimpleDAM (pre-alpha)' + (path ? ` - ${path}` : ''),
+    title: 'SimpleDAM (pre-alpha)' + (catalogPath ? ` - ${catalogPath}` : ''),
     width: 1024,
     height: 768,
     minWidth: 1024,
     minHeight: 768,
     backgroundColor: '#282828',
     webPreferences: {
-      // TODO: try turning this off.
-      nodeIntegration: true
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__static, '/preload.js'),
     }
   });
 
