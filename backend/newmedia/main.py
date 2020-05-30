@@ -2,12 +2,14 @@ import argparse
 import asyncio
 import collections
 import dataclasses
+import json
 import logging
 import os
 import pathlib
 import signal
 import sys
-from typing import cast
+import uuid
+from typing import Awaitable, Callable, cast
 
 import aiohttp
 import aiojobs.aiohttp
@@ -28,7 +30,7 @@ CORS_HEADERS = {
     "Access-Control-Allow-Methods":
         "GET,POST,PUT,DELETE,OPTIONS",
     "Access-Control-Allow-Headers":
-        "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With",
+        "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, X-nm-secret",
 }
 
 
@@ -211,6 +213,19 @@ async def DieIfParentDies():
     await asyncio.sleep(1)
 
 
+def SecretCheckWrapper(
+    fn: Callable[[web.Request], Awaitable[web.Response]]
+) -> Callable[[web.Request], Awaitable[web.Response]]:
+
+  async def Wrapped(request: web.Request) -> web.Response:
+    if request.headers["X-nm-secret"] != request.app["secret"]:
+      return web.Response(status=403, text="Secret check failed.")
+
+    return await fn(request)
+
+  return Wrapped
+
+
 def main():
   logging.basicConfig(level=logging.INFO)
 
@@ -228,13 +243,14 @@ def main():
   app.add_routes([
       web.get("/", RootHandler),
       web.get("/ws", WebSocketHandler),
-      web.get("/saved-state", SavedStateHandler),
+      web.options("/saved-state", AllowCorsHandler),
+      web.get("/saved-state", SecretCheckWrapper(SavedStateHandler)),
       web.options("/scan-path", AllowCorsHandler),
-      web.post("/scan-path", ScanPathHandler),
+      web.post("/scan-path", SecretCheckWrapper(ScanPathHandler)),
       web.options("/save", AllowCorsHandler),
-      web.post("/save", SaveHandler),
+      web.post("/save", SecretCheckWrapper(SaveHandler)),
       web.options("/move-path", AllowCorsHandler),
-      web.post("/move-path", MovePathHandler),
+      web.post("/move-path", SecretCheckWrapper(MovePathHandler)),
       web.get("/images/{uid}", GetImageHandler),
   ])
   app["websockets"] = set()
@@ -246,8 +262,12 @@ def main():
   backend_state.BACKEND_STATE = backend_state.BackendState(app)
 
   port = args.port or portpicker.pick_unused_port()
-  sys.stdout.write("%d\n" % port)
+  secret = uuid.uuid4().hex
+  app["secret"] = secret
+
+  sys.stdout.write(json.dumps(dict(port=port, secret=secret)) + "\n")
   sys.stdout.flush()
+
   web.run_app(app, host="127.0.0.1", port=port, handle_signals=True)
 
 

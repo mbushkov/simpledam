@@ -5,11 +5,15 @@ import { retry } from 'rxjs/operators';
 
 const GLOBAL_URL_PARAMS = new URLSearchParams(window.location.search);
 export const PORT = Number(GLOBAL_URL_PARAMS.get('port'));
+export const SECRET = GLOBAL_URL_PARAMS.get('secret');
 
 
 class ApiService {
   readonly BASE_ADDRESS = `localhost:${PORT}`;
   readonly ROOT = 'http://' + this.BASE_ADDRESS;
+  readonly HEADERS = {
+    'X-nm-secret': SECRET,
+  };
 
   readonly ws = webSocket(`ws://${this.BASE_ADDRESS}/ws`).pipe(
     // Chromium will close the websocket evert time the system goes to sleep.
@@ -22,13 +26,13 @@ class ApiService {
   // });
 
   scanPath(path: string): Promise<void> {
-    return axios.post(this.ROOT + '/scan-path', { path }).then(r => {
+    return axios.post(this.ROOT + '/scan-path', { path }, { headers: this.HEADERS }).then(r => {
       console.log(r);
     });
   }
 
   movePath(src: string, dest: string): Promise<void> {
-    return axios.post(this.ROOT + '/move-path', { src, dest }).then(r => {
+    return axios.post(this.ROOT + '/move-path', { src, dest }, { headers: this.HEADERS }).then(r => {
       console.log(r);
     });
   }
@@ -37,7 +41,7 @@ class ApiService {
     const replacer = (key: string, value: unknown) => value === undefined ? null : value;
     const stringified = JSON.stringify({ path, state }, replacer);
 
-    return axios.post(this.ROOT + '/save', stringified).then(r => {
+    return axios.post(this.ROOT + '/save', stringified, { headers: this.HEADERS }).then(r => {
       console.log(r);
     });
   }
@@ -61,7 +65,7 @@ class ApiService {
   }
 
   fetchState(): Promise<State | undefined> {
-    return axios.get(this.ROOT + '/saved-state', { responseType: 'text' }).then(r => {
+    return axios.get(this.ROOT + '/saved-state', { responseType: 'text', headers: this.HEADERS }).then(r => {
       return this.replaceNullWithUndefined(r.data['state'] || undefined);
     });
   }

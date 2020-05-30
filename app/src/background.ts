@@ -25,8 +25,8 @@ const beforeReadyPaths: string[] = [];
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([{ scheme: 'app', privileges: { secure: true, standard: true } }])
 
-async function startBackendProcess(catalogPath?: string): Promise<{ backend: ChildProcess, port: number }> {
-  return new Promise<{ backend: ChildProcess, port: number }>((resolve, reject) => {
+async function startBackendProcess(catalogPath?: string): Promise<{ backend: ChildProcess, port: number, secret: string }> {
+  return new Promise<{ backend: ChildProcess, port: number, secret: string }>((resolve, reject) => {
     let binaryPath: string;
     if (isDevelopment) {
       binaryPath = 'newmedia_backend';
@@ -45,13 +45,14 @@ async function startBackendProcess(catalogPath?: string): Promise<{ backend: Chi
     console.log(`[BACKEND] Starting binary: ${binaryPath} ${binaryArgs.join(' ')}`);
     const backend = spawn(binaryPath, binaryArgs);
 
-    let portLine: string | undefined = undefined;
+    let feedbackLine: string | undefined = undefined;
     backend.stdout.on('data', (data: any) => {
       console.log(`[BACKEND] stdout: ${data}`);
 
-      if (!portLine) {
-        portLine = (data.toString() as string).split('\n')[0];
-        resolve({ backend, port: Number(portLine) });
+      if (!feedbackLine) {
+        feedbackLine = (data.toString() as string).split('\n')[0];
+        const feedback = JSON.parse(feedbackLine);
+        resolve({ backend, port: Number(feedback['port']), secret: feedback['secret'] });
       }
     });
 
@@ -71,8 +72,8 @@ declare let __static: string;
 
 async function createWindow(catalogPath?: string) {
   console.log('[BACKEND] Starting process...');
-  const { backend, port } = await startBackendProcess(catalogPath);
-  console.log(`[BACKEND] Process started (pid=${backend.pid}, port=${port}, path=${catalogPath})`);
+  const { backend, port, secret } = await startBackendProcess(catalogPath);
+  console.log(`[BACKEND] Process started (pid=${backend.pid}, port=${port}, secret=${secret}, path=${catalogPath})`);
 
   // Create the browser window.
   const win = new BrowserWindow({
@@ -91,7 +92,7 @@ async function createWindow(catalogPath?: string) {
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
-    win.loadURL(process.env.WEBPACK_DEV_SERVER_URL + '?port=' + port.toString())
+    win.loadURL(process.env.WEBPACK_DEV_SERVER_URL + '?port=' + port.toString() + '&secret=' + secret);
     if (!process.env.IS_TEST) {
       win.webContents.openDevTools();
     }
