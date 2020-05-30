@@ -20,10 +20,11 @@ from newmedia import backend_state, store
 PARSER = argparse.ArgumentParser(description='Newmedia backend server.')
 PARSER.add_argument("--port", type=int, default=0)
 PARSER.add_argument("--db-file", type=pathlib.Path, default=None)
+PARSER.add_argument("--dev", default=False, action='store_true')
 
 CORS_HEADERS = {
     "Access-Control-Allow-Origin":
-        "http://localhost/",
+        "app://.",
     "Access-Control-Allow-Methods":
         "GET,POST,PUT,DELETE,OPTIONS",
     "Access-Control-Allow-Headers":
@@ -214,6 +215,10 @@ def main():
   logging.basicConfig(level=logging.INFO)
 
   args = PARSER.parse_args()
+
+  if args.dev:
+    CORS_HEADERS["Access-Control-Allow-Origin"] = "http://localhost:8080"
+
   store.InitDataStore(args.db_file)
 
   # TODO: max request size is 1 Gb. This creates a natural
