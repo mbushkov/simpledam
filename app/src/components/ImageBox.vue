@@ -6,12 +6,10 @@
     @dragstart="dragStarted($event)"
     @click="clicked($event)"
   >
-    <div class="nested">
-      <img
-        v-if="imageData.hasPreview"
-        :class="{'rotated-90': isRotated90, 'rotated-180': isRotated180, 'rotated-270': isRotated270 }"
-        :src="'http://localhost:' + port + '/images/' + imageData.uid"
-      />
+    <div class="nested" ref="nestedRef">
+      <div class="image-wrapper" :style="imageWrapperStyle" v-if="imageData.previewSize">
+        <img :style="imageStyle" :src="'http://localhost:' + port + '/images/' + imageData.uid" />
+      </div>
     </div>
     <div class="metadata">
       <div class="ib-label" v-if="!isShortVersion">
@@ -28,7 +26,7 @@
     </div>
     <div
       class="title"
-      :class="{['has-text-label-' + labelNames[imageData.label]]: isShortVersion}"
+      :class="{['has-text-label-' + labelNames[imageData.label]]: isShortVersion, ['short-version'] : isShortVersion}"
     >{{ filename(imageData.filePath) }}</div>
   </div>
 </template>
@@ -60,7 +58,6 @@
     justify-content: center;
 
     img {
-      display: block;
       max-width: 100%;
       max-height: 100%;
 
@@ -97,6 +94,10 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+
+    &.short-version {
+      font-size: 10px;
+    }
   }
 
   .metadata {
@@ -135,14 +136,20 @@
 </style>
 
 <script lang="ts">
-import { defineComponent, computed, SetupContext } from '@vue/composition-api';
+import { defineComponent, computed, SetupContext, reactive, ref, onMounted, watch } from '@vue/composition-api';
 import { PORT } from '@/api';
 import { Label, ImageAdjustments, Rotation, Rating } from '@/store';
+
+
+export interface ImageSize {
+  width: number;
+  height: number;
+}
 
 export interface ImageData {
   readonly uid: string;
   readonly filePath: string;
-  readonly hasPreview: boolean;
+  readonly previewSize?: ImageSize;
   readonly label: Label;
   readonly rating: Rating;
   readonly selectionType: SelectionType;
@@ -158,6 +165,7 @@ export enum SelectionType {
 interface Props {
   readonly imageData: ImageData;
   readonly shortVersion: boolean;
+  readonly size: number;
 }
 
 export default defineComponent({
@@ -170,8 +178,13 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    size: {
+      type: Number,
+      default: 0,
+    }
   },
   setup(props: Props, context: SetupContext) {
+    const nestedRef = ref<HTMLDivElement>(undefined);
 
     const labelNames = {
       [Label.NONE]: 'none',
@@ -186,12 +199,52 @@ export default defineComponent({
       [Label.GRAY]: 'gray',
     };
 
+    const nestedSize = reactive({
+      width: 0,
+      height: 0,
+    })
+
     const isPrimarySelected = computed(() => props.imageData.selectionType === SelectionType.PRIMARY);
     const isAdditionalSelected = computed(() => props.imageData.selectionType === SelectionType.ADDITIONAL);
     const isRotated90 = computed(() => props.imageData.adjustments.rotation === Rotation.DEG_90);
     const isRotated180 = computed(() => props.imageData.adjustments.rotation === Rotation.DEG_180);
     const isRotated270 = computed(() => props.imageData.adjustments.rotation === Rotation.DEG_270);
     const isShortVersion = computed(() => props.shortVersion);
+
+    const imageWrapperStyle = computed(() => {
+      if (!props.imageData.previewSize) {
+        return {};
+      }
+
+      let ratio = props.imageData.previewSize.width / props.imageData.previewSize.height;
+      if (isRotated90.value || isRotated270.value) {
+        ratio = 1 / ratio;
+      }
+      let width = nestedSize.width || 1;
+      let height = nestedSize.height || 1;
+      if (ratio >= 1) {
+        height = width / ratio;
+      } else {
+        width = height / ratio;
+      }
+
+      // console.log(['clientWidth', nestedSize.width, 'clientHeight', nestedSize.height, 'width', width, 'height', height]);
+      return { width: `${width}px`, height: `${height}px` };
+    });
+
+    const imageStyle = computed(() => {
+      if (!props.imageData.previewSize) {
+        return {};
+      }
+
+      let scale = 1;
+      if (isRotated90.value || isRotated270.value) {
+        scale = props.imageData.previewSize.height / props.imageData.previewSize.width;
+      }
+      return {
+        transform: `rotate(${props.imageData.adjustments.rotation}deg) scale(${scale})`,
+      };
+    });
 
     let clickCount = 0;
     let clickTimer: ReturnType<typeof setTimeout>;
@@ -220,7 +273,22 @@ export default defineComponent({
       return components[components.length - 1];
     }
 
+    function resize() {
+      if (!nestedRef.value) {
+        return;
+      }
+      nestedSize.width = nestedRef.value.clientWidth;
+      nestedSize.height = nestedRef.value.clientHeight;
+    }
+
+    const size = computed(() => props.size);
+    onMounted(resize);
+    watch(size, resize);
+
     return {
+      nestedRef,
+      nestedSize,
+
       labelNames,
 
       isPrimarySelected,
@@ -229,6 +297,8 @@ export default defineComponent({
       isRotated180,
       isRotated270,
       isShortVersion,
+      imageWrapperStyle,
+      imageStyle,
 
       port: PORT,
 

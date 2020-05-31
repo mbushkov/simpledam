@@ -23,12 +23,13 @@
       <template v-slot="{ item, active }">
         <div class="row" style="rowStyle">
           <ImageBox
-            v-for="imageData in generateImageData(item.uids)"
+            v-for="imageData in item.imageData"
             :key="imageData.uid"
             class="image-box"
             :name="active ? ('box-' + imageData.uid) : ''"
             :style="imageBoxStyle"
             draggable="true"
+            :size="maxSize"
             :imageData="imageData"
             :shortVersion="shortImageBoxVersion"
             @nm-click="imageBoxClicked"
@@ -75,7 +76,7 @@ import { TRANSIENT_STORE, ImageViewerTab } from '../transient-store';
 
 interface Row {
   key: string;
-  uids: string[];
+  imageData: ImageData[];
 }
 
 const LABELS_MAP: { [key: string]: Label } = {
@@ -133,7 +134,7 @@ export default defineComponent({
         if (cur.length === TRANSIENT_STORE.state.columnCount) {
           result.push({
             key: cur.join('|'),
-            uids: cur,
+            imageData: generateImageData(cur),
           });
           cur = [];
         }
@@ -142,7 +143,7 @@ export default defineComponent({
       if (cur.length > 0) {
         result.push({
           key: cur.join('|'),
-          uids: cur,
+          imageData: generateImageData(cur),
         });
       }
 
@@ -166,7 +167,7 @@ export default defineComponent({
     });
 
     const shortImageBoxVersion = computed(() => {
-      return STORE.state.thumbnailSettings.size <= 80;
+      return STORE.state.thumbnailSettings.size <= 120;
     });
 
     function containerDropped(event: DragEvent) {
@@ -260,7 +261,7 @@ export default defineComponent({
         return {
           uid,
           filePath: im.path,
-          hasPreview: !!im.preview_timestamp,
+          previewSize: im.preview_timestamp ? im.preview_size : undefined,
           label: mdata.label,
           rating: mdata.rating,
           selectionType,
@@ -485,7 +486,6 @@ export default defineComponent({
       containerDragEnded,
       containerDragEntered,
       containerDragLeft,
-      generateImageData,
       imageBoxClicked,
       imageBoxDoubleClicked,
       imageBoxDragStarted,
