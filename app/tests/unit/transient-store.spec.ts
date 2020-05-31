@@ -10,19 +10,23 @@ describe('TransientStore', () => {
     ts = new TransientStore();
   });
 
-  it('reacts on image viewer tab change', async () => {
+  function createWrapper(template: string) {
     const c = Vue.component('Test', {
       name: 'Test',
       props: {
         ts: Object,
       },
-      template: "<div>{{ ts.state.imageViewerTab }}</div>",
+      template,
     });
-    const wrapper = shallowMount(c, {
+    return shallowMount(c, {
       propsData: {
         ts
       }
     });
+  }
+
+  it('reacts on image viewer tab change', async () => {
+    const wrapper = createWrapper('<div>{{ ts.state.imageViewerTab }}</div>');
 
     ts.setImageViewerTab(ImageViewerTab.THUMBNAILS);
     await wrapper.vm.$nextTick();
@@ -34,18 +38,7 @@ describe('TransientStore', () => {
   });
 
   it('reacts on column count change', async () => {
-    const c = Vue.component('Test', {
-      name: 'Test',
-      props: {
-        ts: Object,
-      },
-      template: "<div>{{ ts.state.columnCount }}</div>",
-    });
-    const wrapper = shallowMount(c, {
-      propsData: {
-        ts
-      }
-    });
+    const wrapper = createWrapper('<div>{{ ts.state.columnCount }}</div>');
 
     ts.setColumnCount(42);
     await wrapper.vm.$nextTick();
