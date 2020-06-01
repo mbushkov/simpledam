@@ -42,11 +42,9 @@
 </style>
 <script lang="ts">
 import { defineComponent, computed, ref, onMounted, onBeforeUnmount, watch } from '@vue/composition-api';
-import { STORE, TRANSIENT_STORE } from '@/store';
+import { STORE, TRANSIENT_STORE, Direction, ImageViewerTab } from '@/store';
 import { API_SERVICE } from '@/backend/api';
-import { ImageViewerTab } from '@/store/transient-store';
 import { Rotation } from '@/store/schema';
-import { Direction } from '@/store/store';
 
 
 export default defineComponent({
