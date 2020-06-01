@@ -1,7 +1,6 @@
-import Vue from 'vue';
 import { TransientStore, ImageViewerTab } from '@/store/transient-store';
-import { shallowMount } from '@vue/test-utils';
 import { expect } from 'chai'
+import { createJSONWrapper } from '@/lib/test-utils';
 
 describe('TransientStore', () => {
   let ts: TransientStore;
@@ -10,42 +9,24 @@ describe('TransientStore', () => {
     ts = new TransientStore();
   });
 
-  function createWrapper(template: string) {
-    const c = Vue.component('Test', {
-      name: 'Test',
-      props: {
-        ts: Object,
-      },
-      template,
-    });
-    return shallowMount(c, {
-      propsData: {
-        ts
-      }
-    });
-  }
 
   it('reacts on image viewer tab change', async () => {
-    const wrapper = createWrapper('<div>{{ ts.state.imageViewerTab }}</div>');
+    const wrapper = createJSONWrapper(ts.state);
 
     ts.setImageViewerTab(ImageViewerTab.THUMBNAILS);
-    await wrapper.vm.$nextTick();
-    expect(wrapper.text()).to.be.eq('0');
+    expect((await wrapper.nextTick()).imageViewerTab).to.be.equal(ImageViewerTab.THUMBNAILS);
 
     ts.setImageViewerTab(ImageViewerTab.MEDIA);
-    await wrapper.vm.$nextTick();
-    expect(wrapper.text()).to.be.eq('1');
+    expect((await wrapper.nextTick()).imageViewerTab).to.be.equal(ImageViewerTab.MEDIA);
   });
 
   it('reacts on column count change', async () => {
-    const wrapper = createWrapper('<div>{{ ts.state.columnCount }}</div>');
+    const wrapper = createJSONWrapper(ts.state);
 
     ts.setColumnCount(42);
-    await wrapper.vm.$nextTick();
-    expect(wrapper.text()).to.be.eq('42');
+    expect((await wrapper.nextTick()).columnCount).to.be.equal(42);
 
     ts.setColumnCount(43);
-    await wrapper.vm.$nextTick();
-    expect(wrapper.text()).to.be.eq('43');
+    expect((await wrapper.nextTick()).columnCount).to.be.equal(43);
   });
 })
