@@ -22,6 +22,22 @@ describe('Store selection helpers', () => {
     });
   }
 
+  describe('selectPrimary()', () => {
+
+  });
+
+  describe('toggleAdditionalSelection()', () => {
+
+  });
+
+  describe('movePrimarySelection()', () => {
+
+  });
+
+  describe('moveAdditionalSelection()', () => {
+
+  });
+
   describe('selectRange()', () => {
     it('does nothing if no primary selection', () => {
       const selection = createSelection();

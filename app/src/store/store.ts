@@ -4,6 +4,9 @@ import { FilterSettings, ImageFile, ImageList, ImageMetadata, Label, Rating, Rot
 import { bufferTime, catchError, filter, map } from 'rxjs/operators';
 import Vue from 'vue';
 import { TransientStore } from './transient-store';
+import { Direction, selectRange, selectPrimary, movePrimarySelection, moveAdditionalSelection, toggleAdditionalSelection } from './helpers/selection';
+
+export { Direction } from './helpers/selection';
 
 
 function filterSettingsInvariant(fs: FilterSettings): string {
@@ -39,13 +42,6 @@ function invariantKey(invariant: string): string {
 function dirName(path: string): string {
   const pathComponents = path.split('/');
   return pathComponents.slice(0, pathComponents.length - 1).join('/');
-}
-
-export enum Direction {
-  UP,
-  DOWN,
-  RIGHT,
-  LEFT,
 }
 
 export class Store {
@@ -121,12 +117,7 @@ export class Store {
   }
 
   public selectPrimary(uid?: string) {
-    this._state.selection.lastTouched = uid;
-
-    if (this._state.selection.primary !== uid) {
-      this._state.selection.primary = uid;
-      this._state.selection.additional = {};
-    }
+    selectPrimary(this._state.selection, uid);
   }
 
   public setThumbnailSize(size: number) {
@@ -134,48 +125,11 @@ export class Store {
   }
 
   public toggleAdditionalSelection(uid: string) {
-    this._state.selection.lastTouched = uid;
-
-    if (this._state.selection.primary === uid) {
-      let newPrimary = undefined;
-      const aKeys = Object.keys(this._state.selection.additional);
-      if (aKeys.length > 0) {
-        newPrimary = aKeys[0];
-        Vue.delete(this._state.selection.additional, newPrimary);
-      }
-      this._state.selection.primary = newPrimary;
-    } else {
-      if (this._state.selection.primary === undefined) {
-        this.selectPrimary(uid);
-        return;
-      }
-
-      if (this._state.selection.additional[uid]) {
-        Vue.delete(this._state.selection.additional, uid);
-      } else {
-        Vue.set(this._state.selection.additional, uid, true);
-      }
-    }
+    toggleAdditionalSelection(this._state.selection, uid);
   }
 
   public selectRange(uid: string) {
-    if (!this._state.selection.primary) {
-      return;
-    }
-
-    const l = this.currentList();
-    const primaryIndex = l.items.indexOf(this._state.selection.primary);
-    const newIndex = l.items.indexOf(uid);
-
-    this._state.selection.additional = {};
-    for (let i = Math.min(primaryIndex, newIndex); i <= Math.max(primaryIndex, newIndex); ++i) {
-      if (i === primaryIndex) {
-        continue;
-      }
-      Vue.set(this._state.selection.additional, l.items[i], true);
-    }
-
-    this._state.selection.lastTouched = uid;
+    selectRange(this._state.selection, this.currentList(), uid);
   }
 
   public moveWithinCurrentList(uids: ReadonlyArray<string>, destIndex: number) {
@@ -192,73 +146,13 @@ export class Store {
     l.items = newItems.filter((i): i is string => i !== undefined);
   }
 
-  private findIndexInDirection(curIndex: number, columnCount: number, length: number, direction: Direction): number | undefined {
-    if (direction === Direction.RIGHT) {
-      if (curIndex < length - 1) {
-        return curIndex + 1;
-      }
-    } else if (direction === Direction.LEFT) {
-      if (curIndex > 0) {
-        return curIndex - 1;
-      }
-    } else if (direction == Direction.DOWN) {
-      return Math.min(curIndex + columnCount, length - 1);
-    } else if (direction == Direction.UP) {
-      return Math.max(curIndex - columnCount, 0);
-    }
-
-    return undefined;
-  }
-
 
   public movePrimarySelection(direction: Direction) {
-    if (!this._state.selection.primary) {
-      return;
-    }
-
-    const l = this.currentList();
-    const curIndex = l.items.indexOf(this._state.selection.primary);
-    const nextIndex = this.findIndexInDirection(curIndex, this.transientStore.state.columnCount, l.items.length, direction);
-    if (nextIndex !== undefined) {
-      this.selectPrimary(l.items[nextIndex]);
-    }
+    movePrimarySelection(this._state.selection, this.currentList(), this.transientStore.state.columnCount, direction);
   }
 
   public moveAdditionalSelection(direction: Direction) {
-    if (!this._state.selection.primary) {
-      return;
-    }
-
-    const l = this.currentList();
-    const primaryIndex = l.items.indexOf(this._state.selection.primary);
-    const curIndex = l.items.indexOf(this._state.selection.lastTouched || this._state.selection.primary);
-    const nextIndex = this.findIndexInDirection(curIndex, this.transientStore.state.columnCount, l.items.length, direction);
-    if (nextIndex === undefined) {
-      return;
-    }
-
-    for (let i = Math.min(primaryIndex, curIndex, nextIndex); i <= Math.max(primaryIndex, curIndex, nextIndex); ++i) {
-      if (i === primaryIndex) {
-        continue;
-      }
-
-      if (nextIndex < primaryIndex) {
-        if (i < nextIndex) {
-          Vue.delete(this._state.selection.additional, l.items[i]);
-        } else {
-          Vue.set(this._state.selection.additional, l.items[i], true);
-        }
-      } else if (nextIndex > primaryIndex) {
-        if (i > nextIndex) {
-          Vue.delete(this._state.selection.additional, l.items[i]);
-        } else {
-          Vue.set(this._state.selection.additional, l.items[i], true);
-        }
-      } else {
-        Vue.delete(this._state.selection.additional, l.items[i]);
-      }
-    }
-    this._state.selection.lastTouched = l.items[nextIndex];
+    moveAdditionalSelection(this._state.selection, this.currentList(), this.transientStore.state.columnCount, direction);
   }
 
   public numItemsMatchingFilter(filterSettings: FilterSettings): number {
