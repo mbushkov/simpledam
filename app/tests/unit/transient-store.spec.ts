@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { TransientStore, ImageViewerTab } from '@/transient-store';
+import { TransientStore, ImageViewerTab } from '@/store/transient-store';
 import { shallowMount } from '@vue/test-utils';
 import { expect } from 'chai'
 

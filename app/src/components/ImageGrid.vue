@@ -68,11 +68,13 @@
 
 <script lang="ts">
 import { defineComponent, computed, onMounted, onBeforeUnmount, ref, watchEffect } from '@vue/composition-api';
-import { STORE, Label, Direction } from '@/store';
-import { API_SERVICE } from '@/api';
+import { STORE, TRANSIENT_STORE } from '@/store';
+import { API_SERVICE } from '@/backend/api';
 import { ImageData, SelectionType } from './ImageBox.vue';
 import ImageBox from './ImageBox.vue';
-import { TRANSIENT_STORE, ImageViewerTab } from '../transient-store';
+import { Label } from '@/store/schema';
+import { Direction } from '@/store/store';
+import { ImageViewerTab } from '@/store/transient-store';
 
 interface Row {
   key: string;

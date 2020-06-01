@@ -29,7 +29,7 @@
 <script lang="ts">
 import { defineComponent } from '@vue/composition-api';
 
-import { BACKEND_MIRROR } from '../backend-mirror';
+import { BACKEND_MIRROR } from '@/backend/backend-mirror';
 
 export default defineComponent({
   setup() {

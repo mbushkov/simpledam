@@ -86,7 +86,7 @@
 import Vue from 'vue';
 import { defineComponent, computed, reactive } from '@vue/composition-api';
 import { STORE } from '@/store';
-import { API_SERVICE } from '@/api';
+import { API_SERVICE } from '@/backend/api';
 import Pane from './Pane.vue';
 
 declare interface PathEntry {

@@ -137,8 +137,8 @@
 
 <script lang="ts">
 import { defineComponent, computed, SetupContext, reactive, ref, onMounted, watch } from '@vue/composition-api';
-import { PORT } from '@/api';
-import { Label, ImageAdjustments, Rotation, Rating } from '@/store';
+import { PORT } from '@/backend/api';
+import { Label, ImageAdjustments, Rotation, Rating } from '@/store/schema';
 
 
 export interface ImageSize {

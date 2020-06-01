@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { Immutable } from './type-utils';
+import { Immutable } from '@/lib/type-utils';
 
 export enum ImageViewerTab {
   THUMBNAILS = 0,
@@ -31,5 +31,3 @@ export class TransientStore {
     this._state.columnCount = n;
   }
 }
-
-export const TRANSIENT_STORE = new TransientStore();

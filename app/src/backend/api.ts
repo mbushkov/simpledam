@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { webSocket } from 'rxjs/webSocket';
-import { State, ReadonlyState } from './store';
+import { State, ReadonlyState } from '@/store/schema';
 import { retry } from 'rxjs/operators';
 
 const GLOBAL_URL_PARAMS = new URLSearchParams(window.location.search);
@@ -8,7 +8,7 @@ export const PORT = Number(GLOBAL_URL_PARAMS.get('port'));
 export const SECRET = GLOBAL_URL_PARAMS.get('secret');
 
 
-class ApiService {
+export class ApiService {
   readonly BASE_ADDRESS = `localhost:${PORT}`;
   readonly ROOT = 'http://' + this.BASE_ADDRESS;
   readonly HEADERS = {

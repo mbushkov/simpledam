@@ -54,7 +54,8 @@
 import { defineComponent, computed, ref } from '@vue/composition-api';
 import ImageGrid from './ImageGrid.vue';
 import SingleImage from './SingleImage.vue';
-import { TRANSIENT_STORE, ImageViewerTab } from '@/transient-store';
+import { TRANSIENT_STORE } from '@/store';
+import { ImageViewerTab } from '@/store/transient-store';
 
 
 export default defineComponent({

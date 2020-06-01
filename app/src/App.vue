@@ -282,9 +282,9 @@ import SideBar from './components/sidebar/SideBar.vue';
 import StatusBar from './components/StatusBar.vue';
 import ToolBar from './components/ToolBar.vue';
 import ImageViewer from './components/ImageViewer.vue';
-import { BACKEND_MIRROR } from './backend-mirror';
-import { STORE } from './store';
-import { API_SERVICE } from './api';
+import { BACKEND_MIRROR } from '@/backend/backend-mirror';
+import { STORE } from '@/store';
+import { API_SERVICE } from '@/backend/api';
 
 
 export default Vue.extend({

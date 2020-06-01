@@ -1,75 +1,10 @@
-import { API_SERVICE } from '@/api';
-import { filter, map, bufferTime, catchError } from 'rxjs/operators';
+import { ApiService } from '@/backend/api';
+import { Action, FileRegisteredAction } from '@/backend/actions';
+import { FilterSettings, ImageFile, ImageList, ImageMetadata, Label, Rating, Rotation, ReadonlyState, State, ThumbnailRatio } from '@/store/schema';
+import { bufferTime, catchError, filter, map } from 'rxjs/operators';
 import Vue from 'vue';
-import { Immutable } from './type-utils';
-import { TRANSIENT_STORE } from './transient-store';
+import { TransientStore } from './transient-store';
 
-declare interface Action {
-  action: string;
-}
-
-declare interface FileRegisteredAction extends Action {
-  image: ImageFile;
-}
-
-export declare interface Size {
-  width: number;
-  height: number;
-}
-
-export declare interface ImageFile {
-  path: string;
-  preview_size: Size;
-  preview_timestamp: number;
-  size: Size;
-  uid: string;
-}
-
-export enum Label {
-  NONE,
-  RED,
-  GREEN,
-  BLUE,
-  BROWN,
-  MAGENTA,
-  ORANGE,
-  YELLOW,
-  CYAN,
-  GRAY,
-}
-
-export enum Rotation {
-  NONE = 0,
-  DEG_90 = 90,
-  DEG_180 = 180,
-  DEG_270 = 270,
-}
-
-export declare interface ImageAdjustments {
-  rotation: Rotation;
-  horizontalFlip: boolean;
-  verticalFlip: boolean;
-}
-
-export type Rating = 0 | 1 | 2 | 3 | 4 | 5;
-
-export declare interface ImageMetadata {
-  rating: Rating;
-  label: Label;
-
-  adjustments: ImageAdjustments;
-}
-
-export declare interface ImageList {
-  presenceMap: { [key: string]: boolean };
-  items: string[];
-}
-
-export declare interface FilterSettings {
-  selectedLabels: Label[];
-  selectedRatings: Rating[];
-  selectedPaths: string[];
-}
 
 function filterSettingsInvariant(fs: FilterSettings): string {
   const l = [...fs.selectedLabels];
@@ -106,40 +41,6 @@ function dirName(path: string): string {
   return pathComponents.slice(0, pathComponents.length - 1).join('/');
 }
 
-export declare interface Selection {
-  primary: string | undefined;
-  lastTouched: string | undefined;
-  additional: { [key: string]: boolean };
-}
-
-export enum ThumbnailRatio {
-  NORMAL = 1,
-  RATIO_4x3 = 4 / 3,
-  RATIO_3x4 = 3 / 4,
-}
-
-export interface ThumbnailSettings {
-  ratio: ThumbnailRatio;
-  size: number;
-}
-
-export declare interface State {
-  version: number;
-
-  filterSettings: FilterSettings;
-  filtersInvariant: string;
-
-  thumbnailSettings: ThumbnailSettings;
-  selection: Selection;
-
-  images: { [key: string]: ImageFile };
-  metadata: { [key: string]: ImageMetadata };
-  lists: { [key: string]: ImageList };
-  paths: { [key: string]: string };
-}
-
-export type ReadonlyState = Immutable<State>;
-
 export enum Direction {
   UP,
   DOWN,
@@ -147,7 +48,7 @@ export enum Direction {
   LEFT,
 }
 
-class Store {
+export class Store {
   private _state: State = Vue.observable({
     version: 1,
 
@@ -174,6 +75,10 @@ class Store {
     paths: {},
   });
 
+  constructor(
+    private readonly transientStore: TransientStore,
+    private readonly apiService: ApiService) { }
+
   get state(): ReadonlyState {
     return this._state;
   }
@@ -182,7 +87,7 @@ class Store {
     this._state = Vue.observable(s);
   }
 
-  readonly registerImage$ = API_SERVICE.ws.pipe(
+  readonly registerImage$ = this.apiService.ws.pipe(
     filter((v) => {
       return (v as Action).action === 'FILE_REGISTERED' || (v as Action).action === 'THUMBNAIL_UPDATED';
     }),
@@ -313,7 +218,7 @@ class Store {
 
     const l = this.currentList();
     const curIndex = l.items.indexOf(this._state.selection.primary);
-    const nextIndex = this.findIndexInDirection(curIndex, TRANSIENT_STORE.state.columnCount, l.items.length, direction);
+    const nextIndex = this.findIndexInDirection(curIndex, this.transientStore.state.columnCount, l.items.length, direction);
     if (nextIndex !== undefined) {
       this.selectPrimary(l.items[nextIndex]);
     }
@@ -327,7 +232,7 @@ class Store {
     const l = this.currentList();
     const primaryIndex = l.items.indexOf(this._state.selection.primary);
     const curIndex = l.items.indexOf(this._state.selection.lastTouched || this._state.selection.primary);
-    const nextIndex = this.findIndexInDirection(curIndex, TRANSIENT_STORE.state.columnCount, l.items.length, direction);
+    const nextIndex = this.findIndexInDirection(curIndex, this.transientStore.state.columnCount, l.items.length, direction);
     if (nextIndex === undefined) {
       return;
     }
@@ -682,5 +587,3 @@ class Store {
     }
   }
 }
-
-export const STORE = new Store();

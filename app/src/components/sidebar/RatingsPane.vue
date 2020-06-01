@@ -71,8 +71,9 @@
 
 <script lang="ts">
 import { defineComponent, computed, Ref, reactive, watchEffect } from '@vue/composition-api';
-import { Rating, STORE } from '@/store';
+import { STORE } from '@/store';
 import Pane from './Pane.vue';
+import { Rating } from '@/store/schema';
 
 declare interface RatingEntry {
   rating: Rating;

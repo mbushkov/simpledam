@@ -65,8 +65,9 @@
 
 <script lang="ts">
 import { defineComponent, computed, Ref, reactive, watchEffect } from '@vue/composition-api';
-import { Label, STORE } from '@/store';
+import { STORE } from '@/store';
 import Pane from './Pane.vue';
+import { Label } from '@/store/schema';
 
 declare interface LabelEntry {
   title: string;
