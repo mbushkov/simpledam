@@ -35,5 +35,21 @@ export function createJSONWrapper<T>(observableValue: T) {
 }
 
 export function pureCopy<T>(obj: T): T {
-  return JSON.parse(JSON.stringify(obj));
+  const replacer = (key: string, value: unknown) => value === undefined ? null : value;
+  const result = JSON.parse(JSON.stringify(obj, replacer));
+
+  function replaceNulls(obj: any) {
+    for (const key in obj) {
+      const val = obj[key] as unknown;
+      if (val === null) {
+        obj[key] = undefined;
+      } else if (val instanceof Object) {
+        replaceNulls(val as any);
+      }
+    }
+
+    return obj;
+  }
+
+  return replaceNulls(result) as T;
 }

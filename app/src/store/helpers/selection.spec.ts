@@ -2,7 +2,7 @@ import Vue from 'vue';
 import { Selection, ImageList } from "@/store/schema";
 import { assert, expect } from 'chai'
 import { pureCopy } from '@/lib/test-utils';
-import { selectRange } from './selection';
+import { selectRange, selectPrimary } from './selection';
 
 describe('Store selection helpers', () => {
   function createSelection(selection: Partial<Selection> = {}): Selection {
@@ -23,7 +23,50 @@ describe('Store selection helpers', () => {
   }
 
   describe('selectPrimary()', () => {
+    it('does nothing if same primary is already selected', () => {
+      const selection = createSelection({
+        primary: 'a',
+        lastTouched: 'a',
+        additional: { b: true, }
+      });
+      const selectionSnapshot = pureCopy(selection);
 
+      selectPrimary(selection, 'a');
+
+      expect(pureCopy(selection)).to.eql(selectionSnapshot);
+    });
+
+    it('resets additional selection if new primary is selected', () => {
+      const selection = createSelection({
+        primary: 'a',
+        lastTouched: 'a',
+        additional: { b: true, }
+      });
+
+      selectPrimary(selection, 'c');
+
+      expect(pureCopy(selection)).to.eql({
+        primary: 'c',
+        lastTouched: 'c',
+        additional: {},
+      } as Selection);
+    });
+
+    it('erases selection if undefined is passed', () => {
+      const selection = createSelection({
+        primary: 'a',
+        lastTouched: 'a',
+        additional: { b: true, }
+      });
+
+      selectPrimary(selection, undefined);
+
+      expect(pureCopy(selection)).to.eql({
+        primary: undefined,
+        lastTouched: undefined,
+        additional: {},
+      } as Selection);
+    });
   });
 
   describe('toggleAdditionalSelection()', () => {
