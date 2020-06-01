@@ -33,3 +33,7 @@ export function createJSONWrapper<T>(observableValue: T) {
     }
   };
 }
+
+export function pureCopy<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj));
+}
