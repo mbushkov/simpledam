@@ -1,5 +1,5 @@
 import { API_SERVICE } from './api';
-import { filter, map, catchError } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
 import Vue from 'vue';
 
 export declare interface BackendState {
@@ -34,10 +34,6 @@ class BackendMirror {
       for (let key in a.state) {
         (this.state as any)[key] = a.state[key];
       }
-    }),
-    catchError((err, caught) => {  // defensive approach
-      console.log('Error: ', err);
-      return caught;
     }),
   ).subscribe();
 }

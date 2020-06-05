@@ -228,7 +228,6 @@ export default defineComponent({
         width = height / ratio;
       }
 
-      // console.log(['clientWidth', nestedSize.width, 'clientHeight', nestedSize.height, 'width', width, 'height', height]);
       return { width: `${width}px`, height: `${height}px` };
     });
 

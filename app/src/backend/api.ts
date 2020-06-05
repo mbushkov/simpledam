@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { webSocket } from 'rxjs/webSocket';
 import { State, ReadonlyState } from '@/store/schema';
-import { retry } from 'rxjs/operators';
+import { catchError } from 'rxjs/operators';
 import * as log from 'loglevel';
 
 const GLOBAL_URL_PARAMS = new URLSearchParams(window.location.search);
@@ -17,9 +17,12 @@ export class ApiService {
   };
 
   readonly ws = webSocket(`ws://${this.BASE_ADDRESS}/ws`).pipe(
-    // Chromium will close the websocket evert time the system goes to sleep.
-    // Thus, it's necessary to retry.
-    retry(),
+    catchError(err => {
+      log.info('[API] WebSocket connection broken (retry is due): ', err);
+      // Chromium will close the websocket evert time the system goes to sleep.
+      // Thus, it's necessary to retry.
+      return webSocket(`ws://${this.BASE_ADDRESS}/ws`);
+    }),
   );
 
   readonly wsLogging = this.ws.subscribe(i => {

@@ -285,6 +285,7 @@ import ImageViewer from './components/ImageViewer.vue';
 import { BACKEND_MIRROR } from '@/backend/backend-mirror';
 import { STORE } from '@/store';
 import { API_SERVICE } from '@/backend/api';
+import * as log from 'loglevel';
 
 
 export default Vue.extend({
@@ -323,20 +324,19 @@ export default Vue.extend({
     splitpanesReady() {
       // TODO: this is a horrible hack - rewrite vue inifinite scroller to make this unnecessary.
       setTimeout(() => {
-        console.log('split panes ready');
+        log.debug('[App] Handling initial split panes resize.');
         (this.$refs['imageViewerRef'] as any).handleResize();
       }, 1000);
     },
 
     splitpanesResizing() {
-      console.log('split pane resizeing');
+      log.debug('[App] Split panes are currently resizing.');
       Vue.nextTick((this.$refs['imageViewerRef'] as any).handleResize);
     },
 
     splitpanesResized() {
-      // console.log('event', this.$refs.leftPane.$el.clientWidth);]
-      console.log('split pane resized', this.$refs['imageViewerRef']);
       this.sideBarSizePx = (this.$refs.leftPane as Vue).$el.clientWidth;
+      log.debug('[App] Split panes done resizing. Sidebar size: ', this.sideBarSizePx);
       Vue.nextTick((this.$refs['imageViewerRef'] as any).handleResize);
     },
   },
@@ -358,14 +358,14 @@ export default Vue.extend({
           path += '.nmcatalog'
         }
 
-        console.log(['save new', BACKEND_MIRROR.state.catalogPath, path]);
+        log.info('[App] Saving new catalog to: ', path);
         API_SERVICE.saveStore(path, STORE.state);
       } else {
-        console.log('save declined');
+        log.info('[App] Save cancelled.');
       }
     });
   } else {
-    console.log(['save existing', BACKEND_MIRROR.state.catalogPath]);
+    log.info('[App] Saving existing catalog to: ', BACKEND_MIRROR.state.catalogPath);
     API_SERVICE.saveStore(BACKEND_MIRROR.state.catalogPath, STORE.state);
   }
 });
