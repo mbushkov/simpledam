@@ -108,7 +108,7 @@ export default defineComponent({
     const draggedPaths = new Map<string, string>();
 
     function handleResize() {
-      TRANSIENT_STORE.setColumnCount(Math.floor(el.value!.clientWidth / maxSize.value));
+      TRANSIENT_STORE.setColumnCount(Math.max(1, Math.floor(el.value!.clientWidth / maxSize.value)));
     }
     watchEffect(handleResize);
 
