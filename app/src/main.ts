@@ -5,11 +5,14 @@ import Buefy from 'buefy';
 import VueVirtualScroller from 'vue-virtual-scroller';
 import VueObserveVisibility from 'vue-observe-visibility'; // required by the virual scroller
 import { Splitpanes, Pane } from 'splitpanes';
+import * as log from 'loglevel';
 
 import '@mdi/font/css/materialdesignicons.css'
 import 'splitpanes/dist/splitpanes.css'
 
 import App from './App.vue'
+
+log.setDefaultLevel(log.levels.INFO);
 
 Vue.use(VueRx);
 Vue.use(VueCompositionApi);

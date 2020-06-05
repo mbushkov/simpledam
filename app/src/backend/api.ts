@@ -2,6 +2,7 @@ import axios from 'axios';
 import { webSocket } from 'rxjs/webSocket';
 import { State, ReadonlyState } from '@/store/schema';
 import { retry } from 'rxjs/operators';
+import * as log from 'loglevel';
 
 const GLOBAL_URL_PARAMS = new URLSearchParams(window.location.search);
 export const PORT = Number(GLOBAL_URL_PARAMS.get('port'));
@@ -21,29 +22,28 @@ export class ApiService {
     retry(),
   );
 
-  // readonly wsLogging = this.ws.subscribe(i => {
-  //   console.log('Got WebSocket data', i);
-  // });
+  readonly wsLogging = this.ws.subscribe(i => {
+    if (log.getLevel() <= log.levels.TRACE) {
+      log.trace('[API] Got WebSocket message: ', i);
+    }
+  });
 
-  scanPath(path: string): Promise<void> {
-    return axios.post(this.ROOT + '/scan-path', { path }, { headers: this.HEADERS }).then(r => {
-      console.log(r);
-    });
+  async scanPath(path: string): Promise<void> {
+    const response = await axios.post(this.ROOT + '/scan-path', { path }, { headers: this.HEADERS });
+    log.info('[API] Scan path response: ', response);
   }
 
-  movePath(src: string, dest: string): Promise<void> {
-    return axios.post(this.ROOT + '/move-path', { src, dest }, { headers: this.HEADERS }).then(r => {
-      console.log(r);
-    });
+  async movePath(src: string, dest: string): Promise<void> {
+    const response = await axios.post(this.ROOT + '/move-path', { src, dest }, { headers: this.HEADERS });
+    log.info('[API] Move path response: ', response);
   }
 
-  saveStore(path: string, state: ReadonlyState): Promise<void> {
+  async saveStore(path: string, state: ReadonlyState): Promise<void> {
     const replacer = (key: string, value: unknown) => value === undefined ? null : value;
     const stringified = JSON.stringify({ path, state }, replacer);
 
-    return axios.post(this.ROOT + '/save', stringified, { headers: this.HEADERS }).then(r => {
-      console.log(r);
-    });
+    const response = await axios.post(this.ROOT + '/save', stringified, { headers: this.HEADERS });
+    log.info('[API] Save store response: ', response);
   }
 
   private replaceNullWithUndefined(obj: any): any {
@@ -64,19 +64,11 @@ export class ApiService {
     return obj;
   }
 
-  fetchState(): Promise<State | undefined> {
-    return axios.get(this.ROOT + '/saved-state', { responseType: 'text', headers: this.HEADERS }).then(r => {
-      return this.replaceNullWithUndefined(r.data['state'] || undefined);
-    });
+  async fetchState(): Promise<State | undefined> {
+    const response = await axios.get(this.ROOT + '/saved-state', { responseType: 'text', headers: this.HEADERS });
+    log.info('[API] Fetch state response: ', response);
+    return this.replaceNullWithUndefined(response.data['state'] || undefined);
   }
-
-  // fetchRoot() {
-  // axios.post(this.ROOT + '/scan-path', {path: '/Volumes/Somme/Temp/for_lukasz_large_selection'}).then(r => {
-  // axios.post(this.ROOT + '/scan-path', {path: '/Volumes/Somme/Temp/clavarino_print'}).then(r => {
-  // axios.post(this.ROOT + '/scan-path', {path: '/Users/bushman/Downloads/test print 2'}).then(r => {
-  // console.log(r);
-  // });
-  // }
 
   thumbnailUrl(uid: string) {
     return this.ROOT + '/images/' + uid;
