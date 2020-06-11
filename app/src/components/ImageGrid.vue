@@ -211,11 +211,11 @@ export default defineComponent({
     }
 
     function containerDragEntered(event: DragEvent) {
-      log.info('[ImageGrid] Drag entered:', event.dataTransfer.dropEffect);
+      log.info('[ImageGrid] Drag entered:', event.dataTransfer?.dropEffect);
     }
 
     function containerDragLeft(event: DragEvent) {
-      log.info('[ImageGrid] Drag left:', event.dataTransfer.dropEffect);
+      log.info('[ImageGrid] Drag left:', event.dataTransfer?.dropEffect);
     }
 
     function generateImageData(uids: string[]): ImageData[] {

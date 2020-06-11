@@ -124,7 +124,7 @@ export default defineComponent({
     }
 
     function rowDragEntered(path: string, event: DragEvent) {
-      log.info('[PathsPane] Row drag entered:', path, event.dataTransfer.dropEffect);
+      log.info('[PathsPane] Row drag entered:', path, event.dataTransfer?.dropEffect);
     }
 
     function rowDraggedOver(path: string, event: DragEvent) {
@@ -138,7 +138,7 @@ export default defineComponent({
     }
 
     function rowDropped(path: string, event: DragEvent) {
-      log.info('[PathsPane] Row dropped:', path, event.dataTransfer.dropEffect);
+      log.info('[PathsPane] Row dropped:', path, event.dataTransfer?.dropEffect);
 
       Vue.set(highlights, path, false)
 
