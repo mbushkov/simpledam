@@ -29,7 +29,10 @@
   },
   "devDependencies": {
     "@types/chai": "^4.2.11",
+    "@types/jsdom": "^16.2.3",
     "@types/mocha": "^5.2.4",
+    "@types/sinon": "^9.0.4",
+    "@types/sinon-chai": "^3.2.4",
     "@typescript-eslint/eslint-plugin": "^2.26.0",
     "@typescript-eslint/parser": "^2.26.0",
     "@vue/cli-plugin-babel": "~4.3.0",
@@ -44,8 +47,11 @@
     "electron": "^7.3.0",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
+    "jsdom": "^16.2.2",
     "sass": "^1.26.5",
     "sass-loader": "^8.0.2",
+    "sinon": "^9.0.2",
+    "sinon-chai": "^3.5.0",
     "typescript": "~3.8.3",
     "vue-cli-plugin-electron-builder": "^2.0.0-beta.4",
     "vue-template-compiler": "^2.6.11"
