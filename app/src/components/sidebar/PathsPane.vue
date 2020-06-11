@@ -88,6 +88,8 @@ import { defineComponent, computed, reactive } from '@vue/composition-api';
 import { STORE } from '@/store';
 import { API_SERVICE } from '@/backend/api';
 import Pane from './Pane.vue';
+import { DRAG_HELPER_SERVICE } from '@/lib/drag-helper-service';
+import * as log from 'loglevel';
 
 declare interface PathEntry {
   path: string;
@@ -122,12 +124,11 @@ export default defineComponent({
     }
 
     function rowDragEntered(path: string, event: DragEvent) {
-      console.log(['row drag enter', path, event]);
+      log.info('[PathsPane] Row drag entered:', path, event.dataTransfer.dropEffect);
     }
 
     function rowDraggedOver(path: string, event: DragEvent) {
-      console.log(['row drag over', event?.dataTransfer?.files, event.dataTransfer?.getData('nmUids')]);
-      if (event?.dataTransfer?.files || event.dataTransfer?.getData('nmUids')) {
+      if (DRAG_HELPER_SERVICE.eventHasFiles(event)) {
         Vue.set(highlights, path, true);
       }
     }
@@ -137,38 +138,31 @@ export default defineComponent({
     }
 
     function rowDropped(path: string, event: DragEvent) {
+      log.info('[PathsPane] Row dropped:', path, event.dataTransfer.dropEffect);
+
       Vue.set(highlights, path, false)
 
-      console.log(['row dropped', path, event]);
-
-      let srcPaths: string[] | undefined;
-      const nmUidsData = event.dataTransfer?.getData('nmUids')
-      if (nmUidsData) {
-        console.log(['using uids', nmUidsData]);
-        const nmUids: string[] = JSON.parse(nmUidsData);
-        srcPaths = nmUids.map(uid => STORE.state.images[uid].path);
-      } else if (event?.dataTransfer?.files) {
-        srcPaths = [];
-        for (let i = 0; i < event.dataTransfer.files.length; ++i) {
-          const srcPath = event.dataTransfer.files.item(i)!.path;
-          srcPaths.push(srcPath);
-        }
-      }
-
-      if (!srcPaths || srcPaths.length === 0) {
-        console.log('no files');
+      const dragResult = DRAG_HELPER_SERVICE.finishDrag(event);
+      if (!dragResult) {
         return;
       }
+      let srcPaths: string[];
+      if (dragResult.contents.kind === 'internal') {
+        srcPaths = dragResult.contents.uids.map(uid => STORE.state.images[uid].path);
+      } else {
+        throw new Error('Dragging external files onto a folder not implemented yet.')
+      }
 
-      console.log(['will process', srcPaths.length]);
+      let destPathRoot = path;
+      if (!destPathRoot.endsWith('/')) {
+        destPathRoot += '/';
+      }
+
+      log.info(`[PathsPane] Will move ${srcPaths.length} files to:`, destPathRoot)
       for (const srcPath of srcPaths) {
-        console.log(['processing', srcPath]);
-        let destPath = path;
-        if (!destPath.endsWith('/')) {
-          destPath += '/';
-        }
+        log.info('[PathsPane] Processing path move:', srcPath)
         const srcComponents = srcPath.split('/');
-        destPath += srcComponents[srcComponents.length - 1];
+        const destPath = destPathRoot + srcComponents[srcComponents.length - 1];
 
         API_SERVICE.movePath(srcPath, destPath);
       }

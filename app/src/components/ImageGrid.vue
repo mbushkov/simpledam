@@ -73,6 +73,8 @@ import { API_SERVICE } from '@/backend/api';
 import { ImageData, SelectionType } from './ImageBox.vue';
 import ImageBox from './ImageBox.vue';
 import { Label } from '@/store/schema';
+import * as log from 'loglevel';
+import { DRAG_HELPER_SERVICE } from '../lib/drag-helper-service';
 
 interface Row {
   key: string;
@@ -104,8 +106,6 @@ export default defineComponent({
     const dragIndicatorVisible = ref(false);
     const dragIndicatorIndex = ref(0);
     const maxSize = computed(() => STORE.state.thumbnailSettings.size);
-
-    const draggedPaths = new Map<string, string>();
 
     function handleResize() {
       TRANSIENT_STORE.setColumnCount(Math.max(1, Math.floor(el.value!.clientWidth / maxSize.value)));
@@ -171,44 +171,19 @@ export default defineComponent({
     });
 
     function containerDropped(event: DragEvent) {
-      try {
-        dragIndicatorVisible.value = false;
-        console.log(['drop', event, Array.from(event?.dataTransfer?.items ?? [])]);
+      dragIndicatorVisible.value = false;
 
-        if (event.dataTransfer?.getData('nmUids')) {
-          const nmUids = JSON.parse(event.dataTransfer.getData('nmUids'));
-          console.log('moving', nmUids, dragIndicatorIndex.value);
-          STORE.moveWithinCurrentList(nmUids, dragIndicatorIndex.value);
-          return;
-        }
+      const result = DRAG_HELPER_SERVICE.finishDrag(event);
+      if (!result) {
+        return;
+      }
 
-        if (!event?.dataTransfer?.files) {
-          return;
+      if (result.contents.kind === 'internal') {
+        STORE.moveWithinCurrentList(result.contents.uids, dragIndicatorIndex.value);
+      } else {
+        for (const p of result.contents.paths) {
+          API_SERVICE.scanPath(p);
         }
-
-        let fullMatch: boolean = true;
-        console.log('Num dragged files: ', event.dataTransfer.files.length);
-        for (let i = 0; i < event.dataTransfer.files.length; ++i) {
-          const p = event.dataTransfer.files.item(i)!.path;
-          if (!draggedPaths.has(p)) {
-            fullMatch = false;
-            break;
-          }
-        }
-
-        // This is needed for cases when an object is briefly dragged outside of the
-        // window. Then the 'nmUid' property is going to be cleared, so we have to
-        // rely on files list to see if we should simply move pictures withing the list.
-        if (fullMatch) {
-          console.log('moving2', draggedPaths.values(), dragIndicatorIndex.value);
-          STORE.moveWithinCurrentList([...draggedPaths.values()], dragIndicatorIndex.value);
-        } else {
-          for (let i = 0; i < event.dataTransfer.files.length; ++i) {
-            API_SERVICE.scanPath(event.dataTransfer.files.item(i)!.path);
-          }
-        }
-      } finally {
-        draggedPaths.clear();
       }
     }
 
@@ -220,7 +195,6 @@ export default defineComponent({
 
       const offX = Number(Math.min(Math.floor(relX / maxSize.value), TRANSIENT_STORE.state.columnCount + 1));
       const offY = Number(Math.floor(relY / maxSize.value));
-      // console.log(['over', relX, relY, offX, offY]);
       dragIndicatorIndex.value = offY * TRANSIENT_STORE.state.columnCount + offX;
 
       const destX = offX * maxSize.value;
@@ -230,20 +204,18 @@ export default defineComponent({
       dragIndicator.value!.style.left = `${destX}px`;
       dragIndicator.value!.style.top = `${destY}px`;
       (dragIndicator.value as any).scrollIntoViewIfNeeded();
-      // console.log(['drag over', relX, relY, indicatorRef]);
     }
 
     function containerDragEnded() {
-      console.log(['drag end']);
       dragIndicatorVisible.value = false;
     }
 
     function containerDragEntered(event: DragEvent) {
-      console.log(['drag entered', Array.from(event.dataTransfer?.getData('nmUids') ?? [])]);
+      log.info('[ImageGrid] Drag entered:', event.dataTransfer.dropEffect);
     }
 
     function containerDragLeft(event: DragEvent) {
-      console.log(['drag left', Array.from(event.dataTransfer?.getData('nmUids') ?? [])]);
+      log.info('[ImageGrid] Drag left:', event.dataTransfer.dropEffect);
     }
 
     function generateImageData(uids: string[]): ImageData[] {
@@ -272,7 +244,6 @@ export default defineComponent({
 
     function keyPressed(event: KeyboardEvent) {
       if (el.value?.style.display === 'none') {
-        console.log('nothing to process');
         return;
       }
 
@@ -352,12 +323,10 @@ export default defineComponent({
         event.preventDefault();
         return;
       } else if (event.key === ']' && event.metaKey) {
-        console.log('rotating right');
         STORE.rotateRight();
         event.preventDefault();
         return;
       } else if (event.key === '[' && event.metaKey) {
-        console.log('rotating left');
         STORE.rotateLeft();
         event.preventDefault();
         return;
@@ -367,9 +336,8 @@ export default defineComponent({
     // https://www.html5rocks.com/en/tutorials/dnd/basics/#toc-dnd-files
     // https://thecssninja.com/demo/gmail_dragout/
     function imageBoxDragStarted(uid: string, event: DragEvent) {
-      console.log('imageBoxDragStarted');
+      log.info('[ImageGrid] Image box drag started:', uid);
       if (!event.dataTransfer) {
-        console.log(['yo']);
         return;
       }
 
@@ -395,34 +363,8 @@ export default defineComponent({
       for (const additionalUid in STORE.state.selection.additional) {
         uids.add(additionalUid);
       }
-      const paths = Array.from(uids).map(u => STORE.state.images[u].path);
-      event.dataTransfer.setData('nmUids', JSON.stringify(Array.from(uids)));
-
-      draggedPaths.clear();
-      for (const uid of uids) {
-        draggedPaths.set(STORE.state.images[uid].path, uid);
-      }
-      // TODO: enable later to display number of images being dragged.
-      // const dragIcon = document.createElement('div');
-      // document.body.appendChild(dragIcon);
-      // dragIcon.style.width = '100px';
-      // dragIcon.style.height = '100px';
-      // dragIcon.textContent = 'blah';
-      // dragIcon.style.backgroundColor = 'red';
-      // event.dataTransfer.setDragImage(dragIcon, -10, -10);
-      // setTimeout(() => document.body.removeChild(dragIcon), 0);
-
-      (window as any).electron.dragStart(paths, API_SERVICE.thumbnailUrl(uid), () => {
-        if (!event.dataTransfer) {
-          return;
-        }
-        console.log(['drag start', uid, STORE.state.images[uid].path]);
-
-        event.dataTransfer.effectAllowed = 'move';
-      });
-
-      // event.dataTransfer.setData("uid", uid);
-      // event.dataTransfer.setData("DownloadURL", API_SERVICE.thumbnailUrl(uid));
+      const files = Array.from(uids).map(u => STORE.state.images[u]);
+      DRAG_HELPER_SERVICE.startDrag(event, files, API_SERVICE.thumbnailUrl(uid))
     }
 
     function imageBoxClicked(uid: string, event: MouseEvent) {
@@ -431,13 +373,11 @@ export default defineComponent({
       } else if (event.shiftKey) {
         STORE.selectRange(uid);
       } else {
-        console.log(['CLICK PRIMARY', uid]);
         STORE.selectPrimary(uid);
       }
     }
 
     function imageBoxDoubleClicked(uid: string, event: MouseEvent) {
-      console.log(['imageBoxDoubleClicked', uid]);
       if (event.altKey || event.shiftKey || event.ctrlKey || event.metaKey) {
         return;
       }
