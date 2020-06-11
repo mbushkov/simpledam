@@ -69,7 +69,7 @@ export default defineComponent({
     const isRotated180 = computed(() => curRotation.value === Rotation.DEG_180);
     const isRotated270 = computed(() => curRotation.value === Rotation.DEG_270);
 
-    const img = ref<HTMLImageElement>(null);
+    const img = ref<HTMLImageElement>();
 
     const scale = ref(100);
 
@@ -79,7 +79,7 @@ export default defineComponent({
       return {};
     });
 
-    const el = ref<HTMLDivElement>(null);
+    const el = ref<HTMLDivElement>();
 
     watch([autoFit, imageUrl, curRotation], ([newVal]) => {
       console.log(['AUTO FIT', newVal]);
@@ -202,7 +202,11 @@ export default defineComponent({
       }
     }
 
-    watch([scale, imageUrl, curRotation], ([newValue, oldValue]) => {
+    watch([scale, imageUrl, curRotation], ([_newValue, _oldValue]) => {
+      // TODO: check why explicit conversion is needed here.
+      const newValue = Number(_newValue);
+      const oldValue = Number(_oldValue);
+
       const im = STORE.state.images[STORE.state.selection.primary ?? ''];
       if (!im || !im.preview_size) {
         return;

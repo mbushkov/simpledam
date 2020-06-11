@@ -54,7 +54,7 @@ export class ApiService {
       return undefined;
     }
 
-    var objKeys = Object.keys(obj);
+    const objKeys = Object.keys(obj);
     objKeys.forEach((key) => {
       if (obj[key] === null) {
         obj[key] = undefined;

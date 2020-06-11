@@ -173,7 +173,7 @@ export class Store {
     // Makes sure that the list for this label exists.
     this.listForFilterSettingsInvariant(invariant);
 
-    for (let sel of Object.keys(this._state.selection.additional).concat(this._state.selection.primary)) {
+    for (const sel of Object.keys(this._state.selection.additional).concat(this._state.selection.primary)) {
       const prevLabel = this._state.metadata[sel].label;
       Vue.set(this._state.metadata[sel], 'label', label);
 
@@ -209,7 +209,7 @@ export class Store {
     if (this._state.lists[this._state.filtersInvariant]) {
       this.syncListWithPresenceMap(this._state.filtersInvariant);
     } else {
-      for (let uid in this._state.images) {
+      for (const uid in this._state.images) {
         this.ensureItemInCurrentList(uid);
       }
     }
@@ -230,7 +230,7 @@ export class Store {
     // Makes sure that the list for this label exists.
     this.listForFilterSettingsInvariant(invariant);
 
-    for (let sel of Object.keys(this._state.selection.additional).concat(this._state.selection.primary)) {
+    for (const sel of Object.keys(this._state.selection.additional).concat(this._state.selection.primary)) {
       const prevRating = this._state.metadata[sel].rating;
       Vue.set(this._state.metadata[sel], 'rating', rating);
 
@@ -267,7 +267,7 @@ export class Store {
     if (this._state.lists[this._state.filtersInvariant]) {
       this.syncListWithPresenceMap(this._state.filtersInvariant);
     } else {
-      for (let uid in this._state.images) {
+      for (const uid in this._state.images) {
         this.ensureItemInCurrentList(uid);
       }
     }
@@ -300,7 +300,7 @@ export class Store {
     if (this._state.lists[this._state.filtersInvariant]) {
       this.syncListWithPresenceMap(this._state.filtersInvariant);
     } else {
-      for (let uid in this._state.images) {
+      for (const uid in this._state.images) {
         this.ensureItemInCurrentList(uid);
       }
     }
@@ -350,7 +350,7 @@ export class Store {
       yield this._state.metadata[this._state.selection.primary];
     }
 
-    for (let sel of Object.keys(this._state.selection.additional)) {
+    for (const sel of Object.keys(this._state.selection.additional)) {
       yield this._state.metadata[sel];
     }
   }
@@ -382,7 +382,7 @@ export class Store {
   }
 
   private updateListsPresence(uid: string, invariant: string) {
-    for (let key in this._state.lists) {
+    for (const key in this._state.lists) {
       const l = this._state.lists[key];
       if (key === '' || key.includes(invariant)) {
         if (!l.presenceMap[uid]) {
@@ -476,7 +476,7 @@ export class Store {
   }
 
   private registerImages(imageFile: ImageFile[]) {
-    for (let im of imageFile) {
+    for (const im of imageFile) {
       this.registerImage(im);
     }
   }

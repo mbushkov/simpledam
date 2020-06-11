@@ -31,7 +31,7 @@ class BackendMirror {
     }),
     map((v) => {
       const a = v as BackendStateUpdateAction;
-      for (let key in a.state) {
+      for (const key in a.state) {
         (this.state as any)[key] = a.state[key];
       }
     }),

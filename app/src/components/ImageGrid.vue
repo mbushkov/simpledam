@@ -99,16 +99,19 @@ export default defineComponent({
     ImageBox,
   },
   setup() {
-    const el = ref<HTMLElement>(null);
-    const scroller = ref<HTMLElement>(null);
-    const dragIndicator = ref<HTMLDivElement>(null);
+    const el = ref<HTMLElement>();
+    const scroller = ref<HTMLElement>();
+    const dragIndicator = ref<HTMLDivElement>();
 
     const dragIndicatorVisible = ref(false);
     const dragIndicatorIndex = ref(0);
     const maxSize = computed(() => STORE.state.thumbnailSettings.size);
 
     function handleResize() {
-      TRANSIENT_STORE.setColumnCount(Math.max(1, Math.floor(el.value!.clientWidth / maxSize.value)));
+      if (!el.value) {
+        return;
+      }
+      TRANSIENT_STORE.setColumnCount(Math.max(1, Math.floor(el.value.clientWidth / maxSize.value)));
     }
     watchEffect(handleResize);
 

@@ -184,7 +184,7 @@ export default defineComponent({
     }
   },
   setup(props: Props, context: SetupContext) {
-    const nestedRef = ref<HTMLDivElement>(undefined);
+    const nestedRef = ref<HTMLDivElement>();
 
     const labelNames = {
       [Label.NONE]: 'none',
