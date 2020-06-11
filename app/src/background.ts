@@ -14,7 +14,7 @@ import { ChildProcess, spawn } from 'child_process';
 
 app.commandLine.appendSwitch('host-rules', 'MAP * 127.0.0.1');
 
-const isDevelopment = process.env.NODE_ENV !== 'production'
+const isDevelopment = process.env.NODE_ENV !== 'production';
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -28,7 +28,7 @@ protocol.registerSchemesAsPrivileged([{ scheme: 'app', privileges: { secure: tru
 async function startBackendProcess(catalogPath?: string): Promise<{ backend: ChildProcess, port: number, secret: string }> {
   return new Promise<{ backend: ChildProcess, port: number, secret: string }>((resolve, reject) => {
     let binaryPath: string;
-    if (isDevelopment) {
+    if (isDevelopment || process.env.IS_TEST) {
       binaryPath = 'newmedia_backend';
     } else {
       binaryPath = path.join(path.dirname(app.getAppPath()), '..', 'Resources', 'bin', 'backend', 'backend');

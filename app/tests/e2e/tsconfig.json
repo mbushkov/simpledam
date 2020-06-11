@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "types": [
+      "webpack-env",
+      "mocha",
+      "chai"
+    ],
+  },
+  "include": [
+    "*.ts",
+  ]
+}
