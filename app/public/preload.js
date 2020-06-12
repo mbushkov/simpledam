@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer, webFrame } = require('electron')
+const { contextBridge, ipcRenderer, webFrame } = require('electron');
 
 if (process.env.NODE_ENV === 'test') {
   window.electronRequire = require;
