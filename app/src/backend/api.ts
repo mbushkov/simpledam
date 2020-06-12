@@ -7,7 +7,7 @@ import * as log from 'loglevel';
 const GLOBAL_URL_PARAMS = new URLSearchParams(window.location.search);
 export const PORT = Number(GLOBAL_URL_PARAMS.get('port'));
 export const SECRET = GLOBAL_URL_PARAMS.get('secret');
-
+export const INITIAL_SCAL_PATH = GLOBAL_URL_PARAMS.get('scan-path');
 
 export class ApiService {
   readonly BASE_ADDRESS = `localhost:${PORT}`;
@@ -15,6 +15,12 @@ export class ApiService {
   readonly HEADERS = {
     'X-nm-secret': SECRET,
   };
+
+  constructor() {
+    if (INITIAL_SCAL_PATH) {
+      this.scanPath(INITIAL_SCAL_PATH);
+    }
+  }
 
   readonly ws = webSocket(`ws://${this.BASE_ADDRESS}/ws`).pipe(
     catchError(err => {

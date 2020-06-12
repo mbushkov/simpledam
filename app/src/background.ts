@@ -5,12 +5,16 @@
 // Portrait of a Gentleman, attributed to Henry Williams
 
 import path from 'path';
-import { app, protocol, ipcMain, nativeImage, BrowserWindow, Menu, dialog } from 'electron'
+import { app, protocol, ipcMain, nativeImage, BrowserWindow, Menu, dialog } from 'electron';
+import program from 'commander';
 import {
   createProtocol, installVueDevtools,
   /* installVueDevtools */
 } from 'vue-cli-plugin-electron-builder/lib'
 import { ChildProcess, spawn } from 'child_process';
+
+program.option('--scan-path <path>', 'Scan given path for images on startup');
+program.parse(process.argv);
 
 app.commandLine.appendSwitch('host-rules', 'MAP * 127.0.0.1');
 
@@ -70,14 +74,19 @@ async function startBackendProcess(catalogPath?: string): Promise<{ backend: Chi
 // Globally defined path for static files.
 declare let __static: string;
 
-async function createWindow(catalogPath?: string) {
+interface CreateWindowOptions {
+  catalogPath?: string;
+  scanPath?: string;
+}
+
+async function createWindow(options: CreateWindowOptions = {}) {
   console.log('[BACKEND] Starting process...');
-  const { backend, port, secret } = await startBackendProcess(catalogPath);
-  console.log(`[BACKEND] Process started (pid=${backend.pid}, port=${port}, secret=${secret}, path=${catalogPath})`);
+  const { backend, port, secret } = await startBackendProcess(options.catalogPath);
+  console.log(`[BACKEND] Process started (pid=${backend.pid}, port=${port}, secret=${secret}, path=${options.catalogPath})`);
 
   // Create the browser window.
   const win = new BrowserWindow({
-    title: 'SimpleDAM (pre-alpha)' + (catalogPath ? ` - ${catalogPath}` : ''),
+    title: 'SimpleDAM (pre-alpha)' + (options.catalogPath ? ` - ${options.catalogPath}` : ''),
     width: 1024,
     height: 768,
     minWidth: 1024,
@@ -92,14 +101,22 @@ async function createWindow(catalogPath?: string) {
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
-    win.loadURL(process.env.WEBPACK_DEV_SERVER_URL + '?port=' + port.toString() + '&secret=' + secret);
+    let url = process.env.WEBPACK_DEV_SERVER_URL + '?port=' + port.toString() + '&secret=' + secret;
+    if (options.scanPath) {
+      url += '&scan-path=' + encodeURIComponent(options.scanPath);
+    }
+    win.loadURL(url);
     if (!process.env.IS_TEST) {
       win.webContents.openDevTools();
     }
   } else {
     createProtocol('app')
     // Load the index.html when not in development
-    win.loadURL('app://./index.html?port=' + port.toString() + '&secret=' + secret)
+    let url = 'app://./index.html?port=' + port.toString() + '&secret=' + secret;
+    if (options.scanPath) {
+      url += '&scan-path=' + encodeURIComponent(options.scanPath);
+    }
+    win.loadURL(url)
   }
 
   win.on('closed', () => {
@@ -118,7 +135,7 @@ app.on('open-file', async (event: Event, path: string) => {
 
   event.preventDefault();
   if (app.isReady()) {
-    await createWindow(path);
+    await createWindow({ catalogPath: path });
   } else {
     beforeReadyPaths.push(path);
   }
@@ -160,7 +177,6 @@ app.on('ready', async () => {
     } catch (e) {
       console.error('Vue Devtools failed to install:', e.toString())
     }
-
   }
 
   const template: Electron.MenuItemConstructorOptions[] = [
@@ -216,7 +232,7 @@ app.on('ready', async () => {
               properties: ['openFile'],
             });
             if (paths !== undefined && paths.length > 0) {
-              await createWindow(paths[0]);
+              await createWindow({ catalogPath: paths[0] });
             }
           }
         },
@@ -273,10 +289,11 @@ app.on('ready', async () => {
   Menu.setApplicationMenu(menu);
 
   if (beforeReadyPaths.length === 0) {
-    await createWindow()
+    console.log('[BACKEND] Path for initial scan: ', program.scanPath);
+    await createWindow({ scanPath: program.scanPath });
   } else {
     for (const p of beforeReadyPaths) {
-      await createWindow(p);
+      await createWindow({ catalogPath: p });
     }
   }
 })
