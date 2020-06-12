@@ -1,7 +1,7 @@
 const { contextBridge, ipcRenderer, webFrame } = require('electron');
 
 if (process.env.NODE_ENV === 'test') {
-  window.electronRequire = require;
+  contextBridge.exposeInMainWorld('rawElectron', require('electron'));
 }
 
 contextBridge.exposeInMainWorld(
