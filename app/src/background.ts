@@ -13,7 +13,9 @@ import {
 } from 'vue-cli-plugin-electron-builder/lib'
 import { ChildProcess, spawn } from 'child_process';
 
-program.option('--scan-path <path>', 'Scan given path for images on startup');
+program
+  .allowUnknownOption()
+  .option('--scan-path <path>', 'Scan given path for images on startup');
 program.parse(process.argv);
 
 app.commandLine.appendSwitch('host-rules', 'MAP * 127.0.0.1');
@@ -341,3 +343,10 @@ if (isDevelopment) {
     });
   }
 }
+
+// For e2e tests.
+ipcMain.on('raw:open-dev-tools', () => {
+  for (const win of BrowserWindow.getAllWindows()) {
+    win.webContents.openDevTools();
+  }
+});

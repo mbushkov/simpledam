@@ -1,7 +1,11 @@
-const { contextBridge, ipcRenderer, webFrame } = require('electron');
+const { contextBridge, ipcRenderer, webFrame, BrowserWindow } = require('electron');
 
-if (process.env.NODE_ENV === 'test') {
-  contextBridge.exposeInMainWorld('rawElectron', require('electron'));
+if (process.env.IS_NM_E2E_TEST) {
+  contextBridge.exposeInMainWorld('rawElectron', {
+    openDevTools() {
+      ipcRenderer.send('raw:open-dev-tools')
+    }
+  });
 }
 
 contextBridge.exposeInMainWorld(
