@@ -70,7 +70,7 @@
 import { defineComponent, computed, onMounted, onBeforeUnmount, ref, watchEffect } from '@vue/composition-api';
 import { STORE, TRANSIENT_STORE, Direction, ImageViewerTab } from '@/store';
 import { apiService } from '@/backend/api';
-import { ImageData, SelectionType } from './ImageBox.vue';
+import { ImageData, SelectionType } from './ImageBox';
 import ImageBox from './ImageBox.vue';
 import { Label } from '@/store/schema';
 import * as log from 'loglevel';
