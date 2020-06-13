@@ -1,4 +1,4 @@
-import { API_SERVICE } from './api';
+import { apiService } from './api';
 import { filter, map } from 'rxjs/operators';
 import Vue from 'vue';
 
@@ -25,7 +25,7 @@ class BackendMirror {
     previewQueueSize: 0,
   });
 
-  readonly updateBackendState$ = API_SERVICE.ws.pipe(
+  readonly updateBackendState$ = apiService().ws.pipe(
     filter((v) => {
       return (v as Action).action === 'BACKEND_STATE_UPDATE';
     }),

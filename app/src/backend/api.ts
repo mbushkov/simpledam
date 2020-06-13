@@ -84,4 +84,11 @@ export class ApiService {
   }
 }
 
-export const API_SERVICE = new ApiService();
+export let _apiService: ApiService | undefined;
+export function apiService() {
+  if (!_apiService) {
+    _apiService = new ApiService();
+  }
+
+  return _apiService;
+}

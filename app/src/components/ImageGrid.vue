@@ -69,7 +69,7 @@
 <script lang="ts">
 import { defineComponent, computed, onMounted, onBeforeUnmount, ref, watchEffect } from '@vue/composition-api';
 import { STORE, TRANSIENT_STORE, Direction, ImageViewerTab } from '@/store';
-import { API_SERVICE } from '@/backend/api';
+import { apiService } from '@/backend/api';
 import { ImageData, SelectionType } from './ImageBox.vue';
 import ImageBox from './ImageBox.vue';
 import { Label } from '@/store/schema';
@@ -185,7 +185,7 @@ export default defineComponent({
         STORE.moveWithinCurrentList(result.contents.uids, dragIndicatorIndex.value);
       } else {
         for (const p of result.contents.paths) {
-          API_SERVICE.scanPath(p);
+          apiService().scanPath(p);
         }
       }
     }
@@ -367,7 +367,7 @@ export default defineComponent({
         uids.add(additionalUid);
       }
       const files = Array.from(uids).map(u => STORE.state.images[u]);
-      DRAG_HELPER_SERVICE.startDrag(event, files, API_SERVICE.thumbnailUrl(uid))
+      DRAG_HELPER_SERVICE.startDrag(event, files, apiService().thumbnailUrl(uid))
     }
 
     function imageBoxClicked(uid: string, event: MouseEvent) {

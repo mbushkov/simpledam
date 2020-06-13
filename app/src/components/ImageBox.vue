@@ -162,7 +162,7 @@ export enum SelectionType {
   ADDITIONAL,
 }
 
-interface Props {
+export interface Props {
   readonly imageData: ImageData;
   readonly shortVersion: boolean;
   readonly size: number;

@@ -284,7 +284,7 @@ import ToolBar from './components/ToolBar.vue';
 import ImageViewer from './components/ImageViewer.vue';
 import { BACKEND_MIRROR } from '@/backend/backend-mirror';
 import { STORE } from '@/store';
-import { API_SERVICE } from '@/backend/api';
+import { apiService } from '@/backend/api';
 import * as log from 'loglevel';
 
 
@@ -306,7 +306,7 @@ export default Vue.extend({
     };
   },
   beforeCreate() {
-    API_SERVICE.fetchState().then(s => {
+    apiService().fetchState().then(s => {
       if (s !== undefined) {
         STORE.replaceState(s);
       }
@@ -359,14 +359,14 @@ export default Vue.extend({
         }
 
         log.info('[App] Saving new catalog to: ', path);
-        API_SERVICE.saveStore(path, STORE.state);
+        apiService().saveStore(path, STORE.state);
       } else {
         log.info('[App] Save cancelled.');
       }
     });
   } else {
     log.info('[App] Saving existing catalog to: ', BACKEND_MIRROR.state.catalogPath);
-    API_SERVICE.saveStore(BACKEND_MIRROR.state.catalogPath, STORE.state);
+    apiService().saveStore(BACKEND_MIRROR.state.catalogPath, STORE.state);
   }
 });
 </script>

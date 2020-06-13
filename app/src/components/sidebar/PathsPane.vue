@@ -86,7 +86,7 @@
 import Vue from 'vue';
 import { defineComponent, computed, reactive } from '@vue/composition-api';
 import { STORE } from '@/store';
-import { API_SERVICE } from '@/backend/api';
+import { apiService } from '@/backend/api';
 import Pane from './Pane.vue';
 import { DRAG_HELPER_SERVICE } from '@/lib/drag-helper-service';
 import * as log from 'loglevel';
@@ -164,7 +164,7 @@ export default defineComponent({
         const srcComponents = srcPath.split('/');
         const destPath = destPathRoot + srcComponents[srcComponents.length - 1];
 
-        API_SERVICE.movePath(srcPath, destPath);
+        apiService().movePath(srcPath, destPath);
       }
     }
 

@@ -43,7 +43,7 @@
 <script lang="ts">
 import { defineComponent, computed, ref, onMounted, onBeforeUnmount, watch } from '@vue/composition-api';
 import { STORE, TRANSIENT_STORE, Direction, ImageViewerTab } from '@/store';
-import { API_SERVICE } from '@/backend/api';
+import { apiService } from '@/backend/api';
 import { Rotation } from '@/store/schema';
 
 
@@ -51,7 +51,7 @@ export default defineComponent({
   setup(props, context) {
     const imageUrl = computed(() => {
       if (STORE.state.selection.primary) {
-        return API_SERVICE.thumbnailUrl(STORE.state.selection.primary);
+        return apiService().thumbnailUrl(STORE.state.selection.primary);
       }
 
       return undefined;
