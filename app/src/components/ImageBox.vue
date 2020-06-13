@@ -1,5 +1,6 @@
 <template>
   <div
+    ref="host"
     draggable="true"
     class="image-box"
     :class="{ selected: isPrimarySelected, 'additional-selected': isAdditionalSelected }"
