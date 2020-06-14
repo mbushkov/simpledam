@@ -88,27 +88,27 @@ export default defineComponent({
         return;
       }
 
-      if (event.key === '1' && event.metaKey) {
+      if (event.key === '1' && event.ctrlKey) {
         store.rateSelection(1);
         event.preventDefault
         return;
-      } else if (event.key === '2' && event.metaKey) {
+      } else if (event.key === '2' && event.ctrlKey) {
         store.rateSelection(2);
         event.preventDefault
         return;
-      } else if (event.key === '3' && event.metaKey) {
+      } else if (event.key === '3' && event.ctrlKey) {
         store.rateSelection(3);
         event.preventDefault
         return;
-      } else if (event.key === '4' && event.metaKey) {
+      } else if (event.key === '4' && event.ctrlKey) {
         store.rateSelection(4);
         event.preventDefault
         return;
-      } else if (event.key === '5' && event.metaKey) {
+      } else if (event.key === '5' && event.ctrlKey) {
         store.rateSelection(5);
         event.preventDefault
         return;
-      } else if (event.key === '0' && event.metaKey) {
+      } else if (event.key === '0' && event.ctrlKey) {
         store.rateSelection(0);
         event.preventDefault
         return;
