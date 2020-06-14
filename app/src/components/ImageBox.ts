@@ -1,5 +1,4 @@
 import { defineComponent, computed, SetupContext, reactive, ref, onMounted, watch } from '@vue/composition-api';
-import { PORT } from '@/backend/api';
 import { Label, ImageAdjustments, Rotation, Rating } from '@/store/schema';
 
 
@@ -12,6 +11,7 @@ export interface ImageData {
   readonly uid: string;
   readonly filePath: string;
   readonly previewSize?: ImageSize;
+  readonly previewUrl: string;
   readonly label: Label;
   readonly rating: Rating;
   readonly selectionType: SelectionType;
@@ -78,16 +78,22 @@ export default defineComponent({
         return {};
       }
 
-      let ratio = props.imageData.previewSize.width / props.imageData.previewSize.height;
+      let width = props.imageData.previewSize.width || 1;
+      let height = props.imageData.previewSize.height || 1;
       if (isRotated90.value || isRotated270.value) {
-        ratio = 1 / ratio;
+        let t = height;
+        height = width;
+        width = t;
       }
-      let width = nestedSize.width || 1;
-      let height = nestedSize.height || 1;
-      if (ratio >= 1) {
-        height = width / ratio;
-      } else {
-        width = height / ratio;
+      if (width > nestedSize.width) {
+        const m = nestedSize.width / width;
+        width *= m;
+        height *= m;
+      }
+      if (height > nestedSize.height) {
+        const m = nestedSize.height / height;
+        width *= m;
+        height *= m;
       }
 
       return { width: `${width}px`, height: `${height}px` };
@@ -99,11 +105,23 @@ export default defineComponent({
       }
 
       let scale = 1;
+      let translate = '';
+      let transformOrigin = 'initial';
       if (isRotated90.value || isRotated270.value) {
-        scale = props.imageData.previewSize.height / props.imageData.previewSize.width;
+        scale = props.imageData.previewSize.width / props.imageData.previewSize.height;
+        if (scale < 1) {
+          scale = 1 / scale;
+        }
+        transformOrigin = 'top right';
+        if (isRotated90.value) {
+          translate = 'translateX(100%)';
+        } else if (isRotated270.value) {
+          translate = 'translateY(-100%)';
+        }
       }
       return {
-        transform: `rotate(${props.imageData.adjustments.rotation}deg) scale(${scale})`,
+        'transform-origin': transformOrigin,
+        transform: `rotate(${props.imageData.adjustments.rotation}deg) scale(${scale}) ${translate}`,
       };
     });
 
@@ -160,8 +178,6 @@ export default defineComponent({
       isShortVersion,
       imageWrapperStyle,
       imageStyle,
-
-      port: PORT,
 
       clicked,
       dragStarted,

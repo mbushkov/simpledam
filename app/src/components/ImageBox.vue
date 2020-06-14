@@ -9,7 +9,7 @@
   >
     <div class="nested" ref="nestedRef">
       <div class="image-wrapper" :style="imageWrapperStyle" v-if="imageData.previewSize">
-        <img :style="imageStyle" :src="'http://localhost:' + port + '/images/' + imageData.uid" />
+        <img :style="imageStyle" :src="imageData.previewUrl" />
       </div>
     </div>
     <div class="metadata">

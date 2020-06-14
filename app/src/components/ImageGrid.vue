@@ -69,7 +69,7 @@
 <script lang="ts">
 import { defineComponent, computed, onMounted, onBeforeUnmount, ref, watchEffect } from '@vue/composition-api';
 import { STORE, TRANSIENT_STORE, Direction, ImageViewerTab } from '@/store';
-import { apiService } from '@/backend/api';
+import { apiService, PORT } from '@/backend/api';
 import { ImageData, SelectionType } from './ImageBox';
 import ImageBox from './ImageBox.vue';
 import { Label } from '@/store/schema';
@@ -237,6 +237,7 @@ export default defineComponent({
           uid,
           filePath: im.path,
           previewSize: im.preview_timestamp ? im.preview_size : undefined,
+          previewUrl: 'http://localhost:' + PORT + '/images/' + uid,
           label: mdata.label,
           rating: mdata.rating,
           selectionType,
