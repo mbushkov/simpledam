@@ -403,8 +403,12 @@ export default defineComponent({
       }
 
       // Due to reuse of elements, we have to be careful not to scroll to an element
-      // that was previously shown for the saem key.
-      const container = (scroller.value! as any).$el as HTMLDivElement;
+      // that was previously shown for the same key.
+      const container = (scroller.value as any)?.$el as HTMLDivElement;
+      if (!container) {
+        return;
+      }
+
       const res = container.querySelector(`[name=box-${lt}]`);
       if (res) {
         (res as any).scrollIntoViewIfNeeded();

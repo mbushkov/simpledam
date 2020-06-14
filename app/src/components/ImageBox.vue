@@ -47,6 +47,12 @@
     border: 1px solid yellow;
   }
 
+  .image-wrapper {
+    // This ensures that the image is right-aligned, so that transformations with origin "right-top" work as expected.
+    // With "text-align: right" the image top right corner is bound to the image-wrapper's top right corner.
+    text-align: right;
+  }
+
   .nested {
     position: absolute;
     left: 5px;

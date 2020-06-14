@@ -88,37 +88,6 @@ export default defineComponent({
         return;
       }
 
-      if (event.key === '1' && event.ctrlKey) {
-        store.rateSelection(1);
-        event.preventDefault
-        return;
-      } else if (event.key === '2' && event.ctrlKey) {
-        store.rateSelection(2);
-        event.preventDefault
-        return;
-      } else if (event.key === '3' && event.ctrlKey) {
-        store.rateSelection(3);
-        event.preventDefault
-        return;
-      } else if (event.key === '4' && event.ctrlKey) {
-        store.rateSelection(4);
-        event.preventDefault
-        return;
-      } else if (event.key === '5' && event.ctrlKey) {
-        store.rateSelection(5);
-        event.preventDefault
-        return;
-      } else if (event.key === '0' && event.ctrlKey) {
-        store.rateSelection(0);
-        event.preventDefault
-        return;
-      }
-      const label = LABELS_MAP[event.key];
-      if (label !== undefined) {
-        store.labelSelection(label);
-        return;
-      }
-
       // TODO: this depends on the layout use a proper library.
       if (event.key === '=' && event.metaKey && event.shiftKey) {
         if (scale.value < 1600) {
@@ -184,6 +153,40 @@ export default defineComponent({
         store.rotateLeft();
         event.preventDefault();
         return;
+      }
+
+      if (event.key === '1' && event.ctrlKey) {
+        store.rateSelection(1);
+        event.preventDefault
+        return;
+      } else if (event.key === '2' && event.ctrlKey) {
+        store.rateSelection(2);
+        event.preventDefault
+        return;
+      } else if (event.key === '3' && event.ctrlKey) {
+        store.rateSelection(3);
+        event.preventDefault
+        return;
+      } else if (event.key === '4' && event.ctrlKey) {
+        store.rateSelection(4);
+        event.preventDefault
+        return;
+      } else if (event.key === '5' && event.ctrlKey) {
+        store.rateSelection(5);
+        event.preventDefault
+        return;
+      } else if (event.key === '0' && event.ctrlKey) {
+        store.rateSelection(0);
+        event.preventDefault
+        return;
+      }
+
+      if (!event.metaKey && !event.ctrlKey) {
+        const label = LABELS_MAP[event.key];
+        if (label !== undefined) {
+          store.labelSelection(label);
+          return;
+        }
       }
     }
 
