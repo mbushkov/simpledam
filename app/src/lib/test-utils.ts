@@ -1,6 +1,8 @@
-import Vue from 'vue';
-import { shallowMount, Wrapper } from '@vue/test-utils';
 import { Immutable } from '@/lib/type-utils';
+import VueCompositionApi from '@vue/composition-api';
+import { shallowMount, Wrapper } from '@vue/test-utils';
+import Buefy from 'buefy';
+import Vue from 'vue';
 
 export interface ObservableWrapper<T> {
   readonly wrapper: Wrapper<Vue>;
@@ -52,4 +54,9 @@ export function pureCopy<T>(obj: T): T {
   }
 
   return replaceNulls(result) as T;
+}
+
+export function setupComponentTestEnv() {
+  Vue.use(VueCompositionApi);
+  Vue.use(Buefy);
 }

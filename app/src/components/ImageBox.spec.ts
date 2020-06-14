@@ -1,14 +1,12 @@
 import { ImageAdjustments, Label, Rotation } from '@/store/schema';
-import VueCompositionApi from '@vue/composition-api';
-import Buefy from 'buefy';
 import { shallowMount } from '@vue/test-utils';
 import { expect } from 'chai';
 import Vue from 'vue';
 import { ImageData, Props } from './ImageBox';
 import ImageBox from './ImageBox.vue';
+import { setupComponentTestEnv } from '@/lib/test-utils';
 
-Vue.use(VueCompositionApi);
-Vue.use(Buefy);
+setupComponentTestEnv();
 
 function generateImage(width: number, height: number, color: string): string {
   const canvas = document.createElement('canvas') as HTMLCanvasElement;
