@@ -1,9 +1,22 @@
 import { Store } from './store';
 import { TransientStore } from './transient-store';
-import { apiService } from '@/backend/api';
+import { apiServiceSingleton } from '@/backend/api';
 
 export { Direction } from './store';
 export { ImageViewerTab } from './transient-store';
 
-export const TRANSIENT_STORE = new TransientStore();
-export const STORE = new Store(TRANSIENT_STORE, apiService());
+let _transientStore: TransientStore | undefined;
+export function transientStoreSingleton(): TransientStore {
+  if (!_transientStore) {
+    _transientStore = new TransientStore();
+  }
+  return _transientStore;
+}
+
+let _store: Store | undefined;
+export function storeSingleton(): Store {
+  if (!_store) {
+    _store = new Store(transientStoreSingleton(), apiServiceSingleton());
+  }
+  return _store;
+}

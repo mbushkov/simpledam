@@ -85,8 +85,8 @@
 <script lang="ts">
 import Vue from 'vue';
 import { defineComponent, computed, reactive } from '@vue/composition-api';
-import { STORE } from '@/store';
-import { apiService } from '@/backend/api';
+import { storeSingleton } from '@/store';
+import { apiServiceSingleton } from '@/backend/api';
 import Pane from './Pane.vue';
 import { DRAG_HELPER_SERVICE } from '@/lib/drag-helper-service';
 import * as log from 'loglevel';
@@ -103,15 +103,18 @@ export default defineComponent({
     Pane,
   },
   setup() {
+    const store = storeSingleton();
+    const apiService = apiServiceSingleton();
+
     const highlights: { [key: string]: boolean } = reactive({});
 
     const entries = computed(() => {
-      const keys = Object.keys(STORE.state.paths);
+      const keys = Object.keys(store.state.paths);
       keys.sort();
       return keys.map(k => ({
         path: k,
-        selected: STORE.state.filterSettings.selectedPaths.indexOf(k) !== -1,
-        count: STORE.numItemsMatchingFilter({
+        selected: store.state.filterSettings.selectedPaths.indexOf(k) !== -1,
+        count: store.numItemsMatchingFilter({
           selectedPaths: [k],
           selectedLabels: [],
           selectedRatings: [],
@@ -120,7 +123,7 @@ export default defineComponent({
     });
 
     function pathClicked(entry: PathEntry, event: MouseEvent) {
-      STORE.changePathFilter(entry.path, !entry.selected, event.metaKey);
+      store.changePathFilter(entry.path, !entry.selected, event.metaKey);
     }
 
     function rowDragEntered(path: string, event: DragEvent) {
@@ -148,7 +151,7 @@ export default defineComponent({
       }
       let srcPaths: string[];
       if (dragResult.contents.kind === 'internal') {
-        srcPaths = dragResult.contents.uids.map(uid => STORE.state.images[uid].path);
+        srcPaths = dragResult.contents.uids.map(uid => store.state.images[uid].path);
       } else {
         throw new Error('Dragging external files onto a folder not implemented yet.')
       }
@@ -164,7 +167,7 @@ export default defineComponent({
         const srcComponents = srcPath.split('/');
         const destPath = destPathRoot + srcComponents[srcComponents.length - 1];
 
-        apiService().movePath(srcPath, destPath);
+        apiService.movePath(srcPath, destPath);
       }
     }
 

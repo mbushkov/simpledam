@@ -65,7 +65,7 @@
 
 <script lang="ts">
 import { defineComponent, computed, Ref, reactive, watchEffect } from '@vue/composition-api';
-import { STORE } from '@/store';
+import { storeSingleton } from '@/store';
 import Pane from './Pane.vue';
 import { Label } from '@/store/schema';
 
@@ -91,6 +91,8 @@ export default defineComponent({
     Pane,
   },
   setup() {
+    const store = storeSingleton();
+
     const entries: LabelEntry[] = reactive([
       labelEntry("none", "0", Label.NONE),
       labelEntry("red", "1", Label.RED),
@@ -105,7 +107,7 @@ export default defineComponent({
     ]);
 
     watchEffect(() => {
-      const selected = STORE.state.filterSettings.selectedLabels;
+      const selected = store.state.filterSettings.selectedLabels;
       for (const le of entries) {
         le.selected = (selected.indexOf(le.label) !== -1);
       }
@@ -114,7 +116,7 @@ export default defineComponent({
     const _counts: { [key: number]: Readonly<Ref<number>> } = {};
     for (const le of entries) {
       _counts[le.label] = computed(() => {
-        return STORE.numItemsMatchingFilter({
+        return store.numItemsMatchingFilter({
           selectedLabels: [le.label],
           selectedRatings: [],
           selectedPaths: [],
@@ -124,7 +126,7 @@ export default defineComponent({
     const counts = reactive(_counts);
 
     function labelClicked(entry: LabelEntry, event: MouseEvent) {
-      STORE.changeLabelFilter(entry.label, !entry.selected, event.metaKey);
+      store.changeLabelFilter(entry.label, !entry.selected, event.metaKey);
     }
 
     return {

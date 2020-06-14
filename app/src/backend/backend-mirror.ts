@@ -1,4 +1,4 @@
-import { apiService } from './api';
+import { apiServiceSingleton } from './api';
 import { filter, map } from 'rxjs/operators';
 import Vue from 'vue';
 
@@ -20,12 +20,14 @@ declare interface BackendStateUpdateAction extends Action {
 
 class BackendMirror {
 
+  private readonly apiService = apiServiceSingleton();
+
   readonly state: BackendState = Vue.observable<BackendState>({
     catalogPath: '',
     previewQueueSize: 0,
   });
 
-  readonly updateBackendState$ = apiService().ws.pipe(
+  readonly updateBackendState$ = this.apiService.ws.pipe(
     filter((v) => {
       return (v as Action).action === 'BACKEND_STATE_UPDATE';
     }),

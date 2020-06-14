@@ -1,22 +1,25 @@
 import { defineComponent, computed, ref, onMounted, onBeforeUnmount, watch } from '@vue/composition-api';
-import { STORE, TRANSIENT_STORE, Direction, ImageViewerTab } from '@/store';
-import { apiService } from '@/backend/api';
+import { storeSingleton, transientStoreSingleton, Direction, ImageViewerTab } from '@/store';
+import { apiServiceSingleton } from '@/backend/api';
 import { Rotation } from '@/store/schema';
-
+import * as log from 'loglevel';
 
 export default defineComponent({
   setup(props, context) {
+    const store = storeSingleton();
+    const transientStore = transientStoreSingleton();
+
     const imageUrl = computed(() => {
-      if (STORE.state.selection.primary) {
-        return apiService().thumbnailUrl(STORE.state.selection.primary);
+      if (store.state.selection.primary) {
+        return apiServiceSingleton().thumbnailUrl(store.state.selection.primary);
       }
 
       return undefined;
     });
 
     const curRotation = computed((): Rotation => {
-      if (STORE.state.selection.primary) {
-        return STORE.state.metadata[STORE.state.selection.primary].adjustments.rotation;
+      if (store.state.selection.primary) {
+        return store.state.metadata[store.state.selection.primary].adjustments.rotation;
       } else {
         return Rotation.NONE;
       }
@@ -39,16 +42,15 @@ export default defineComponent({
     const el = ref<HTMLDivElement>();
 
     watch([autoFit, imageUrl, curRotation], ([newVal]) => {
-      console.log(['AUTO FIT', newVal]);
       if (!newVal) {
         return;
       }
 
-      if (!STORE.state.selection.primary) {
+      if (!store.state.selection.primary) {
         return;
       }
 
-      const im = STORE.state.images[STORE.state.selection.primary];
+      const im = store.state.images[store.state.selection.primary];
       if (!im || !im.preview_size) {
         return;
       }
@@ -64,7 +66,6 @@ export default defineComponent({
 
         scale.value = Math.min(clientWidth / im.preview_size.width * 100,
           clientHeight / im.preview_size.height * 100);
-        console.log(['AUT OFIT SCALE', el.value, im.preview_size, scale.value]);
       });
     });
 
@@ -112,29 +113,29 @@ export default defineComponent({
         event.preventDefault();
         event.stopImmediatePropagation();
       } else if (event.keyCode === 39) {
-        STORE.movePrimarySelection(Direction.RIGHT);
+        store.movePrimarySelection(Direction.RIGHT);
         event.preventDefault();
         return;
       } else if (event.keyCode === 37) {
-        STORE.movePrimarySelection(Direction.LEFT);
+        store.movePrimarySelection(Direction.LEFT);
         event.preventDefault();
         return;
       } else if (event.keyCode === 38) {
-        STORE.movePrimarySelection(Direction.LEFT);
+        store.movePrimarySelection(Direction.LEFT);
         event.preventDefault();
         return;
       } else if (event.keyCode === 40) {
-        STORE.movePrimarySelection(Direction.RIGHT);
+        store.movePrimarySelection(Direction.RIGHT);
         event.preventDefault();
         return;
       } else if (event.key === ']' && event.metaKey) {
-        console.log('rotating right');
-        STORE.rotateRight();
+        log.info('[SingleImage] Rotating right.')
+        store.rotateRight();
         event.preventDefault();
         return;
       } else if (event.key === '[' && event.metaKey) {
-        console.log('rotating left');
-        STORE.rotateLeft();
+        log.info('[SingleImage] Rotating left.')
+        store.rotateLeft();
         event.preventDefault();
         return;
       }
@@ -150,7 +151,6 @@ export default defineComponent({
       }
 
       if (clientWidth > 0 && clientHeight > 0) {
-        console.log([el.value!.clientHeight, clientHeight]);
         const offsetX = Math.max(0, (el.value!.clientWidth - clientWidth) / 2);
         const offsetY = Math.max(0, (el.value!.clientHeight - clientHeight) / 2);
 
@@ -164,7 +164,7 @@ export default defineComponent({
       const newValue = Number(_newValue);
       const oldValue = Number(_oldValue);
 
-      const im = STORE.state.images[STORE.state.selection.primary ?? ''];
+      const im = store.state.images[store.state.selection.primary ?? ''];
       if (!im || !im.preview_size) {
         return;
       }
@@ -182,20 +182,18 @@ export default defineComponent({
 
         handleResize();
 
-        // console.log(['SCROLL', scale.value, im.preview_size.width * (newValue - oldValue) / 50, im.preview_size.height * (newValue - oldValue) / 50,]);
         el.value!.scrollTo(
           scrollOffsetX + (newWidth - oldWidth) * 0.5,// + el.value!.clientWidth / 2,
           scrollOffsetY + (newHeight - oldHeight) * 0.5,// + el.value!.clientHeight / 2,
         );
-        console.log(['SCALE', newValue, oldValue, (scrollOffsetX) * (newValue / oldValue), (newWidth - oldWidth)]);
       }
     });
 
     watch(curRotation, handleResize);
 
     function doubleClicked() {
-      console.log('double clicked');
-      TRANSIENT_STORE.setImageViewerTab(ImageViewerTab.THUMBNAILS);
+      log.info('[SingleImage] Double-clicked, switching tabs.')
+      transientStore.setImageViewerTab(ImageViewerTab.THUMBNAILS);
     }
 
     onMounted(() => {

@@ -68,8 +68,8 @@
 
 <script lang="ts">
 import { defineComponent, computed, onMounted, onBeforeUnmount, ref, watchEffect } from '@vue/composition-api';
-import { STORE, TRANSIENT_STORE, Direction, ImageViewerTab } from '@/store';
-import { apiService, PORT } from '@/backend/api';
+import { storeSingleton, transientStoreSingleton, Direction, ImageViewerTab } from '@/store';
+import { apiServiceSingleton, PORT } from '@/backend/api';
 import { ImageData, SelectionType } from './ImageBox';
 import ImageBox from './ImageBox.vue';
 import { Label } from '@/store/schema';
@@ -99,19 +99,23 @@ export default defineComponent({
     ImageBox,
   },
   setup() {
+    const store = storeSingleton();
+    const transientStore = transientStoreSingleton();
+    const apiService = apiServiceSingleton();
+
     const el = ref<HTMLElement>();
     const scroller = ref<HTMLElement>();
     const dragIndicator = ref<HTMLDivElement>();
 
     const dragIndicatorVisible = ref(false);
     const dragIndicatorIndex = ref(0);
-    const maxSize = computed(() => STORE.state.thumbnailSettings.size);
+    const maxSize = computed(() => store.state.thumbnailSettings.size);
 
     function handleResize() {
       if (!el.value) {
         return;
       }
-      TRANSIENT_STORE.setColumnCount(Math.max(1, Math.floor(el.value.clientWidth / maxSize.value)));
+      transientStore.setColumnCount(Math.max(1, Math.floor(el.value.clientWidth / maxSize.value)));
     }
     watchEffect(handleResize);
 
@@ -128,13 +132,13 @@ export default defineComponent({
     });
 
     const uidGroups = computed(() => {
-      const cl = STORE.currentList();
+      const cl = store.currentList();
 
       const result: Row[] = [];
       let cur = [];
       for (const uid of cl.items) {
         cur.push(uid);
-        if (cur.length === TRANSIENT_STORE.state.columnCount) {
+        if (cur.length === transientStore.state.columnCount) {
           result.push({
             key: cur.join('|'),
             imageData: generateImageData(cur),
@@ -170,7 +174,7 @@ export default defineComponent({
     });
 
     const shortImageBoxVersion = computed(() => {
-      return STORE.state.thumbnailSettings.size <= 120;
+      return store.state.thumbnailSettings.size <= 120;
     });
 
     function containerDropped(event: DragEvent) {
@@ -182,10 +186,10 @@ export default defineComponent({
       }
 
       if (result.contents.kind === 'internal') {
-        STORE.moveWithinCurrentList(result.contents.uids, dragIndicatorIndex.value);
+        store.moveWithinCurrentList(result.contents.uids, dragIndicatorIndex.value);
       } else {
         for (const p of result.contents.paths) {
-          apiService().scanPath(p);
+          apiService.scanPath(p);
         }
       }
     }
@@ -196,9 +200,9 @@ export default defineComponent({
       const relX = el.scrollLeft + event.pageX - rect.x;
       const relY = el.scrollTop + event.pageY - rect.y;
 
-      const offX = Number(Math.min(Math.floor(relX / maxSize.value), TRANSIENT_STORE.state.columnCount + 1));
+      const offX = Number(Math.min(Math.floor(relX / maxSize.value), transientStore.state.columnCount + 1));
       const offY = Number(Math.floor(relY / maxSize.value));
-      dragIndicatorIndex.value = offY * TRANSIENT_STORE.state.columnCount + offX;
+      dragIndicatorIndex.value = offY * transientStore.state.columnCount + offX;
 
       const destX = offX * maxSize.value;
       const destY = offY * maxSize.value;
@@ -223,13 +227,13 @@ export default defineComponent({
 
     function generateImageData(uids: string[]): ImageData[] {
       return uids.map(uid => {
-        const im = STORE.state.images[uid];
-        const mdata = STORE.state.metadata[uid];
+        const im = store.state.images[uid];
+        const mdata = store.state.metadata[uid];
 
         let selectionType: SelectionType = SelectionType.NONE;
-        if (uid === STORE.state.selection.primary) {
+        if (uid === store.state.selection.primary) {
           selectionType = SelectionType.PRIMARY;
-        } else if (STORE.state.selection.additional[uid]) {
+        } else if (store.state.selection.additional[uid]) {
           selectionType = SelectionType.ADDITIONAL;
         }
 
@@ -252,86 +256,86 @@ export default defineComponent({
       }
 
       if (event.key === '1' && event.metaKey) {
-        STORE.rateSelection(1);
+        store.rateSelection(1);
         event.preventDefault
         return;
       } else if (event.key === '2' && event.metaKey) {
-        STORE.rateSelection(2);
+        store.rateSelection(2);
         event.preventDefault
         return;
       } else if (event.key === '3' && event.metaKey) {
-        STORE.rateSelection(3);
+        store.rateSelection(3);
         event.preventDefault
         return;
       } else if (event.key === '4' && event.metaKey) {
-        STORE.rateSelection(4);
+        store.rateSelection(4);
         event.preventDefault
         return;
       } else if (event.key === '5' && event.metaKey) {
-        STORE.rateSelection(5);
+        store.rateSelection(5);
         event.preventDefault
         return;
       } else if (event.key === '0' && event.metaKey) {
-        STORE.rateSelection(0);
+        store.rateSelection(0);
         event.preventDefault
         return;
       }
       const label = LABELS_MAP[event.key];
       if (label !== undefined) {
-        STORE.labelSelection(label);
+        store.labelSelection(label);
         return;
       }
 
       if (event.keyCode === 39) {
         if (event.shiftKey) {
-          STORE.moveAdditionalSelection(Direction.RIGHT);
+          store.moveAdditionalSelection(Direction.RIGHT);
         } else {
-          STORE.movePrimarySelection(Direction.RIGHT);
+          store.movePrimarySelection(Direction.RIGHT);
         }
         event.preventDefault();
         return;
       } else if (event.keyCode === 37) {
         if (event.shiftKey) {
-          STORE.moveAdditionalSelection(Direction.LEFT);
+          store.moveAdditionalSelection(Direction.LEFT);
         } else {
-          STORE.movePrimarySelection(Direction.LEFT);
+          store.movePrimarySelection(Direction.LEFT);
         }
         event.preventDefault();
         return;
       } else if (event.keyCode === 38) {
         if (event.shiftKey) {
-          STORE.moveAdditionalSelection(Direction.UP);
+          store.moveAdditionalSelection(Direction.UP);
         } else {
-          STORE.movePrimarySelection(Direction.UP);
+          store.movePrimarySelection(Direction.UP);
         }
         event.preventDefault();
         return;
       } else if (event.keyCode === 40) {
         if (event.shiftKey) {
-          STORE.moveAdditionalSelection(Direction.DOWN);
+          store.moveAdditionalSelection(Direction.DOWN);
         } else {
-          STORE.movePrimarySelection(Direction.DOWN);
+          store.movePrimarySelection(Direction.DOWN);
         }
         event.preventDefault();
         return;
       } else if (event.key === '=' && event.metaKey && event.shiftKey) {
-        if (STORE.state.thumbnailSettings.size < 640) {
-          STORE.setThumbnailSize(STORE.state.thumbnailSettings.size + 40);
+        if (store.state.thumbnailSettings.size < 640) {
+          store.setThumbnailSize(store.state.thumbnailSettings.size + 40);
         }
         event.preventDefault();
         return;
       } else if (event.key === '-' && event.metaKey) {
-        if (STORE.state.thumbnailSettings.size > 80) {
-          STORE.setThumbnailSize(STORE.state.thumbnailSettings.size - 40);
+        if (store.state.thumbnailSettings.size > 80) {
+          store.setThumbnailSize(store.state.thumbnailSettings.size - 40);
         }
         event.preventDefault();
         return;
       } else if (event.key === ']' && event.metaKey) {
-        STORE.rotateRight();
+        store.rotateRight();
         event.preventDefault();
         return;
       } else if (event.key === '[' && event.metaKey) {
-        STORE.rotateLeft();
+        store.rotateLeft();
         event.preventDefault();
         return;
       }
@@ -345,39 +349,39 @@ export default defineComponent({
         return;
       }
 
-      if (uid !== STORE.state.selection.primary) {
-        const prevAdditional = { ...STORE.state.selection.additional };
-        const prevPrimary = STORE.state.selection.primary;
-        STORE.selectPrimary(uid);
+      if (uid !== store.state.selection.primary) {
+        const prevAdditional = { ...store.state.selection.additional };
+        const prevPrimary = store.state.selection.primary;
+        store.selectPrimary(uid);
         if (prevPrimary && (Object.keys(prevAdditional).length > 0)) {
           for (const puid in prevAdditional) {
             if (uid === puid) {
               continue;
             }
-            STORE.toggleAdditionalSelection(puid);
+            store.toggleAdditionalSelection(puid);
           }
-          STORE.toggleAdditionalSelection(prevPrimary);
+          store.toggleAdditionalSelection(prevPrimary);
         }
       }
 
       const uids = new Set<string>([uid]);
-      if (STORE.state.selection.primary) {
-        uids.add(STORE.state.selection.primary);
+      if (store.state.selection.primary) {
+        uids.add(store.state.selection.primary);
       }
-      for (const additionalUid in STORE.state.selection.additional) {
+      for (const additionalUid in store.state.selection.additional) {
         uids.add(additionalUid);
       }
-      const files = Array.from(uids).map(u => STORE.state.images[u]);
-      DRAG_HELPER_SERVICE.startDrag(event, files, apiService().thumbnailUrl(uid))
+      const files = Array.from(uids).map(u => store.state.images[u]);
+      DRAG_HELPER_SERVICE.startDrag(event, files, apiService.thumbnailUrl(uid))
     }
 
     function imageBoxClicked(uid: string, event: MouseEvent) {
       if (event.metaKey) {
-        STORE.toggleAdditionalSelection(uid);
+        store.toggleAdditionalSelection(uid);
       } else if (event.shiftKey) {
-        STORE.selectRange(uid);
+        store.selectRange(uid);
       } else {
-        STORE.selectPrimary(uid);
+        store.selectPrimary(uid);
       }
     }
 
@@ -386,14 +390,14 @@ export default defineComponent({
         return;
       }
 
-      TRANSIENT_STORE.setImageViewerTab(ImageViewerTab.MEDIA);
+      transientStore.setImageViewerTab(ImageViewerTab.MEDIA);
 
       event.preventDefault();
       event.stopPropagation();
     }
 
     watchEffect(() => {
-      const lt = STORE.state.selection.lastTouched;
+      const lt = store.state.selection.lastTouched;
       if (lt === undefined) {
         return;
       }

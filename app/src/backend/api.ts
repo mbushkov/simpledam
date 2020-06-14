@@ -85,7 +85,7 @@ export class ApiService {
 }
 
 export let _apiService: ApiService | undefined;
-export function apiService() {
+export function apiServiceSingleton() {
   if (!_apiService) {
     _apiService = new ApiService();
   }

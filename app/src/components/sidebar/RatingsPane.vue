@@ -71,7 +71,7 @@
 
 <script lang="ts">
 import { defineComponent, computed, Ref, reactive, watchEffect } from '@vue/composition-api';
-import { STORE } from '@/store';
+import { storeSingleton } from '@/store';
 import Pane from './Pane.vue';
 import { Rating } from '@/store/schema';
 
@@ -93,6 +93,8 @@ export default defineComponent({
     Pane,
   },
   setup() {
+    const store = storeSingleton();
+
     const entries: RatingEntry[] = reactive([
       ratingEntry(0),
       ratingEntry(1),
@@ -103,7 +105,7 @@ export default defineComponent({
     ]);
 
     watchEffect(() => {
-      const selected = STORE.state.filterSettings.selectedRatings;
+      const selected = store.state.filterSettings.selectedRatings;
       for (const le of entries) {
         le.selected = (selected.indexOf(le.rating) !== -1);
       }
@@ -112,7 +114,7 @@ export default defineComponent({
     const _counts: { [key: number]: Readonly<Ref<number>> } = {};
     for (const le of entries) {
       _counts[le.rating] = computed(() => {
-        return STORE.numItemsMatchingFilter({
+        return store.numItemsMatchingFilter({
           selectedRatings: [le.rating],
           selectedLabels: [],
           selectedPaths: [],
@@ -122,7 +124,7 @@ export default defineComponent({
     const counts = reactive(_counts);
 
     function ratingClicked(entry: RatingEntry, event: MouseEvent) {
-      STORE.changeRatingFilter(entry.rating, !entry.selected, event.metaKey);
+      store.changeRatingFilter(entry.rating, !entry.selected, event.metaKey);
     }
 
     return {
