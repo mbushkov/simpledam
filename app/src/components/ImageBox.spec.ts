@@ -28,7 +28,7 @@ function imageData(width: number, height: number): ImageData {
 }
 
 describe('ImageBox', () => {
-  it.only('fits rectangular image correctly', async () => {
+  it('fits rectangular image correctly', async () => {
     const wrapper = shallowMount(ImageBox, {
       propsData: {
         imageData: imageData(400, 200),
