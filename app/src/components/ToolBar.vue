@@ -10,9 +10,6 @@
 </style>
 
 <script lang="ts">
-import { defineComponent } from '@vue/composition-api';
-
-export default defineComponent({
-  // type inference enabled
-});
+import ToolBar from './ToolBar';
+export default ToolBar;
 </script>
