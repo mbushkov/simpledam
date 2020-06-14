@@ -1,8 +1,22 @@
 import { defineComponent, computed, ref, onMounted, onBeforeUnmount, watch } from '@vue/composition-api';
 import { storeSingleton, transientStoreSingleton, Direction, ImageViewerTab } from '@/store';
 import { apiServiceSingleton } from '@/backend/api';
-import { Rotation } from '@/store/schema';
+import { Rotation, Label } from '@/store/schema';
 import * as log from 'loglevel';
+
+// TODO: implement in a generic way with a global shortcuts handler.
+const LABELS_MAP: { [key: string]: Label } = {
+  '0': Label.NONE,
+  '1': Label.RED,
+  '2': Label.GREEN,
+  '3': Label.BLUE,
+  '4': Label.BROWN,
+  '5': Label.MAGENTA,
+  '6': Label.ORANGE,
+  '7': Label.YELLOW,
+  '8': Label.CYAN,
+  '9': Label.GRAY,
+};
 
 export default defineComponent({
   setup(props, context) {
@@ -73,6 +87,38 @@ export default defineComponent({
       if (el.value?.style.display === 'none') {
         return;
       }
+
+      if (event.key === '1' && event.metaKey) {
+        store.rateSelection(1);
+        event.preventDefault
+        return;
+      } else if (event.key === '2' && event.metaKey) {
+        store.rateSelection(2);
+        event.preventDefault
+        return;
+      } else if (event.key === '3' && event.metaKey) {
+        store.rateSelection(3);
+        event.preventDefault
+        return;
+      } else if (event.key === '4' && event.metaKey) {
+        store.rateSelection(4);
+        event.preventDefault
+        return;
+      } else if (event.key === '5' && event.metaKey) {
+        store.rateSelection(5);
+        event.preventDefault
+        return;
+      } else if (event.key === '0' && event.metaKey) {
+        store.rateSelection(0);
+        event.preventDefault
+        return;
+      }
+      const label = LABELS_MAP[event.key];
+      if (label !== undefined) {
+        store.labelSelection(label);
+        return;
+      }
+
       // TODO: this depends on the layout use a proper library.
       if (event.key === '=' && event.metaKey && event.shiftKey) {
         if (scale.value < 1600) {
