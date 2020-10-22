@@ -5,9 +5,35 @@ import Buefy from 'buefy';
 import Vue from 'vue';
 
 export interface ObservableWrapper<T> {
+  readonly value: T;
   readonly wrapper: Wrapper<Vue>;
   nextTick(): Promise<Immutable<T>>;
   snapshot(): Immutable<T>;
+}
+
+/**
+ * Converts the object from reactive to pure Javascript.
+ *
+ * @param obj An object, potentially containing reactive properties.
+ */
+function pureCopy<T>(obj: T): T {
+  const replacer = (key: string, value: unknown) => value === undefined ? null : value;
+  const result = JSON.parse(JSON.stringify(obj, replacer));
+
+  function replaceNulls(obj: any) {
+    for (const key in obj) {
+      const val = obj[key] as unknown;
+      if (val === null) {
+        obj[key] = undefined;
+      } else if (val instanceof Object) {
+        replaceNulls(val as any);
+      }
+    }
+
+    return obj;
+  }
+
+  return replaceNulls(result) as T;
 }
 
 /**
@@ -32,40 +58,16 @@ export function createJSONWrapper<T>(observableValue: T): ObservableWrapper<T> {
   });
 
   return {
+    value: observableValue,
     wrapper,
     async nextTick(): Promise<Immutable<T>> {
       await wrapper.vm.$nextTick();
       return this.snapshot();
     },
     snapshot(): Immutable<T> {
-      return JSON.parse(wrapper.text()) as Immutable<T>;
+      return pureCopy(observableValue) as Immutable<T>;
     }
   };
-}
-
-/**
- * Converts the object from reactive to pure Javascript.
- *
- * @param obj An object, potentially containing reactive properties.
- */
-export function pureCopy<T>(obj: T): T {
-  const replacer = (key: string, value: unknown) => value === undefined ? null : value;
-  const result = JSON.parse(JSON.stringify(obj, replacer));
-
-  function replaceNulls(obj: any) {
-    for (const key in obj) {
-      const val = obj[key] as unknown;
-      if (val === null) {
-        obj[key] = undefined;
-      } else if (val instanceof Object) {
-        replaceNulls(val as any);
-      }
-    }
-
-    return obj;
-  }
-
-  return replaceNulls(result) as T;
 }
 
 export function setupComponentTestEnv() {

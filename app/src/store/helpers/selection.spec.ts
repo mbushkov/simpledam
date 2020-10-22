@@ -1,6 +1,6 @@
 import { Selection, ImageList } from "@/store/schema";
 import { assert, expect } from 'chai'
-import { pureCopy, setupTestEnv } from '@/lib/test-utils';
+import { createJSONWrapper, ObservableWrapper, setupTestEnv } from '@/lib/test-utils';
 import { selectRange, selectPrimary, toggleAdditionalSelection, Direction, movePrimarySelection, moveAdditionalSelection } from './selection';
 import { reactive } from '@vue/composition-api';
 
@@ -8,13 +8,13 @@ setupTestEnv();
 
 describe('Store selection helpers', () => {
 
-  function createSelection(selection: Partial<Selection> = {}): Selection {
-    return reactive({
+  function createSelectionWrapper(selection: Partial<Selection> = {}): ObservableWrapper<Selection> {
+    return createJSONWrapper(reactive({
       primary: undefined,
       lastTouched: undefined,
       additional: {},
       ...selection,
-    });
+    }));
   }
 
   function createImageList(imageList: Partial<ImageList> = {}): ImageList {
@@ -26,45 +26,44 @@ describe('Store selection helpers', () => {
   }
 
   describe('selectPrimary()', () => {
-    it('does nothing if same primary is already selected', () => {
-      const selection = createSelection({
+    it('does nothing if same primary is already selected', async () => {
+      const selection = createSelectionWrapper({
         primary: 'a',
         lastTouched: 'a',
         additional: { b: true, }
       });
-      const selectionSnapshot = pureCopy(selection);
-
-      selectPrimary(selection, 'a');
-
-      expect(pureCopy(selection)).to.eql(selectionSnapshot);
+      
+      const selectionSnapshot = selection.snapshot();
+      selectPrimary(selection.value, 'a');
+      expect(await selection.nextTick()).to.eql(selectionSnapshot);
     });
 
-    it('resets additional selection if new primary is selected', () => {
-      const selection = createSelection({
+    it('resets additional selection if new primary is selected', async () => {
+      const selection = createSelectionWrapper({
         primary: 'a',
         lastTouched: 'a',
         additional: { b: true, }
       });
 
-      selectPrimary(selection, 'c');
+      selectPrimary(selection.value, 'c');
 
-      expect(pureCopy(selection)).to.eql({
+      expect(await selection.nextTick()).to.eql({
         primary: 'c',
         lastTouched: 'c',
         additional: {},
       } as Selection);
     });
 
-    it('erases selection if undefined is passed', () => {
-      const selection = createSelection({
+    it('erases selection if undefined is passed', async () => {
+      const selection = createSelectionWrapper({
         primary: 'a',
         lastTouched: 'a',
         additional: { b: true, }
       });
 
-      selectPrimary(selection, undefined);
+      selectPrimary(selection.value, undefined);
 
-      expect(pureCopy(selection)).to.eql({
+      expect(await selection.nextTick()).to.eql({
         primary: undefined,
         lastTouched: undefined,
         additional: {},
@@ -73,92 +72,92 @@ describe('Store selection helpers', () => {
   });
 
   describe('toggleAdditionalSelection()', () => {
-    it('changes lastTouched attribute', () => {
-      const selection = createSelection({
+    it('changes lastTouched attribute', async () => {
+      const selection = createSelectionWrapper({
         primary: 'a',
         lastTouched: 'a',
         additional: {},
       });
 
-      toggleAdditionalSelection(selection, 'b');
+      toggleAdditionalSelection(selection.value, 'b');
 
-      expect(selection.lastTouched).to.equal('b');
+      expect((await selection.nextTick()).lastTouched).to.equal('b');
     });
 
-    it('sets primary selection if no primary is set', () => {
-      const selection = createSelection({
+    it('sets primary selection if no primary is set', async () => {
+      const selection = createSelectionWrapper({
         primary: undefined,
         lastTouched: undefined,
         additional: {},
       });
 
-      toggleAdditionalSelection(selection, 'a');
+      toggleAdditionalSelection(selection.value, 'a');
 
-      expect(pureCopy(selection)).to.eql({
+      expect(await selection.nextTick()).to.eql({
         primary: 'a',
         lastTouched: 'a',
         additional: {},
       });
     });
 
-    it('unsets primary if uid matches and additional selection is empty', () => {
-      const selection = createSelection({
+    it('unsets primary if uid matches and additional selection is empty', async () => {
+      const selection = createSelectionWrapper({
         primary: 'a',
         lastTouched: 'a',
         additional: {},
       });
 
-      toggleAdditionalSelection(selection, 'a');
+      toggleAdditionalSelection(selection.value, 'a');
 
-      expect(pureCopy(selection)).to.eql({
+      expect(await selection.nextTick()).to.eql({
         primary: undefined,
         lastTouched: 'a',
         additional: {},
       });
     });
 
-    it('moves primary to the next additional selection if uid matches current primary', () => {
-      const selection = createSelection({
+    it('moves primary to the next additional selection if uid matches current primary', async () => {
+      const selection = createSelectionWrapper({
         primary: 'a',
         lastTouched: 'a',
         additional: { b: true, c: true, },
       });
 
-      toggleAdditionalSelection(selection, 'a');
+      toggleAdditionalSelection(selection.value, 'a');
 
-      expect(pureCopy(selection)).to.eql({
+      expect(await selection.nextTick()).to.eql({
         primary: 'b',
         lastTouched: 'a',
         additional: { c: true },
       });
     });
 
-    it('marks additional selection if previously unset', () => {
-      const selection = createSelection({
+    it('marks additional selection if previously unset', async () => {
+      const selection = createSelectionWrapper({
         primary: 'a',
         lastTouched: 'a',
         additional: {},
       });
 
-      toggleAdditionalSelection(selection, 'b');
+      toggleAdditionalSelection(selection.value, 'b');
 
-      expect(pureCopy(selection)).to.eql({
+      expect(await selection.nextTick()).to.eql({
         primary: 'a',
         lastTouched: 'b',
         additional: { b: true },
       });
     });
 
-    it('unmarks additional selection if previously set', () => {
-      const selection = createSelection({
+    it('unmarks additional selection if previously set', async () => {
+      const selection = createSelectionWrapper({
         primary: 'a',
         lastTouched: 'b',
         additional: { b: true },
       });
 
-      toggleAdditionalSelection(selection, 'b');
+      toggleAdditionalSelection(selection.value, 'b');
 
-      expect(pureCopy(selection)).to.eql({
+      expect(await selection.nextTick()).to.eql({
         primary: 'a',
         lastTouched: 'b',
         additional: {},
@@ -166,7 +165,7 @@ describe('Store selection helpers', () => {
     });
   });
 
-  describe('movePrimarySelection()', () => {
+  describe('movePrimarySelection()', async () => {
     // Assuming we're dealing with a squate-like structure.
     const imageList = createImageList({
       items: [
@@ -176,81 +175,81 @@ describe('Store selection helpers', () => {
       ],
     });
 
-    function testDirection(from: string, direction: Direction, expected: string) {
-      const selection = createSelection({
+    async function testDirection(from: string, direction: Direction, expected: string) {
+      const selection = createSelectionWrapper({
         primary: from,
       });
 
-      movePrimarySelection(selection, imageList, 3, direction);
+      movePrimarySelection(selection.value, imageList, 3, direction);
 
-      expect(selection.primary).to.equal(expected);
+      expect((await selection.nextTick()).primary).to.equal(expected);
     }
 
-    it('correctly moves selection right', () => {
-      function td(f: string, e: string) { testDirection(f, Direction.RIGHT, e) }
+    it('correctly moves selection right', async () => {
+      async function td(f: string, e: string) { await testDirection(f, Direction.RIGHT, e) }
 
-      td('a', 'b');
-      td('b', 'c');
-      td('c', 'd');
-      td('d', 'e');
-      td('e', 'f');
-      td('f', 'g');
-      td('g', 'h');
-      td('h', 'i');
-      td('i', 'i');
+      await td('a', 'b');
+      await td('b', 'c');
+      await td('c', 'd');
+      await td('d', 'e');
+      await td('e', 'f');
+      await td('f', 'g');
+      await td('g', 'h');
+      await td('h', 'i');
+      await td('i', 'i');
     });
 
-    it('correctly moves selection left', () => {
-      function td(f: string, e: string) { testDirection(f, Direction.LEFT, e) }
+    it('correctly moves selection left', async () => {
+      async function td(f: string, e: string) { await testDirection(f, Direction.LEFT, e) }
 
-      td('a', 'a');
-      td('b', 'a');
-      td('c', 'b');
-      td('d', 'c');
-      td('e', 'd');
-      td('f', 'e');
-      td('g', 'f');
-      td('h', 'g');
-      td('i', 'h');
+      await td('a', 'a');
+      await td('b', 'a');
+      await td('c', 'b');
+      await td('d', 'c');
+      await td('e', 'd');
+      await td('f', 'e');
+      await td('g', 'f');
+      await td('h', 'g');
+      await td('i', 'h');
     });
 
-    it('correctly moves selection up', () => {
-      function td(f: string, e: string) { testDirection(f, Direction.UP, e) }
+    it('correctly moves selection up', async () => {
+      async function td(f: string, e: string) { await testDirection(f, Direction.UP, e) }
 
-      td('a', 'a');
-      td('b', 'a');
-      td('c', 'a');
-      td('d', 'a');
-      td('e', 'b');
-      td('f', 'c');
-      td('g', 'd');
-      td('h', 'e');
-      td('i', 'f');
+      await td('a', 'a');
+      await td('b', 'a');
+      await td('c', 'a');
+      await td('d', 'a');
+      await td('e', 'b');
+      await td('f', 'c');
+      await td('g', 'd');
+      await td('h', 'e');
+      await td('i', 'f');
     });
 
-    it('correctly moves selection down', () => {
-      function td(f: string, e: string) { testDirection(f, Direction.DOWN, e) }
+    it('correctly moves selection down', async () => {
+      async function td(f: string, e: string) { await testDirection(f, Direction.DOWN, e) }
 
-      td('a', 'd');
-      td('b', 'e');
-      td('c', 'f');
-      td('d', 'g');
-      td('e', 'h');
-      td('f', 'i');
-      td('g', 'i');
-      td('h', 'i');
-      td('i', 'i');
+      await td('a', 'd');
+      await td('b', 'e');
+      await td('c', 'f');
+      await td('d', 'g');
+      await td('e', 'h');
+      await td('f', 'i');
+      await td('g', 'i');
+      await td('h', 'i');
+      await td('i', 'i');
     });
 
-    it('cleans additional selection', () => {
-      const selection = createSelection({
+    it('cleans additional selection', async () => {
+      const selection = createSelectionWrapper({
         primary: 'a',
         additional: { b: true }
       });
 
-      movePrimarySelection(selection, imageList, 3, Direction.RIGHT);
+      movePrimarySelection(selection.value, imageList, 3, Direction.RIGHT);
 
-      expect(pureCopy(selection.additional)).to.eql({});
+      expect((await selection.nextTick()).additional).to.eql({});
     });
   });
 
@@ -264,126 +263,126 @@ describe('Store selection helpers', () => {
       ],
     });
 
-    function testExpandsFromCenter(directions: ReadonlyArray<Direction>, expectedLastTouched: string, expectedAdditional: { readonly [key: string]: boolean }) {
-      const selection = createSelection({
+    async function testExpandsFromCenter(directions: ReadonlyArray<Direction>, expectedLastTouched: string, expectedAdditional: { readonly [key: string]: boolean }) {
+      const selection = createSelectionWrapper({
         primary: 'e',
         additional: {}
       });
 
       for (const direction of directions) {
-        moveAdditionalSelection(selection, imageList, 3, direction);
+        moveAdditionalSelection(selection.value, imageList, 3, direction);
       }
 
-      expect(pureCopy(selection)).to.eql({
+      expect(await selection.nextTick()).to.eql({
         primary: 'e',
         lastTouched: expectedLastTouched,
         additional: expectedAdditional,
       });
     }
 
-    it('expands selection from primary left', () => {
-      testExpandsFromCenter([Direction.LEFT], 'd', { d: true });
+    it('expands selection from primary left', async () => {
+      await testExpandsFromCenter([Direction.LEFT], 'd', { d: true });
     });
 
-    it('expands selection from primary right', () => {
-      testExpandsFromCenter([Direction.RIGHT], 'f', { f: true });
+    it('expands selection from primary right', async () => {
+      await testExpandsFromCenter([Direction.RIGHT], 'f', { f: true });
     });
 
-    it('expands selection from primary up', () => {
-      testExpandsFromCenter([Direction.UP], 'b', { b: true, c: true, d: true });
+    it('expands selection from primary up', async () => {
+      await testExpandsFromCenter([Direction.UP], 'b', { b: true, c: true, d: true });
     });
 
-    it('expands selection from primary down', () => {
-      testExpandsFromCenter([Direction.DOWN], 'h', { f: true, g: true, h: true });
+    it('expands selection from primary down', async () => {
+      await testExpandsFromCenter([Direction.DOWN], 'h', { f: true, g: true, h: true });
     });
 
-    it('expands and shrinks selection from primary left then right', () => {
-      testExpandsFromCenter([Direction.LEFT, Direction.RIGHT], 'e', {});
+    it('expands and shrinks selection from primary left then right', async () => {
+      await testExpandsFromCenter([Direction.LEFT, Direction.RIGHT], 'e', {});
     });
 
-    it('expands selection from primary right then left', () => {
-      testExpandsFromCenter([Direction.RIGHT, Direction.LEFT], 'e', {});
+    it('expands selection from primary right then left', async () => {
+      await testExpandsFromCenter([Direction.RIGHT, Direction.LEFT], 'e', {});
     });
 
-    it('expands selection from primary up then down', () => {
-      testExpandsFromCenter([Direction.UP, Direction.DOWN], 'e', {});
+    it('expands selection from primary up then down', async () => {
+      await testExpandsFromCenter([Direction.UP, Direction.DOWN], 'e', {});
     });
 
-    it('expands selection from primary down then up', () => {
-      testExpandsFromCenter([Direction.DOWN, Direction.UP], 'e', {});
+    it('expands selection from primary down then up', async () => {
+      await testExpandsFromCenter([Direction.DOWN, Direction.UP], 'e', {});
     });    
   });
 
   describe('selectRange()', () => {
-    it('does nothing if no primary selection', () => {
-      const selection = createSelection();
-      const selectionSnapshot = pureCopy(selection);
+    it('does nothing if no primary selection', async () => {
+      const selection = createSelectionWrapper();
+      const selectionSnapshot = selection.snapshot();
       const imageList = createImageList();
 
-      selectRange(selection, imageList, 'a');
+      selectRange(selection.value, imageList, 'a');
 
-      expect(pureCopy(selection)).to.eql(selectionSnapshot);
+      expect(await selection.nextTick()).to.eql(selectionSnapshot);
     });
 
     it('throws if primary selection not present in the current list', () => {
-      const selection = createSelection({ primary: 'a' });
+      const selection = createSelectionWrapper({ primary: 'a' });
       const imageList = createImageList();
 
-      assert.throws(() => selectRange(selection, imageList, 'b'), /primary selection has to be in the current list/);
+      assert.throws(() => selectRange(selection.value, imageList, 'b'), /primary selection has to be in the current list/);
     });
 
     it('throws if target selection not present in the current list', () => {
-      const selection = createSelection({ primary: 'a' });
+      const selection = createSelectionWrapper({ primary: 'a' });
       const imageList = createImageList({
         presenceMap: { a: true },
         items: ['a'],
       });
 
-      assert.throws(() => selectRange(selection, imageList, 'b'), /target selection has to be in the current list/);
+      assert.throws(() => selectRange(selection.value, imageList, 'b'), /target selection has to be in the current list/);
     });
 
-    it('clears additional selection if target is equal to primary', () => {
-      const selection = createSelection({ primary: 'a', additional: { b: true } });
+    it('clears additional selection if target is equal to primary', async () => {
+      const selection = createSelectionWrapper({ primary: 'a', additional: { b: true } });
       const imageList = createImageList({
         presenceMap: { a: true, b: true },
         items: ['a', 'b'],
       });
 
-      selectRange(selection, imageList, 'a');
+      selectRange(selection.value, imageList, 'a');
 
-      expect(pureCopy(selection)).to.eql({
+      expect(await selection.nextTick()).to.eql({
         primary: 'a',
         lastTouched: 'a',
         additional: {},
       });
     });
 
-    it('selects the range when target before primary', () => {
-      const selection = createSelection({ primary: 'c' });
+    it('selects the range when target before primary', async () => {
+      const selection = createSelectionWrapper({ primary: 'c' });
       const imageList = createImageList({
         presenceMap: { a: true, b: true, c: true, d: true },
         items: ['a', 'b', 'c', 'd', 'e'],
       });
 
-      selectRange(selection, imageList, 'a');
+      selectRange(selection.value, imageList, 'a');
 
-      expect(pureCopy(selection)).to.eql({
+      expect(await selection.nextTick()).to.eql({
         primary: 'c',
         lastTouched: 'a',
         additional: { a: true, b: true },
       });
     });
 
-    it('selects the range when target after primary', () => {
-      const selection = createSelection({ primary: 'c' });
+    it('selects the range when target after primary', async () => {
+      const selection = createSelectionWrapper({ primary: 'c' });
       const imageList = createImageList({
         presenceMap: { a: true, b: true, c: true, d: true },
         items: ['a', 'b', 'c', 'd', 'e'],
       });
 
-      selectRange(selection, imageList, 'e');
+      selectRange(selection.value, imageList, 'e');
 
-      expect(pureCopy(selection)).to.eql({
+      expect(await selection.nextTick()).to.eql({
         primary: 'c',
         lastTouched: 'e',
         additional: { d: true, e: true },
