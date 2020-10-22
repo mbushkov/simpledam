@@ -1,11 +1,11 @@
 import { Immutable } from '@/lib/type-utils';
-import VueCompositionApi, { computed, defineComponent } from '@vue/composition-api';
+import VueCompositionApi, { computed, defineComponent, reactive, UnwrapRef } from '@vue/composition-api';
 import { mount, Wrapper } from '@vue/test-utils';
 import Buefy from 'buefy';
 import Vue from 'vue';
 
-export interface ObservableWrapper<T> {
-  readonly value: T;
+export interface ObservableWrapper<T extends object> {
+  readonly value: UnwrapRef<T>;
   readonly wrapper: Wrapper<Vue>;
   nextTick(): Promise<Immutable<T>>;
   snapshot(): Immutable<T>;
@@ -28,7 +28,7 @@ export interface ObservableWrapper<T> {
  *
  * @param observableValue Any object to observe.
  */
-export function createJSONWrapper<T>(observableValue: T): ObservableWrapper<T> {
+export function createJSONWrapper<T extends object>(observableValue: T): ObservableWrapper<T> {
   const recursiveComponent = defineComponent({
     name: 'recursive',
     template:
@@ -61,14 +61,16 @@ export function createJSONWrapper<T>(observableValue: T): ObservableWrapper<T> {
     },
   });
 
+  const reactiveObservableValue = reactive(observableValue);
+
   const wrapper = mount(recursiveComponent, {
     propsData: {
-      value: observableValue
+      value: reactiveObservableValue
     }
   });
 
   return {
-    value: observableValue,
+    value: reactiveObservableValue,
     wrapper,
     async nextTick(): Promise<Immutable<T>> {
       await wrapper.vm.$nextTick();

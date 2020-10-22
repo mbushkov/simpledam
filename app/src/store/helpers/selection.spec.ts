@@ -1,28 +1,27 @@
-import { Selection, ImageList } from "@/store/schema";
-import { assert, expect } from 'chai'
 import { createJSONWrapper, ObservableWrapper, setupTestEnv } from '@/lib/test-utils';
-import { selectRange, selectPrimary, toggleAdditionalSelection, Direction, movePrimarySelection, moveAdditionalSelection } from './selection';
-import { reactive } from '@vue/composition-api';
+import { ImageList, Selection } from "@/store/schema";
+import { assert, expect } from 'chai';
+import { Direction, moveAdditionalSelection, movePrimarySelection, selectPrimary, selectRange, toggleAdditionalSelection } from './selection';
 
 setupTestEnv();
 
 describe('Store selection helpers', () => {
 
   function createSelectionWrapper(selection: Partial<Selection> = {}): ObservableWrapper<Selection> {
-    return createJSONWrapper(reactive({
+    return createJSONWrapper({
       primary: undefined,
       lastTouched: undefined,
       additional: {},
       ...selection,
-    }));
+    });
   }
 
   function createImageList(imageList: Partial<ImageList> = {}): ImageList {
-    return reactive({
+    return {
       items: [],
       presenceMap: {},
       ...imageList
-    });
+    };
   }
 
   describe('selectPrimary()', () => {
