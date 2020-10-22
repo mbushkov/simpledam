@@ -5,6 +5,7 @@ import Vue from 'vue';
 import { ImageData, Props } from './ImageBox';
 import ImageBox from './ImageBox.vue';
 import { setupComponentTestEnv } from '@/lib/test-utils';
+import { reactive } from '@vue/composition-api';
 
 setupComponentTestEnv();
 
@@ -23,7 +24,7 @@ function generateImage(width: number, height: number, color: string): string {
 }
 
 function imageData(width: number, height: number, url: string, adjustments: Partial<ImageAdjustments> = {}): ImageData {
-  return Vue.observable({
+  return reactive({
     uid: 'a',
     filePath: '/foo/bar',
     previewSize: {

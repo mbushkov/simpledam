@@ -1,6 +1,8 @@
 import { TransientStore, ImageViewerTab } from '@/store/transient-store';
 import { expect } from 'chai'
-import { createJSONWrapper } from '@/lib/test-utils';
+import { createJSONWrapper, setupTestEnv } from '@/lib/test-utils';
+
+setupTestEnv();
 
 describe('TransientStore', () => {
   let ts: TransientStore;

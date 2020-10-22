@@ -5,6 +5,7 @@ import { bufferTime, catchError, filter, map } from 'rxjs/operators';
 import Vue from 'vue';
 import { TransientStore } from './transient-store';
 import { Direction, selectRange, selectPrimary, movePrimarySelection, moveAdditionalSelection, toggleAdditionalSelection } from './helpers/selection';
+import { reactive } from '@vue/composition-api';
 
 export { Direction } from './helpers/selection';
 
@@ -45,7 +46,7 @@ function dirName(path: string): string {
 }
 
 export class Store {
-  private _state: State = Vue.observable({
+  private _state: State = reactive({
     version: 1,
 
     filterSettings: {
@@ -80,7 +81,7 @@ export class Store {
   }
 
   replaceState(s: State) {
-    this._state = Vue.observable(s);
+    this._state = reactive(s);
   }
 
   readonly registerImage$ = this.apiService.ws.pipe(

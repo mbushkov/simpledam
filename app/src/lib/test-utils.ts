@@ -60,3 +60,7 @@ export function setupComponentTestEnv() {
   Vue.use(VueCompositionApi);
   Vue.use(Buefy);
 }
+
+export function setupTestEnv() {
+  Vue.use(VueCompositionApi);
+}

@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import { Immutable } from '@/lib/type-utils';
+import { reactive } from '@vue/composition-api';
 
 export enum ImageViewerTab {
   THUMBNAILS = 0,
@@ -14,7 +15,7 @@ export interface TransientState {
 type ReadonlyTransientState = Immutable<TransientState>;
 
 export class TransientStore {
-  private _state: TransientState = Vue.observable({
+  private _state: TransientState = reactive({
     imageViewerTab: ImageViewerTab.THUMBNAILS,
     columnCount: 1,
   })

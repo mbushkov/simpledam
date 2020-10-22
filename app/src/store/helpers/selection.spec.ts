@@ -1,12 +1,15 @@
-import Vue from 'vue';
 import { Selection, ImageList } from "@/store/schema";
 import { assert, expect } from 'chai'
-import { pureCopy } from '@/lib/test-utils';
+import { pureCopy, setupTestEnv } from '@/lib/test-utils';
 import { selectRange, selectPrimary } from './selection';
+import { reactive } from '@vue/composition-api';
+
+setupTestEnv();
 
 describe('Store selection helpers', () => {
+
   function createSelection(selection: Partial<Selection> = {}): Selection {
-    return Vue.observable({
+    return reactive({
       primary: undefined,
       lastTouched: undefined,
       additional: {},
@@ -15,7 +18,7 @@ describe('Store selection helpers', () => {
   }
 
   function createImageList(imageList: Partial<ImageList> = {}): ImageList {
-    return Vue.observable({
+    return reactive({
       items: [],
       presenceMap: {},
       ...imageList
