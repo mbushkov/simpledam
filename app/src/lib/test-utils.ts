@@ -39,7 +39,8 @@ function pureCopy<T>(obj: T): T {
 /**
  * Creates a component that wraps a JSON representation of a given reactive object.
  * Useful for monitoring state changes of reactive objects when state changes
- * are triggered by something else.
+ * are triggered by something else. Any Vue-reactivity-related bugs, like not
+ * using Vue.set/Vue.delete properly, should be caught by this.
  *
  * @param observableValue Any object to observe.
  */
