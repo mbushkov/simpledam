@@ -6,44 +6,11 @@ import Vue from 'vue';
 import { TransientStore } from './transient-store';
 import { Direction, selectRange, selectPrimary, movePrimarySelection, moveAdditionalSelection, toggleAdditionalSelection } from './helpers/selection';
 import { reactive } from '@vue/composition-api';
+import { filterSettingsInvariant, listForFilterSettingsInvariant, updateItemInList, updateListsPresence, updateListsWithFilter } from './helpers/filtering';
+import { dirName } from './helpers/filesystem';
 
 export { Direction } from './helpers/selection';
 
-
-function filterSettingsInvariant(fs: FilterSettings): string {
-  const l = [...fs.selectedLabels];
-  l.sort();
-
-  const s = [...fs.selectedRatings];
-  s.sort();
-
-  const p = [...fs.selectedPaths];
-  p.sort();
-
-  const invariant = l.map(i => `label:${i}`)
-    .concat(s.map(i => `rating:${i}`))
-    .concat(p.map(i => `path:${encodeURIComponent(i)}`))
-    .join('|');
-  if (invariant) {
-    return `|${invariant}|`;
-  } else {
-    return '';
-  }
-}
-
-function invariantKey(invariant: string): string {
-  const components = invariant.split(':');
-  if (components.length !== 2) {
-    throw new Error('invariantKey requires an invariant of length 1, got: ' + invariant);
-  }
-
-  return components[0].slice(1); // account for the starting '|'
-}
-
-function dirName(path: string): string {
-  const pathComponents = path.split('/');
-  return pathComponents.slice(0, pathComponents.length - 1).join('/');
-}
 
 export class Store {
   private _state: State = reactive({
@@ -102,19 +69,7 @@ export class Store {
   ).subscribe();
 
   public currentList(): ImageList {
-    return this.listForFilterSettingsInvariant(this._state.filtersInvariant);
-  }
-
-  public listForFilterSettingsInvariant(invariant: string): ImageList {
-    let list = this._state.lists[invariant];
-    if (list === undefined) {
-      list = {
-        presenceMap: {},
-        items: [],
-      };
-      Vue.set(this._state.lists, invariant, list);
-    }
-    return list;
+    return listForFilterSettingsInvariant(this._state.lists, this._state.filtersInvariant);
   }
 
   public selectPrimary(uid?: string) {
@@ -172,15 +127,15 @@ export class Store {
       selectedPaths: [],
     });
     // Makes sure that the list for this label exists.
-    this.listForFilterSettingsInvariant(invariant);
+    listForFilterSettingsInvariant(this._state.lists, invariant);
 
     for (const sel of Object.keys(this._state.selection.additional).concat(this._state.selection.primary)) {
       const prevLabel = this._state.metadata[sel].label;
       Vue.set(this._state.metadata[sel], 'label', label);
 
       if (prevLabel !== label) {
-        this.ensureItemInCurrentList(sel);
-        this.updateListsPresence(sel, invariant);
+        this.updateItemInCurrentList(sel);
+        updateListsPresence(this._state.lists, sel, invariant);
       }
     }
   }
@@ -207,13 +162,7 @@ export class Store {
     }
 
     this._state.filtersInvariant = filterSettingsInvariant(this._state.filterSettings);
-    if (this._state.lists[this._state.filtersInvariant]) {
-      this.syncListWithPresenceMap(this._state.filtersInvariant);
-    } else {
-      for (const uid in this._state.images) {
-        this.ensureItemInCurrentList(uid);
-      }
-    }
+    updateListsWithFilter(this._state.filterSettings, this._state.lists, this._state.images, this._state.metadata);
     this.selectPrimary(undefined);
   }
 
@@ -229,21 +178,20 @@ export class Store {
       selectedPaths: [],
     });
     // Makes sure that the list for this label exists.
-    this.listForFilterSettingsInvariant(invariant);
+    listForFilterSettingsInvariant(this._state.lists, invariant);
 
     for (const sel of Object.keys(this._state.selection.additional).concat(this._state.selection.primary)) {
       const prevRating = this._state.metadata[sel].rating;
       Vue.set(this._state.metadata[sel], 'rating', rating);
 
       if (prevRating !== rating) {
-        this.ensureItemInCurrentList(sel);
-        this.updateListsPresence(sel, invariant);
+        this.updateItemInCurrentList(sel);
+        updateListsPresence(this._state.lists, sel, invariant);
       }
     }
   }
 
   public changeRatingFilter(rating: Rating, state: boolean, allowMultiple: boolean) {
-    console.log(['change label filter', rating, state, allowMultiple]);
     if (!allowMultiple) {
       this._state.filterSettings.selectedLabels = [];
       this._state.filterSettings.selectedPaths = [];
@@ -265,18 +213,11 @@ export class Store {
     }
 
     this._state.filtersInvariant = filterSettingsInvariant(this._state.filterSettings);
-    if (this._state.lists[this._state.filtersInvariant]) {
-      this.syncListWithPresenceMap(this._state.filtersInvariant);
-    } else {
-      for (const uid in this._state.images) {
-        this.ensureItemInCurrentList(uid);
-      }
-    }
+    updateListsWithFilter(this._state.filterSettings, this._state.lists, this._state.images, this._state.metadata);
     this.selectPrimary(undefined);
   }
 
   public changePathFilter(path: string, state: boolean, allowMultiple: boolean) {
-    console.log(['change path filter', path, state, allowMultiple]);
     if (!allowMultiple) {
       this._state.filterSettings.selectedLabels = [];
       this._state.filterSettings.selectedRatings = [];
@@ -297,14 +238,7 @@ export class Store {
       }
     }
 
-    this._state.filtersInvariant = filterSettingsInvariant(this._state.filterSettings);
-    if (this._state.lists[this._state.filtersInvariant]) {
-      this.syncListWithPresenceMap(this._state.filtersInvariant);
-    } else {
-      for (const uid in this._state.images) {
-        this.ensureItemInCurrentList(uid);
-      }
-    }
+    updateListsWithFilter(this._state.filterSettings, this._state.lists, this._state.images, this._state.metadata);
     this.selectPrimary(undefined);
   }
 
@@ -356,65 +290,15 @@ export class Store {
     }
   }
 
-  private isMatchingFilterSettings(image: ImageFile, mdata: ImageMetadata): boolean {
-    const fs = this._state.filterSettings;
-    const matchesLabel = ((fs.selectedLabels.length === 0) || fs.selectedLabels.indexOf(mdata.label) !== -1);
-    const matchesStarRating = ((fs.selectedRatings.length === 0) || fs.selectedRatings.indexOf(mdata.rating) !== -1);
-    const matchedPaths = ((fs.selectedPaths.length === 0) || fs.selectedPaths.indexOf(dirName(image.path)) !== -1);
-
-    return matchesLabel && matchesStarRating && matchedPaths;
-  }
-
-  private syncListWithPresenceMap(invariant: string) {
-    const l = this.listForFilterSettingsInvariant(invariant);
-    const pmCopy = { ...l.presenceMap };
-    const newList = l.items.map(i => {
-      if (pmCopy[i]) {
-        delete pmCopy[i];
-        return i;
-      } else {
-        return undefined;
-      }
-    }).filter((i): i is string => i !== undefined);
-    for (const added of Object.keys(pmCopy)) {
-      newList.push(added);
-    }
-    l.items = newList;
-  }
-
-  private updateListsPresence(uid: string, invariant: string) {
-    for (const key in this._state.lists) {
-      const l = this._state.lists[key];
-      if (key === '' || key.includes(invariant)) {
-        if (!l.presenceMap[uid]) {
-          Vue.set(l.presenceMap, uid, true);
-        }
-      } else if (key.includes(invariantKey(invariant))) {  // This should only apply to lists in the same group (i.e. other labels, or other ratings, or other paths).        
-        if (l.presenceMap[uid]) {
-          Vue.delete(l.presenceMap, uid);
-        }
-      }
-    }
-  }
-
-  private ensureItemInCurrentList(uid: string) {
+  private updateItemInCurrentList(uid: string) {
     const image = this._state.images[uid]
     const mdata = this._state.metadata[uid];
 
-    const l = this.listForFilterSettingsInvariant(this._state.filtersInvariant);
-    if (this.isMatchingFilterSettings(image, mdata)) {
-      if (!l.presenceMap[uid]) {
-        Vue.set(l.presenceMap, uid, true);
-        l.items.push(uid);
-      }
-    } else {
-      if (l.presenceMap[uid]) {
-        Vue.delete(l.presenceMap, uid);
-        l.items.splice(l.items.indexOf(uid), 1);
-      }
+    const l = listForFilterSettingsInvariant(this._state.lists, this._state.filtersInvariant);
+    if (!updateItemInList(l, this._state.filterSettings, image, mdata)) {
       if (this._state.selection.primary === uid) {
         this.selectPrimary(undefined);
-      }
+      }      
     }
   }
 
@@ -437,7 +321,7 @@ export class Store {
         },
       };
       Vue.set(this._state.metadata, imageFile.uid, imageMetadata);
-      this.ensureItemInCurrentList(imageFile.uid);
+      this.updateItemInCurrentList(imageFile.uid);
 
       invariant = filterSettingsInvariant({
         selectedLabels: [Label.NONE],
@@ -445,9 +329,9 @@ export class Store {
         selectedPaths: [],
       });
       // Makes sure that the list for label None exists.
-      this.listForFilterSettingsInvariant(invariant);
+      listForFilterSettingsInvariant(this._state.lists, invariant);
 
-      this.updateListsPresence(imageFile.uid, invariant);
+      updateListsPresence(this._state.lists, imageFile.uid, invariant);
 
       // Now update the ratings list.
       invariant = filterSettingsInvariant({
@@ -456,12 +340,12 @@ export class Store {
         selectedPaths: [],
       });
       // Makes sure that the list for label None exists.
-      this.listForFilterSettingsInvariant(invariant);
+      listForFilterSettingsInvariant(this._state.lists, invariant);
 
-      this.updateListsPresence(imageFile.uid, invariant);
+      updateListsPresence(this._state.lists, imageFile.uid, invariant);
     } else {
       // Update the current list.
-      this.ensureItemInCurrentList(imageFile.uid);
+      this.updateItemInCurrentList(imageFile.uid);
     }
 
     // Now update the paths.
@@ -471,9 +355,9 @@ export class Store {
       selectedPaths: [dirName(imageFile.path)],
     });
     // Makes sure that the list for label None exists.
-    this.listForFilterSettingsInvariant(invariant);
+    listForFilterSettingsInvariant(this._state.lists, invariant);
 
-    this.updateListsPresence(imageFile.uid, invariant);
+    updateListsPresence(this._state.lists, imageFile.uid, invariant);
   }
 
   private registerImages(imageFile: ImageFile[]) {
