@@ -282,7 +282,7 @@ import SideBar from './components/sidebar/SideBar.vue';
 import StatusBar from './components/StatusBar.vue';
 import ToolBar from './components/ToolBar.vue';
 import ImageViewer from './components/ImageViewer.vue';
-import { BACKEND_MIRROR } from '@/backend/backend-mirror';
+import { backendMirrorSingleton } from '@/backend/backend-mirror';
 import { storeSingleton } from '@/store';
 import { apiServiceSingleton } from '@/backend/api';
 import * as log from 'loglevel';
@@ -350,7 +350,7 @@ export default Vue.extend({
 });
 
 (window as any).electron.onSave(async () => {
-  if (!BACKEND_MIRROR.state.catalogPath) {
+  if (!backendMirrorSingleton().state.catalogPath) {
     // TODO: once is not really needed here. A global "on" should be enough.
     (window as any).electron.showSaveCatalogDialog((path: string) => {
       if (path) {
@@ -365,8 +365,8 @@ export default Vue.extend({
       }
     });
   } else {
-    log.info('[App] Saving existing catalog to: ', BACKEND_MIRROR.state.catalogPath);
-    apiServiceSingleton().saveStore(BACKEND_MIRROR.state.catalogPath, storeSingleton().state);
+    log.info('[App] Saving existing catalog to: ', backendMirrorSingleton().state.catalogPath);
+    apiServiceSingleton().saveStore(backendMirrorSingleton().state.catalogPath, storeSingleton().state);
   }
 });
 </script>

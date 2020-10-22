@@ -41,4 +41,11 @@ class BackendMirror {
 }
 
 
-export const BACKEND_MIRROR = new BackendMirror();
+let _backendMirror: BackendMirror | undefined;
+export function backendMirrorSingleton() {
+  if (!_backendMirror) {
+    _backendMirror = new BackendMirror();
+  }
+
+  return _backendMirror;
+}
