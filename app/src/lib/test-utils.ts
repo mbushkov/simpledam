@@ -10,7 +10,14 @@ export interface ObservableWrapper<T> {
   snapshot(): Immutable<T>;
 }
 
-export function createJSONWrapper<T>(observableValue: T) {
+/**
+ * Creates a component that wraps a JSON representation of a given reactive object.
+ * Useful for monitoring state changes of reactive objects when state changes
+ * are triggered by something else.
+ *
+ * @param observableValue Any object to observe.
+ */
+export function createJSONWrapper<T>(observableValue: T): ObservableWrapper<T> {
   const c = Vue.component('Test', {
     name: 'Test',
     props: {
@@ -36,6 +43,11 @@ export function createJSONWrapper<T>(observableValue: T) {
   };
 }
 
+/**
+ * Converts the object from reactive to pure Javascript.
+ *
+ * @param obj An object, potentially containing reactive properties.
+ */
 export function pureCopy<T>(obj: T): T {
   const replacer = (key: string, value: unknown) => value === undefined ? null : value;
   const result = JSON.parse(JSON.stringify(obj, replacer));
