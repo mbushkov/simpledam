@@ -59,17 +59,19 @@ export function listForFilterSettingsInvariant(lists: { [key: string]: ImageList
   return list;
 }
 
-export function updateItemInList(l: ImageList, fs: FilterSettings, image: ImageFile, mdata: ImageMetadata) {
+export function updateItemInList(l: ImageList, fs: FilterSettings, image: ImageFile, mdata: ImageMetadata): boolean {
   if (isMatchingFilterSettings(fs, image, mdata)) {
     if (!l.presenceMap[image.uid]) {
       Vue.set(l.presenceMap, image.uid, true);
       l.items.push(image.uid);
     }
+    return true;
   } else {
     if (l.presenceMap[image.uid]) {
       Vue.delete(l.presenceMap, image.uid);
       l.items.splice(l.items.indexOf(image.uid), 1);
     }
+    return false;
   }
 }
 
@@ -85,6 +87,30 @@ export function updateListsWithFilter(filterSettings: FilterSettings,
     const list = listForFilterSettingsInvariant(lists, filtersInvariant);
     for (const uid in images) {
       updateItemInList(list, filterSettings, images[uid], metadata[uid]);
+    }
+  }
+}
+
+function invariantKey(invariant: string): string {
+  const components = invariant.split(':');
+  if (components.length !== 2) {
+    throw new Error('invariantKey requires an invariant of length 1, got: ' + invariant);
+  }
+
+  return components[0] + ':';
+}
+
+export function updateListsPresence(lists: { [key: string]: ImageList }, uid: string, invariant: string) {
+  for (const key in lists) {
+    const l = lists[key];
+    if (key === '' || key.includes(invariant)) {
+      if (!l.presenceMap[uid]) {
+        Vue.set(l.presenceMap, uid, true);
+      }
+    } else if (key.includes(invariantKey(invariant))) {  // This should only apply to lists in the same group (i.e. other labels, or other ratings, or other paths).        
+      if (l.presenceMap[uid]) {
+        Vue.delete(l.presenceMap, uid);
+      }
     }
   }
 }

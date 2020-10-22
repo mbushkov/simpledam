@@ -1,7 +1,7 @@
 import { createJSONWrapper, setupTestEnv } from "@/lib/test-utils";
 import { expect } from 'chai';
 import { FilterSettings, ImageFile, ImageList, ImageMetadata, Label } from '../schema';
-import { filterSettingsInvariant, isMatchingFilterSettings, syncListWithPresenceMap, updateItemInList, updateListsWithFilter } from './filtering';
+import { filterSettingsInvariant, isMatchingFilterSettings, syncListWithPresenceMap, updateItemInList, updateListsPresence, updateListsWithFilter } from './filtering';
 
 setupTestEnv();
 
@@ -303,6 +303,84 @@ describe('Store filtering helpers', () => {
         '|label:3|': {
           items: ['b'],
           presenceMap: { b: true },
+        }
+      });
+    });
+  });
+
+  describe('updateListsPresence()', () => {
+    it('does nothing if invariant does not match and uid not present', async () => {
+      const w = createJSONWrapper<{ [key: string]: ImageList }>({
+        '|label:1|': {
+          items: ['a'],
+          presenceMap: { a: true },
+        }
+      });
+
+      updateListsPresence(w.value, 'b', '|rating:0|');
+      expect(await w.nextTick()).to.eql({
+        '|label:1|': {
+          items: ['a'],
+          presenceMap: { a: true },
+        }
+      });
+    });
+
+    it('adds uid to presence map if it invariant matches', async () => {
+      const w = createJSONWrapper<{ [key: string]: ImageList }>({
+        '|label:1|': {
+          items: ['a'],
+          presenceMap: { a: true },
+        }
+      });
+
+      updateListsPresence(w.value, 'b', '|label:1|');
+      expect(await w.nextTick()).to.eql({
+        '|label:1|': {
+          items: ['a'],
+          presenceMap: { a: true, b: true },
+        }
+      });
+    });
+
+    it('removes uid from presence map if invariant\'s left part matches', async () => {
+      const w = createJSONWrapper<{ [key: string]: ImageList }>({
+        '|label:1|': {
+          items: ['a'],
+          presenceMap: { a: true },
+        }
+      });
+
+      updateListsPresence(w.value, 'a', '|label:0|');
+      expect(await w.nextTick()).to.eql({
+        '|label:1|': {
+          items: ['a'],
+          presenceMap: {},
+        }
+      });
+    });
+
+    it('always adds item to empty invariant list', async () => {
+      const w = createJSONWrapper<{ [key: string]: ImageList }>({
+        '|label:1|': {
+          items: ['a'],
+          presenceMap: { a: true },
+        },
+        '': {
+          items: ['a'],
+          presenceMap: { a: true },
+        }
+      });
+
+      updateListsPresence(w.value, 'b', '|label:1|');
+      expect(await w.nextTick()).to.eql({
+        '|label:1|': {
+          items: ['a'],
+          presenceMap: { a: true, b: true },
+        },
+        '': {
+          items: ['a'],
+          presenceMap: { a: true, b: true },
         }
       });
     });
