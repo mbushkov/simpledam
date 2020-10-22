@@ -1,7 +1,6 @@
 import { ImageAdjustments, Label, Rotation } from '@/store/schema';
 import { shallowMount } from '@vue/test-utils';
 import { expect } from 'chai';
-import Vue from 'vue';
 import { ImageData, Props } from './ImageBox';
 import ImageBox from './ImageBox.vue';
 import { setupComponentTestEnv } from '@/lib/test-utils';

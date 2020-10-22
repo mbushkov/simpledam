@@ -1,6 +1,5 @@
 import { apiServiceSingleton } from './api';
 import { filter, map } from 'rxjs/operators';
-import Vue from 'vue';
 import { reactive } from '@vue/composition-api';
 
 export declare interface BackendState {

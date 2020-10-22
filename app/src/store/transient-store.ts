@@ -1,4 +1,3 @@
-import Vue from 'vue';
 import { Immutable } from '@/lib/type-utils';
 import { reactive } from '@vue/composition-api';
 
