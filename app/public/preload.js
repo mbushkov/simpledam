@@ -1,9 +1,13 @@
-const { contextBridge, ipcRenderer, webFrame, BrowserWindow } = require('electron');
+const { contextBridge, ipcRenderer, webFrame } = require('electron');
 
 if (process.env.IS_NM_E2E_TEST) {
   contextBridge.exposeInMainWorld('rawElectron', {
     openDevTools() {
       ipcRenderer.send('raw:open-dev-tools')
+    },
+
+    resizeWindowBy(width, height) {
+      ipcRenderer.send('raw:resize-window-by', width, height);
     }
   });
 }

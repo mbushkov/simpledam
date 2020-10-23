@@ -4,14 +4,13 @@
 // https://www.metmuseum.org/art/collection/search/13325
 // Portrait of a Gentleman, attributed to Henry Williams
 
-import path from 'path';
-import { app, protocol, ipcMain, nativeImage, BrowserWindow, Menu, dialog } from 'electron';
-import program from 'commander';
-import {
-  createProtocol, installVueDevtools,
-  /* installVueDevtools */
-} from 'vue-cli-plugin-electron-builder/lib'
 import { ChildProcess, spawn } from 'child_process';
+import program from 'commander';
+import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, protocol } from 'electron';
+import path from 'path';
+import {
+  createProtocol, installVueDevtools
+} from 'vue-cli-plugin-electron-builder/lib';
 
 program
   .allowUnknownOption()
@@ -348,5 +347,14 @@ if (isDevelopment) {
 ipcMain.on('raw:open-dev-tools', () => {
   for (const win of BrowserWindow.getAllWindows()) {
     win.webContents.openDevTools();
+  }
+});
+
+ipcMain.on('raw:resize-window-by', (_, width: number, height: number) => {
+  for (const win of BrowserWindow.getAllWindows()) {
+    const rect = win.getBounds();
+    rect.width += width;
+    rect.height += height;
+    win.setBounds(rect);
   }
 });
