@@ -11,7 +11,11 @@ setup_args = dict(
     install_requires=[
         "selenium==3.141.0",
     ],
-    data_files=[],
+    data_files=[(
+        "newmedia_e2e/assets",
+        ["newmedia_e2e/assets/jquery-3.5.1.min.js"],
+    )],
+    include_package_data=True,
 )
 
 setup(**setup_args)
