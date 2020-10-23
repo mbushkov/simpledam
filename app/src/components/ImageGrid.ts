@@ -1,4 +1,4 @@
-import { defineComponent, computed, onMounted, onBeforeUnmount, ref, watchEffect } from '@vue/composition-api';
+import { defineComponent, computed, onMounted, onBeforeUnmount, ref, watchEffect, watch } from '@vue/composition-api';
 import { storeSingleton, transientStoreSingleton, Direction, ImageViewerTab } from '@/store';
 import { apiServiceSingleton, PORT } from '@/backend/api';
 import { ImageData, SelectionType } from './ImageBox';
@@ -25,11 +25,21 @@ const LABELS_MAP: { [key: string]: Label } = {
   '9': Label.GRAY,
 };
 
+interface Props {
+  readonly show: boolean;
+}
+
 export default defineComponent({
   components: {
     ImageBox,
   },
-  setup() {
+  props: {
+    show: {
+      type: Boolean,
+      required: true,
+    }
+  },
+  setup(props: Props) {
     const store = storeSingleton();
     const transientStore = transientStoreSingleton();
     const apiService = apiServiceSingleton();
@@ -86,6 +96,12 @@ export default defineComponent({
       }
 
       return result;
+    });
+
+    const watchShow = watch(() => props.show, (newValue: boolean) => {
+      if (newValue) {
+        handleResize();
+      }
     });
 
     const imageBoxStyle = computed(() => ({
@@ -373,6 +389,8 @@ export default defineComponent({
       imageBoxDoubleClicked,
       imageBoxDragStarted,
       keyPressed,
+
+      watchShow,
     };
   }
 });

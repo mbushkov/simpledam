@@ -2,6 +2,7 @@
   <div
     class="image-grid"
     ref="el"
+    v-show="show"
     @dragenter.prevent="containerDragEntered($event)"
     @dragleave.prevent="containerDragLeft($event)"
     @dragover.prevent="containerDraggedOver($event)"

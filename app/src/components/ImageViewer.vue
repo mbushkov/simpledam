@@ -6,7 +6,7 @@
         <b-tab-item label="Media"></b-tab-item>
       </b-tabs>
     </div>
-    <ImageGrid ref="imageGridRef" class="grow" v-show="currentTab === ImageViewerTab.THUMBNAILS"></ImageGrid>
+    <ImageGrid ref="imageGridRef" class="grow" :show="currentTab === ImageViewerTab.THUMBNAILS"></ImageGrid>
     <SingleImage ref="singleImageRef" class="grow" v-if="currentTab === ImageViewerTab.MEDIA"></SingleImage>
   </div>
 </template>
