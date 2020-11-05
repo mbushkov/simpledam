@@ -12,10 +12,19 @@ import {
   createProtocol, installVueDevtools
 } from 'vue-cli-plugin-electron-builder/lib';
 
+console.log('Raw arguments: ', process.argv);
 program
   .allowUnknownOption()
-  .option('--scan-path <path>', 'Scan given path for images on startup');
+  .option('--scan-path <path>', 'Scan given path for images on startup.')
+  .option('--catalog-path <path>', 'Open given catalog on startup.');
 program.parse(process.argv);
+
+// TODO: investigate why the commander doesn't work in tests.
+for (const s of process.argv) {
+  if (s.startsWith('--catalog-path=')) {
+    program.catalogPath = s.split(/=/)[1];
+  }
+}
 
 app.commandLine.appendSwitch('host-rules', 'MAP * 127.0.0.1');
 
@@ -241,6 +250,7 @@ app.on('ready', async () => {
           type: 'separator'
         },
         {
+          id: 'Close',
           label: 'Close',
           accelerator: 'CommandOrControl+W',
           click: function () {
@@ -248,6 +258,7 @@ app.on('ready', async () => {
           }
         },
         {
+          id: 'Save',
           label: 'Save',
           accelerator: 'CommandOrControl+S',
           click: function () {
@@ -256,6 +267,7 @@ app.on('ready', async () => {
           }
         },
         {
+          id: 'SaveAs',
           label: 'Save As...',
           accelerator: 'CommandOrControl+Shift+S',
           click: function () {
@@ -299,7 +311,11 @@ app.on('ready', async () => {
 
   if (beforeReadyPaths.length === 0) {
     console.log('[BACKEND] Path for initial scan: ', program.scanPath);
-    await createWindow({ scanPath: program.scanPath });
+    console.log('[BACKEND] Catalog path: ', program.catalogPath);
+    await createWindow({
+      scanPath: program.scanPath,
+      catalogPath: program.catalogPath,
+    });
   } else {
     for (const p of beforeReadyPaths) {
       await createWindow({ catalogPath: p });

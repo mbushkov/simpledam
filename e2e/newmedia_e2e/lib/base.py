@@ -44,6 +44,23 @@ class Electron:
     self.wd.execute_script(f"window.rawElectron.resizeWindowBy({width}, {height})")
 
 
+class App:
+
+  def __init__(self, webdriver: webdriver.Remote):
+    self.wd = webdriver
+
+  def TriggerAction(self, action_name: str, *args: Any):
+    self.wd.execute_script(
+        """
+      window.dispatchEvent(new CustomEvent('nm-action', {
+          detail: {
+            actionName: '%s',
+            args: arguments
+          }
+        }))
+      """ % action_name, *args)
+
+
 T = TypeVar('T')
 
 
@@ -63,6 +80,10 @@ class BrowserWindow:
   @property
   def electron(self) -> Electron:
     return Electron(self.wd)
+
+  @property
+  def app(self) -> App:
+    return App(self.wd)
 
   def _FindElements(self, query: str) -> List[webelement.WebElement]:
     elems = self.wd.execute_script("return $(\"" + query.replace("\"", "\\\"") + "\");")
@@ -165,15 +186,27 @@ class TestBase(unittest.TestCase):
   def tearDownClass(cls):
     cls.webdriver_service.stop()
 
-  def CreateWindow(self, scan_path: Optional[str] = None) -> BrowserWindow:
+  def CreateWindow(self,
+                   scan_path: Optional[str] = None,
+                   catalog_path: Optional[str] = None) -> BrowserWindow:
     print("Using remote URL: ", self.__class__.webdriver_service.service_url)
 
+    args = []
+
+    if scan_path is not None:
+      args.append("--scan-path=%s" % scan_path)
+
+    if catalog_path is not None:
+      args.append("--catalog-path=%s" % catalog_path)
+
+    print("Launching with args: ", args)
     wd = webdriver.remote.webdriver.WebDriver(
         command_executor=self.__class__.webdriver_service.service_url,
         desired_capabilities={
             "browserName": "chrome",
             "goog:chromeOptions": {
-                "args": ["--scan-path=%s" % scan_path],
+                "args":
+                    args,
                 "binary":
                     os.path.join(os.path.dirname(__file__), "..", "..", "..",
                                  "app/dist_electron/mac/SimpleDAM.app/Contents/MacOS/SimpleDAM"),
@@ -192,6 +225,12 @@ class TestBase(unittest.TestCase):
     if not jquery_present:
       wd.execute_script(self.__class__.jquery_source)
 
-    self.addCleanup(win.Close)
+    def WindowCleanup():
+      try:
+        win.Close()
+      except selenium_exceptions.InvalidSessionIdException:
+        pass
+
+    self.addCleanup(WindowCleanup)
 
     return win
