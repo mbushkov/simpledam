@@ -5,7 +5,6 @@
 // Portrait of a Gentleman, attributed to Henry Williams
 
 import { ChildProcess, spawn } from 'child_process';
-import program from 'commander';
 import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, protocol } from 'electron';
 import path from 'path';
 import {
@@ -13,18 +12,22 @@ import {
 } from 'vue-cli-plugin-electron-builder/lib';
 
 console.log('Raw arguments: ', process.argv);
-program
-  .allowUnknownOption()
-  .option('--scan-path <path>', 'Scan given path for images on startup.')
-  .option('--catalog-path <path>', 'Open given catalog on startup.');
-program.parse(process.argv);
 
-// TODO: investigate why the commander doesn't work in tests.
-for (const s of process.argv) {
-  if (s.startsWith('--catalog-path=')) {
-    program.catalogPath = s.split(/=/)[1];
+function extractStringArg(name: string): string | undefined {
+  for (const s of process.argv) {
+    const prefix = `--${name}=`;
+    if (s.startsWith(prefix)) {
+      return s.substring(prefix.length);
+    }
   }
+
+  return undefined;
 }
+
+const ARGV = {
+  scanPath: extractStringArg('scan'),
+  catalogPath: extractStringArg('catalog'),
+};
 
 app.commandLine.appendSwitch('host-rules', 'MAP * 127.0.0.1');
 
@@ -310,11 +313,11 @@ app.on('ready', async () => {
   Menu.setApplicationMenu(menu);
 
   if (beforeReadyPaths.length === 0) {
-    console.log('[BACKEND] Path for initial scan: ', program.scanPath);
-    console.log('[BACKEND] Catalog path: ', program.catalogPath);
+    console.log('[BACKEND] Path for initial scan: ', ARGV.scanPath);
+    console.log('[BACKEND] Catalog path: ', ARGV.catalogPath);
     await createWindow({
-      scanPath: program.scanPath,
-      catalogPath: program.catalogPath,
+      scanPath: ARGV.scanPath,
+      catalogPath: ARGV.catalogPath,
     });
   } else {
     for (const p of beforeReadyPaths) {
