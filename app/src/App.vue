@@ -282,10 +282,10 @@ import SideBar from './components/sidebar/SideBar.vue';
 import StatusBar from './components/StatusBar.vue';
 import ToolBar from './components/ToolBar.vue';
 import ImageViewer from './components/ImageViewer.vue';
-import { backendMirrorSingleton } from '@/backend/backend-mirror';
 import { storeSingleton } from '@/store';
 import { apiServiceSingleton } from '@/backend/api';
 import * as log from 'loglevel';
+import { actionServiceSingleton } from './actions';
 
 
 export default Vue.extend({
@@ -349,25 +349,8 @@ export default Vue.extend({
   },
 });
 
-(window as any).electron.onSave(async () => {
-  if (!backendMirrorSingleton().state.catalogPath) {
-    // TODO: once is not really needed here. A global "on" should be enough.
-    (window as any).electron.showSaveCatalogDialog((path: string) => {
-      if (path) {
-        if (!path.endsWith('.nmcatalog')) {
-          path += '.nmcatalog'
-        }
-
-        log.info('[App] Saving new catalog to: ', path);
-        apiServiceSingleton().saveStore(path, storeSingleton().state);
-      } else {
-        log.info('[App] Save cancelled.');
-      }
-    });
-  } else {
-    log.info('[App] Saving existing catalog to: ', backendMirrorSingleton().state.catalogPath);
-    apiServiceSingleton().saveStore(backendMirrorSingleton().state.catalogPath, storeSingleton().state);
-  }
+(window as any).addEventListener('nm-action', (event: CustomEvent<{actionName: string, args: any[]}>) => {
+  actionServiceSingleton().performAction(event.detail.actionName, ...event.detail.args);
 });
 </script>
 

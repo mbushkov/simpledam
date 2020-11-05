@@ -252,7 +252,15 @@ app.on('ready', async () => {
           accelerator: 'CommandOrControl+S',
           click: function () {
             const win = BrowserWindow.getFocusedWindow();
-            win?.webContents.send('save');
+            win?.webContents.send('action', 'Save');
+          }
+        },
+        {
+          label: 'Save As...',
+          accelerator: 'CommandOrControl+Shift+S',
+          click: function () {
+            const win = BrowserWindow.getFocusedWindow();
+            win?.webContents.send('action', 'SaveAs');
           }
         },
       ]

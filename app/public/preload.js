@@ -8,7 +8,7 @@ if (process.env.IS_NM_E2E_TEST) {
 
     resizeWindowBy(width, height) {
       ipcRenderer.send('raw:resize-window-by', width, height);
-    }
+    },
   });
 }
 
@@ -20,18 +20,25 @@ contextBridge.exposeInMainWorld(
       ipcRenderer.send('ondragstart', paths, thumbnailUrl);
     },
 
-    onSave(callbackFn) {
-      ipcRenderer.on('save', callbackFn);
-    },
-
     showSaveCatalogDialog(callbackFn) {
       ipcRenderer.once('show-save-catalog-dialog-reply', (event, path) => {
         callbackFn(path);
       });
       ipcRenderer.send('show-save-catalog-dialog');
-    }
+    },
   }
 )
+
+// Forwarding to window.dispatchEvent seems to be the easiest approach when subscribing
+// to events sent to the renderer process.
+ipcRenderer.on('action', (_, actionName, ...args) => {
+  window.dispatchEvent(new CustomEvent('nm-action', {
+    detail: {
+      actionName,
+      args
+    }
+  }));
+});
 
 webFrame.setZoomFactor(1);
 webFrame.setVisualZoomLevelLimits(1, 1);
