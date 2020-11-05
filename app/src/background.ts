@@ -295,6 +295,14 @@ app.on('ready', async () => {
         {
           role: 'delete'
         },
+        {
+          id: 'LabelRed',
+          label: 'Label with Red',
+          click: function () {
+            const win = BrowserWindow.getFocusedWindow();
+            win?.webContents.send('action', 'LabelRed');
+          }
+        },
       ]
     },
     {

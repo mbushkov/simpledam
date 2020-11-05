@@ -194,10 +194,10 @@ class TestBase(unittest.TestCase):
     args = []
 
     if scan_path is not None:
-      args.append("--scan-path=%s" % scan_path)
+      args.append("--scan=%s" % scan_path)
 
     if catalog_path is not None:
-      args.append("--catalog-path=%s" % catalog_path)
+      args.append("--catalog=%s" % catalog_path)
 
     print("Launching with args: ", args)
     wd = webdriver.remote.webdriver.WebDriver(
