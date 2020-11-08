@@ -5,7 +5,7 @@
 // Portrait of a Gentleman, attributed to Henry Williams
 
 import { ChildProcess, spawn } from 'child_process';
-import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, protocol } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, protocol, session } from 'electron';
 import path from 'path';
 import {
   createProtocol, installVueDevtools
@@ -108,6 +108,7 @@ async function createWindow(options: CreateWindowOptions = {}) {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      enableRemoteModule: false,
       preload: path.join(__static, '/preload.js'),
     }
   });
@@ -178,6 +179,12 @@ app.on('activate', async () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', async () => {
+  // TODO: audit the measures through https://www.electronjs.org/docs/tutorial/security
+  // Make sure no additional permissions can be requested.
+  session.defaultSession.setPermissionRequestHandler((_webContents, _permission, callback) => {
+    return callback(false);
+  });
+
   if (isDevelopment && !process.env.IS_TEST) {
     // Install Vue Devtools
     // Devtools extensions are broken in Electron 6.0.0 and greater
