@@ -334,8 +334,7 @@ export default defineComponent({
     }
 
     function imageBoxContextClicked(uid: string) {
-      console.log('image box context clicked', uid);
-      store.selectPrimary(uid);
+      store.selectPrimaryPreservingAdditionalIfPossible(uid);
       electronHelperService().showImageMenu();
     }
 

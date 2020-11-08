@@ -1,7 +1,7 @@
 import { createJSONWrapper, ObservableWrapper, setupTestEnv } from '@/lib/test-utils';
 import { ImageList, Selection } from "@/store/schema";
 import { assert, expect } from 'chai';
-import { Direction, moveAdditionalSelection, movePrimarySelection, selectPrimary, selectRange, toggleAdditionalSelection } from './selection';
+import { Direction, moveAdditionalSelection, movePrimarySelection, selectPrimary, selectPrimaryPreservingAdditionalIfPossible, selectRange, toggleAdditionalSelection } from './selection';
 
 setupTestEnv();
 
@@ -66,6 +66,56 @@ describe('Store selection helpers', () => {
         primary: undefined,
         lastTouched: undefined,
         additional: {},
+      } as Selection);
+    });
+  });
+
+  describe('selectPrimaryPreservingAdditionalIfPossible()', () => {
+    it('does nothing if new selection matches primary', async () => {
+      const selection = createSelectionWrapper({
+        primary: 'a',
+        lastTouched: 'a',
+        additional: { b: true, }
+      });
+
+      selectPrimaryPreservingAdditionalIfPossible(selection.value, 'a');
+
+      expect(await selection.nextTick()).to.eql({
+        primary: 'a',
+        lastTouched: 'a',
+        additional: { b: true, }
+      } as Selection);
+    });
+
+    it('moves selection within additional selection', async () => {
+      const selection = createSelectionWrapper({
+        primary: 'a',
+        lastTouched: 'a',
+        additional: { b: true, c: true }
+      });
+
+      selectPrimaryPreservingAdditionalIfPossible(selection.value, 'b');
+
+      expect(await selection.nextTick()).to.eql({
+        primary: 'b',
+        lastTouched: 'b',
+        additional: { a: true, c: true, }
+      } as Selection);
+    });
+
+    it('resets the selection if outside of the primary and additional', async () => {
+      const selection = createSelectionWrapper({
+        primary: 'a',
+        lastTouched: 'a',
+        additional: { b: true, c: true }
+      });
+
+      selectPrimaryPreservingAdditionalIfPossible(selection.value, 'd');
+
+      expect(await selection.nextTick()).to.eql({
+        primary: 'd',
+        lastTouched: 'd',
+        additional: {}
       } as Selection);
     });
   });

@@ -35,6 +35,20 @@ export function selectPrimary(selection: Selection, uid: string | undefined) {
   }
 }
 
+export function selectPrimaryPreservingAdditionalIfPossible(selection: Selection, uid: string) {
+  if (selection.primary === uid) {
+    return;
+  } else if (selection.primary !== undefined && selection.additional[uid]) {
+    selection.additional[selection.primary] = true;
+    Vue.delete(selection.additional, uid);
+
+    selection.primary = uid;
+    selection.lastTouched = uid;
+  } else {
+    selectPrimary(selection, uid);
+  }
+}
+
 export function toggleAdditionalSelection(selection: Selection, uid: string) {
   selection.lastTouched = uid;
 
