@@ -3,6 +3,7 @@ import { storeSingleton, transientStoreSingleton, Direction, ImageViewerTab } fr
 import { apiServiceSingleton } from '@/backend/api';
 import { Rotation, Label } from '@/store/schema';
 import * as log from 'loglevel';
+import { electronHelperService } from '@/lib/electron-helper-service';
 
 // TODO: implement in a generic way with a global shortcuts handler.
 const LABELS_MAP: { [key: string]: Label } = {
@@ -241,19 +242,24 @@ export default defineComponent({
     watch(curRotation, handleResize);
 
     function doubleClicked() {
-      log.info('[SingleImage] Double-clicked, switching tabs.')
+      log.info('[SingleImage] Double-clicked, switching tabs.');
       transientStore.setImageViewerTab(ImageViewerTab.THUMBNAILS);
+    }
+
+    function contextClicked() {
+      log.info('[SingleImage] Context-clicked, showing context menu.');
+      electronHelperService().showImageMenu();
     }
 
     onMounted(() => {
       window.addEventListener('keydown', keyPressed);
-      window.addEventListener('resize', handleResize)
+      window.addEventListener('resize', handleResize);
       handleResize();
     });
 
     onBeforeUnmount(() => {
       window.removeEventListener('keydown', keyPressed);
-      window.removeEventListener('resize', handleResize)
+      window.removeEventListener('resize', handleResize);
     });
 
     return {
@@ -267,6 +273,7 @@ export default defineComponent({
       isRotated270,
 
       doubleClicked,
+      contextClicked,
     };
   }
 });  
