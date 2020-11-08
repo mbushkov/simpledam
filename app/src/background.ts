@@ -374,10 +374,11 @@ ipcMain.on('show-media-file', async (_event: IpcMainEvent, path: string) => {
 });
 
 ipcMain.on('show-image-menu', async () => {
-  const item = (id: string, label: string) => {
+  const item = (id: string, label: string, accelerator?: string) => {
     return {
       id,
-      label: label,
+      label,
+      accelerator,
       click: function () {
         const win = BrowserWindow.getFocusedWindow();
         win?.webContents.send('action', id);
@@ -386,9 +387,46 @@ ipcMain.on('show-image-menu', async () => {
   };
   const template = [
     item('ShowMediaFile', 'Show Media File'),
+    { type: 'separator' },
+    {
+      label: 'Rating',
+      submenu: [
+        item('Rating0', 'None', 'Command+0'),
+        { type: 'separator' },
+        item('Rating1', '★', 'Command+1'),
+        item('Rating2', '★★', 'Command+2'),
+        item('Rating3', '★★★', 'Command+3'),
+        item('Rating4', '★★★★', 'Command+4'),
+        item('Rating5', '★★★★★', 'Command+5'),
+      ],
+    },
+    {
+      label: 'Label',
+      submenu: [
+        item('LabelNone', 'None', '0'),
+        { type: 'separator' },
+        item('LabelRed', 'Red', '1'),
+        item('LabelGreen', 'Green', '2'),
+        item('LabelBlue', 'Blue', '3'),
+        item('LabelBrown', 'Brown', '4'),
+        item('LabelMagenta', 'Magenta', '5'),
+        item('LabelOrange', 'Orange', '6'),
+        item('LabelYellow', 'Yellow', '7'),
+        item('LabelCyan', 'Cyan', '8'),
+        item('LabelGray', 'Gray', '9'),
+      ]
+    },
+    { type: 'separator' },
+    item('RotateCW', 'Rotate 90° CW', 'Command+]'),
+    item('RotateCCW', 'Rotate 90° CCW', 'Command+['),
+    // TODO: implement flipping support.
+    // item('FlipVertical', 'Flip Vertical'),
+    // item('FlipHorizontal', 'Flip Horizontal'),
+    item('DefaultOrientation', 'Default Orientation'),
   ];
 
-  const menu = Menu.buildFromTemplate(template);
+  // TODO: remove the type override.
+  const menu = Menu.buildFromTemplate(template as any);
   menu.popup();
 });
 
