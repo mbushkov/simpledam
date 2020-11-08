@@ -6,6 +6,7 @@ import ImageBox from './ImageBox.vue';
 import { Label } from '@/store/schema';
 import * as log from 'loglevel';
 import { DRAG_HELPER_SERVICE } from '../lib/drag-helper-service';
+import { electronHelperService } from '@/lib/electron-helper-service';
 
 interface Row {
   key: string;
@@ -332,6 +333,12 @@ export default defineComponent({
       }
     }
 
+    function imageBoxContextClicked(uid: string) {
+      console.log('image box context clicked', uid);
+      store.selectPrimary(uid);
+      electronHelperService().showImageMenu();
+    }
+
     function imageBoxDoubleClicked(uid: string, event: MouseEvent) {
       if (event.altKey || event.shiftKey || event.ctrlKey || event.metaKey) {
         return;
@@ -386,6 +393,7 @@ export default defineComponent({
       containerDragEntered,
       containerDragLeft,
       imageBoxClicked,
+      imageBoxContextClicked,
       imageBoxDoubleClicked,
       imageBoxDragStarted,
       keyPressed,

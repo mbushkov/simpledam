@@ -6,6 +6,7 @@
     :class="{ selected: isPrimarySelected, 'additional-selected': isAdditionalSelected }"
     @dragstart="dragStarted($event)"
     @click="clicked($event)"
+    @contextmenu="contextClicked($event)"
   >
     <div class="nested" ref="nestedRef">
       <div class="image-wrapper" :style="imageWrapperStyle" v-if="imageData.previewSize">

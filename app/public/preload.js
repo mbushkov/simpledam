@@ -21,11 +21,19 @@ contextBridge.exposeInMainWorld(
     },
 
     showSaveCatalogDialog(callbackFn) {
-      ipcRenderer.once('show-save-catalog-dialog-reply', (event, path) => {
+      ipcRenderer.once('show-save-catalog-dialog-reply', (_event, path) => {
         callbackFn(path);
       });
       ipcRenderer.send('show-save-catalog-dialog');
     },
+
+    showMediaFile(path) {
+      ipcRenderer.send('show-media-file', path);
+    },
+
+    showImageMenu() {
+      ipcRenderer.send('show-image-menu');
+    }
   }
 )
 

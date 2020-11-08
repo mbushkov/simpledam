@@ -5,7 +5,7 @@
 // Portrait of a Gentleman, attributed to Henry Williams
 
 import { ChildProcess, spawn } from 'child_process';
-import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, protocol, session } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, IpcMainEvent, Menu, nativeImage, protocol, session, shell } from 'electron';
 import path from 'path';
 import {
   createProtocol, installVueDevtools
@@ -367,6 +367,29 @@ ipcMain.on('show-save-catalog-dialog', async (event) => {
     defaultPath: 'Catalog.nmcatalog',
   })).filePath;
   event.reply('show-save-catalog-dialog-reply', path || '');
+});
+
+ipcMain.on('show-media-file', async (_event: IpcMainEvent, path: string) => {
+  shell.showItemInFolder(path);
+});
+
+ipcMain.on('show-image-menu', async () => {
+  const item = (id: string, label: string) => {
+    return {
+      id,
+      label: label,
+      click: function () {
+        const win = BrowserWindow.getFocusedWindow();
+        win?.webContents.send('action', id);
+      }
+    }
+  };
+  const template = [
+    item('ShowMediaFile', 'Show Media File'),
+  ];
+
+  const menu = Menu.buildFromTemplate(template);
+  menu.popup();
 });
 
 // Exit cleanly on request from parent process in development mode.

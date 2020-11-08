@@ -1,5 +1,6 @@
 import { apiServiceSingleton } from '@/backend/api';
 import { backendMirrorSingleton } from "@/backend/backend-mirror";
+import { electronHelperService } from '@/lib/electron-helper-service';
 import { storeSingleton } from '@/store';
 import log from 'loglevel';
 
@@ -38,5 +39,21 @@ export class SaveAsAction implements Action {
         resolve();
       });
     });
+  }
+}
+
+export class ShowMediaFileAction implements Action {
+  readonly name = 'ShowMediaFile';
+  readonly title = 'Show Media File';
+
+  async perform(): Promise<void> {
+    const primarySelection = storeSingleton().state.selection.primary;
+    if (!primarySelection) {
+      return;
+    }
+
+    const path = storeSingleton().state.images[primarySelection].path;
+    console.log('showing media file for', path);
+    electronHelperService().showMediaFile(path);
   }
 }

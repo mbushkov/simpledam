@@ -143,6 +143,12 @@ export default defineComponent({
       }
     }
 
+    function contextClicked(event: MouseEvent) {
+      event.preventDefault();
+
+      context.emit('nm-contextclick', props.imageData.uid, event);
+    }
+
     function dragStarted(event: DragEvent) {
       context.emit('nm-dragstart', props.imageData.uid, event);
     }
@@ -180,6 +186,7 @@ export default defineComponent({
       imageStyle,
 
       clicked,
+      contextClicked,
       dragStarted,
       filename,
     };

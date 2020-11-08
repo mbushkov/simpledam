@@ -268,6 +268,12 @@ export class Store {
     }
   }
 
+  public rotateToDefault() {
+    for (const mdata of this.allSelectedMetadata()) {
+      mdata.adjustments.rotation = Rotation.NONE;
+    }
+  }
+
   public flipHorizontally() {
     for (const mdata of this.allSelectedMetadata()) {
       mdata.adjustments.horizontalFlip = !mdata.adjustments.horizontalFlip;

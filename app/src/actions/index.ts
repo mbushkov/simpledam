@@ -1,6 +1,6 @@
 import { ActionService } from './action-service';
-import { labelActions } from './edit';
-import { SaveAction, SaveAsAction } from './file';
+import { DefaultOrientationAction, FlipHorizontalAction, FlipVerticalAction, labelActions, rateActions, RotateCCWAction, RotateCWAction } from './edit';
+import { SaveAction, SaveAsAction, ShowMediaFileAction } from './file';
 
 let _actionService: ActionService | undefined;
 export function actionServiceSingleton(): ActionService {
@@ -9,8 +9,19 @@ export function actionServiceSingleton(): ActionService {
 
     _actionService.registerAction(new SaveAction());
     _actionService.registerAction(new SaveAsAction());
+    _actionService.registerAction(new ShowMediaFileAction());
+
+    _actionService.registerAction(new RotateCWAction());
+    _actionService.registerAction(new RotateCCWAction());
+    _actionService.registerAction(new FlipHorizontalAction());
+    _actionService.registerAction(new FlipVerticalAction());
+    _actionService.registerAction(new DefaultOrientationAction());
 
     for (const action of labelActions()) {
+      _actionService.registerAction(action);
+    }
+
+    for (const action of rateActions()) {
       _actionService.registerAction(action);
     }
   }

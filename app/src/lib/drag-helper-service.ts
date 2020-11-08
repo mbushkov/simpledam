@@ -1,5 +1,5 @@
 import * as log from 'loglevel';
-import { ElectronHelperService, ELECTRON_HELPER_SERVICE } from './electron-helper-service';
+import { ElectronHelperService, electronHelperService } from './electron-helper-service';
 
 interface InternalDragContents {
   readonly kind: 'internal';
@@ -24,8 +24,11 @@ export interface UidAndPath {
 export class DragHelperService {
   private draggedFiles: UidAndPath[] = [];
   private draggedFilesMap: Map<string, UidAndPath> = new Map();
+  private readonly electronHelperService: ElectronHelperService;
 
-  constructor(private readonly electronHelperService: ElectronHelperService = ELECTRON_HELPER_SERVICE) { }
+  constructor(_electronHelperService?: ElectronHelperService) {
+    this.electronHelperService = _electronHelperService || electronHelperService();
+  }
 
   startDrag(event: DragEvent, files: UidAndPath[], thumbnailUrl: string) {
     if (!event.dataTransfer) {

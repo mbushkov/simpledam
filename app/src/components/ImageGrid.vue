@@ -34,6 +34,7 @@
             :imageData="imageData"
             :shortVersion="shortImageBoxVersion"
             @nm-click="imageBoxClicked"
+            @nm-contextclick="imageBoxContextClicked"
             @nm-dblclick="imageBoxDoubleClicked"
             @nm-dragstart="imageBoxDragStarted"
           ></ImageBox>
