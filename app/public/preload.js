@@ -33,7 +33,15 @@ contextBridge.exposeInMainWorld(
 
     showImageMenu() {
       ipcRenderer.send('show-image-menu');
-    }
+    },
+
+    showLabelMenu() {
+      ipcRenderer.send('show-label-menu');
+    },
+
+    showRatingMenu() {
+      ipcRenderer.send('show-rating-menu');
+    },
   }
 )
 

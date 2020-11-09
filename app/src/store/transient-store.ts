@@ -9,6 +9,7 @@ export enum ImageViewerTab {
 export interface TransientState {
   imageViewerTab: ImageViewerTab;
   columnCount: number,
+  leftPaneWidth: number;
 }
 
 type ReadonlyTransientState = Immutable<TransientState>;
@@ -17,6 +18,7 @@ export class TransientStore {
   private _state: TransientState = reactive({
     imageViewerTab: ImageViewerTab.THUMBNAILS,
     columnCount: 1,
+    leftPaneWidth: 1,
   })
 
   get state(): ReadonlyTransientState {
@@ -29,5 +31,9 @@ export class TransientStore {
 
   setColumnCount(n: number) {
     this._state.columnCount = n;
+  }
+
+  setLeftPaneWidth(n: number) {
+    this._state.leftPaneWidth = n;
   }
 }

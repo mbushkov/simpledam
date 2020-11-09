@@ -373,56 +373,93 @@ ipcMain.on('show-media-file', async (_event: IpcMainEvent, path: string) => {
   shell.showItemInFolder(path);
 });
 
-ipcMain.on('show-image-menu', async () => {
-  const item = (id: string, label: string, accelerator?: string) => {
-    return {
-      id,
-      label,
-      accelerator,
-      click: function () {
-        const win = BrowserWindow.getFocusedWindow();
-        win?.webContents.send('action', id);
-      }
+function menuItem(id: string, label: string, accelerator?: string) {
+  return {
+    id,
+    label,
+    accelerator,
+    click: function () {
+      const win = BrowserWindow.getFocusedWindow();
+      win?.webContents.send('action', id);
     }
-  };
+  }
+}
+
+ipcMain.on('show-image-menu', async () => {
   const template = [
-    item('ShowMediaFile', 'Show Media File'),
+    menuItem('ShowMediaFile', 'Show Media File'),
     { type: 'separator' },
     {
       label: 'Rating',
       submenu: [
-        item('Rating0', 'None', 'Command+0'),
+        menuItem('Rating0', 'None', 'Command+0'),
         { type: 'separator' },
-        item('Rating1', '★', 'Command+1'),
-        item('Rating2', '★★', 'Command+2'),
-        item('Rating3', '★★★', 'Command+3'),
-        item('Rating4', '★★★★', 'Command+4'),
-        item('Rating5', '★★★★★', 'Command+5'),
+        menuItem('Rating1', '★', 'Command+1'),
+        menuItem('Rating2', '★★', 'Command+2'),
+        menuItem('Rating3', '★★★', 'Command+3'),
+        menuItem('Rating4', '★★★★', 'Command+4'),
+        menuItem('Rating5', '★★★★★', 'Command+5'),
       ],
     },
     {
       label: 'Label',
       submenu: [
-        item('LabelNone', 'None', '0'),
+        menuItem('LabelNone', 'None', '0'),
         { type: 'separator' },
-        item('LabelRed', 'Red', '1'),
-        item('LabelGreen', 'Green', '2'),
-        item('LabelBlue', 'Blue', '3'),
-        item('LabelBrown', 'Brown', '4'),
-        item('LabelMagenta', 'Magenta', '5'),
-        item('LabelOrange', 'Orange', '6'),
-        item('LabelYellow', 'Yellow', '7'),
-        item('LabelCyan', 'Cyan', '8'),
-        item('LabelGray', 'Gray', '9'),
+        menuItem('LabelRed', 'Red', '1'),
+        menuItem('LabelGreen', 'Green', '2'),
+        menuItem('LabelBlue', 'Blue', '3'),
+        menuItem('LabelBrown', 'Brown', '4'),
+        menuItem('LabelMagenta', 'Magenta', '5'),
+        menuItem('LabelOrange', 'Orange', '6'),
+        menuItem('LabelYellow', 'Yellow', '7'),
+        menuItem('LabelCyan', 'Cyan', '8'),
+        menuItem('LabelGray', 'Gray', '9'),
       ]
     },
     { type: 'separator' },
-    item('RotateCW', 'Rotate 90° CW', 'Command+]'),
-    item('RotateCCW', 'Rotate 90° CCW', 'Command+['),
+    menuItem('RotateCW', 'Rotate 90° CW', 'Command+]'),
+    menuItem('RotateCCW', 'Rotate 90° CCW', 'Command+['),
     // TODO: implement flipping support.
     // item('FlipVertical', 'Flip Vertical'),
     // item('FlipHorizontal', 'Flip Horizontal'),
-    item('DefaultOrientation', 'Default Orientation'),
+    menuItem('DefaultOrientation', 'Default Orientation'),
+  ];
+
+  // TODO: remove the type override.
+  const menu = Menu.buildFromTemplate(template as any);
+  menu.popup();
+});
+
+ipcMain.on('show-label-menu', async () => {
+  const template = [
+    menuItem('LabelNone', 'None', '0'),
+    { type: 'separator' },
+    menuItem('LabelRed', 'Red', '1'),
+    menuItem('LabelGreen', 'Green', '2'),
+    menuItem('LabelBlue', 'Blue', '3'),
+    menuItem('LabelBrown', 'Brown', '4'),
+    menuItem('LabelMagenta', 'Magenta', '5'),
+    menuItem('LabelOrange', 'Orange', '6'),
+    menuItem('LabelYellow', 'Yellow', '7'),
+    menuItem('LabelCyan', 'Cyan', '8'),
+    menuItem('LabelGray', 'Gray', '9'),
+  ];
+
+  // TODO: remove the type override.
+  const menu = Menu.buildFromTemplate(template as any);
+  menu.popup();
+});
+
+ipcMain.on('show-rating-menu', async () => {
+  const template = [
+    menuItem('Rating0', 'None', 'Command+0'),
+    { type: 'separator' },
+    menuItem('Rating1', '★', 'Command+1'),
+    menuItem('Rating2', '★★', 'Command+2'),
+    menuItem('Rating3', '★★★', 'Command+3'),
+    menuItem('Rating4', '★★★★', 'Command+4'),
+    menuItem('Rating5', '★★★★★', 'Command+5'),
   ];
 
   // TODO: remove the type override.

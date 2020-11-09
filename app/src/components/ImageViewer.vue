@@ -1,10 +1,6 @@
 <template>
   <div class="image-viewer">
     <div class="mode-panel">
-      <b-tabs class="top-tabs" size="is-small" type="is-toggle" v-model="currentTab">
-        <b-tab-item label="Thumbnails"></b-tab-item>
-        <b-tab-item label="Media"></b-tab-item>
-      </b-tabs>
     </div>
     <ImageGrid ref="imageGridRef" class="grow" :show="currentTab === ImageViewerTab.THUMBNAILS"></ImageGrid>
     <SingleImage ref="singleImageRef" class="grow" v-if="currentTab === ImageViewerTab.MEDIA"></SingleImage>
@@ -22,19 +18,6 @@
   .mode-panel {
     display: flex;
     flex-direction: row;
-
-    .top-tabs {
-      ::v-deep .tabs li {
-        width: 200px;
-        a {
-          border-radius: 0;
-        }
-      }
-      ::v-deep .tab-content {
-        margin: 0 !important;
-        padding: 0 !important;
-      }
-    }
   }
 
   .grow {

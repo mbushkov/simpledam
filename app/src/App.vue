@@ -282,7 +282,7 @@ import SideBar from './components/sidebar/SideBar.vue';
 import StatusBar from './components/StatusBar.vue';
 import ToolBar from './components/ToolBar.vue';
 import ImageViewer from './components/ImageViewer.vue';
-import { storeSingleton } from '@/store';
+import { storeSingleton, transientStoreSingleton } from '@/store';
 import { apiServiceSingleton } from '@/backend/api';
 import * as log from 'loglevel';
 import { actionServiceSingleton } from './actions';
@@ -316,6 +316,10 @@ export default Vue.extend({
   },
   methods: {
     handleResize() {
+      const ref = this.$refs.leftPane as Vue|undefined;
+      if (ref) {
+        transientStoreSingleton().setLeftPaneWidth(ref.$el.clientWidth);
+      }
       // this.minSideBarSize = 180 / this.$el.clientWidth * 100;
       // this.maxSideBarSize = 50;
       // this.sideBarSize = Math.max(this.minSideBarSize, Math.min(this.sideBarSizePx / this.$el.clientWidth * 100, this.maxSideBarSize));
@@ -326,15 +330,20 @@ export default Vue.extend({
       setTimeout(() => {
         log.debug('[App] Handling initial split panes resize.');
         (this.$refs['imageViewerRef'] as any).handleResize();
+        this.handleResize();
       }, 1000);
     },
 
     splitpanesResizing() {
+      this.handleResize();
+
       log.debug('[App] Split panes are currently resizing.');
       Vue.nextTick((this.$refs['imageViewerRef'] as any).handleResize);
     },
 
     splitpanesResized() {
+      this.handleResize();
+
       this.sideBarSizePx = (this.$refs.leftPane as Vue).$el.clientWidth;
       log.debug('[App] Split panes done resizing. Sidebar size: ', this.sideBarSizePx);
       Vue.nextTick((this.$refs['imageViewerRef'] as any).handleResize);

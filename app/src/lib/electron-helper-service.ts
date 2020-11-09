@@ -14,6 +14,14 @@ export class ElectronHelperService {
   showImageMenu() {
     (window as any).electron.showImageMenu();
   }
+
+  showLabelMenu() {
+    (window as any).electron.showLabelMenu();
+  }
+
+  showRatingMenu() {
+    (window as any).electron.showRatingMenu();
+  }
 }
 
 let _electronHelperService: ElectronHelperService | undefined;

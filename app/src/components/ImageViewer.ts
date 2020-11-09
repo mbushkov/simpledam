@@ -15,10 +15,7 @@ export default defineComponent({
     const imageGridRef = ref(undefined);
     const singleImageRef = ref(undefined);
 
-    const currentTab = computed({
-      get: () => transientStore.state.imageViewerTab,
-      set: (v) => transientStore.setImageViewerTab(v)
-    });
+    const currentTab = computed(() => transientStore.state.imageViewerTab);
 
     function handleResize() {
       if (imageGridRef.value) {
