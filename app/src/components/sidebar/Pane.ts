@@ -1,8 +1,8 @@
 import { defineComponent, } from '@vue/composition-api';
 
-interface Props {
-  readonly title: string;
-}
+// interface Props {
+//   readonly title: string;
+// }
 
 export default defineComponent({
   props: {

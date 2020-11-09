@@ -74,7 +74,7 @@ export default defineComponent({
         let clientWidth = el.value?.getBoundingClientRect().width ?? 1;
         let clientHeight = el.value?.getBoundingClientRect().height ?? 1;
         if (isRotated90.value || isRotated270.value) {
-          let temp = clientWidth;
+          const temp = clientWidth;
           clientWidth = clientHeight;
           clientHeight = temp;
         }
@@ -195,7 +195,7 @@ export default defineComponent({
       let clientWidth = img.value?.clientWidth ?? 0;
       let clientHeight = img.value?.clientHeight ?? 0;
       if (isRotated90.value || isRotated270.value) {
-        let temp = clientWidth;
+        const temp = clientWidth;
         clientWidth = clientHeight;
         clientHeight = temp;
       }

@@ -16,8 +16,11 @@ export class ElectronHelperService {
   }
 }
 
-let _electronHelperService = new ElectronHelperService();
+let _electronHelperService: ElectronHelperService | undefined;
 
 export function electronHelperService(): ElectronHelperService {
+  if (_electronHelperService === undefined) {
+    _electronHelperService = new ElectronHelperService();
+  }
   return _electronHelperService;
 }

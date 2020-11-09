@@ -81,7 +81,7 @@ export default defineComponent({
       let width = props.imageData.previewSize.width || 1;
       let height = props.imageData.previewSize.height || 1;
       if (isRotated90.value || isRotated270.value) {
-        let t = height;
+        const t = height;
         height = width;
         width = t;
       }
