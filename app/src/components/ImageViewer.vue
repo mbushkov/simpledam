@@ -24,6 +24,8 @@
     min-height: 24px;
     color: $nm-text-color;
     font-size: 12px;
+    margin-left: 2px;
+    margin-right: 2px;
 
     .filename {
       flex-grow: 1;
