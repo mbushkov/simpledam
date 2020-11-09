@@ -1,7 +1,7 @@
 import { defineComponent, computed, ref } from '@vue/composition-api';
 import ImageGrid from './ImageGrid.vue';
 import SingleImage from './SingleImage.vue';
-import { transientStoreSingleton, ImageViewerTab } from '@/store';
+import { transientStoreSingleton, ImageViewerTab, storeSingleton } from '@/store';
 
 
 export default defineComponent({
@@ -16,6 +16,13 @@ export default defineComponent({
     const singleImageRef = ref(undefined);
 
     const currentTab = computed(() => transientStore.state.imageViewerTab);
+
+    const imageFile = computed(() => {
+      const sel = storeSingleton().state.selection.primary;
+      if (sel) {
+        return storeSingleton().state.images[sel];
+      }
+    });
 
     function handleResize() {
       if (imageGridRef.value) {
@@ -34,6 +41,7 @@ export default defineComponent({
 
       currentTab,
       ImageViewerTab,
+      imageFile,
       handleResize,
     };
   }
