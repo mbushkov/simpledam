@@ -3,7 +3,12 @@
     ref="host"
     draggable="true"
     class="image-box"
-    :class="{ selected: isPrimarySelected, 'additional-selected': isAdditionalSelected }"
+    :class="{ selected: isPrimarySelected, 
+      'additional-selected': isAdditionalSelected, 
+      'rotation-0': !(isRotated90 || isRotated180 || isRotated270), 
+      'rotation-90': isRotated90, 
+      'rotation-180': isRotated180, 
+      'rotation-270': isRotated270 }"
     @dragstart="dragStarted($event)"
     @click="clicked($event)"
     @contextmenu="contextClicked($event)"

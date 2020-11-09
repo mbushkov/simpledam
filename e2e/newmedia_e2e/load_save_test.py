@@ -44,7 +44,29 @@ class LoadSaveTest(base.TestBase):
     b_new.WaitUntilCountEqual(self.NUM_IMAGES, ".image-grid .image-box")
 
   def testSavesAndLoadsImageTransformations(self):
-    pass
+    with self._FirstWindow() as b:
+      images = b.GetDisplayedElements(".image-grid .image-box")
+
+      b.Click(images[1])
+      b.app.TriggerAction("RotateCW")
+      b.WaitUntilPresent(".image-grid .image-box.selected.rotation-90")
+
+      b.Click(images[2])
+      b.app.TriggerAction("RotateCCW")
+      b.WaitUntilPresent(".image-grid .image-box.selected.rotation-270")
+
+    b_new = self.CreateWindow(catalog_path=self.catalog)
+    b_new.WaitUntilCountEqual(self.NUM_IMAGES, ".image-grid .image-box")
+
+    images = b_new.GetDisplayedElements(".image-grid .image-box")
+    b_new.Click(images[0])
+    b_new.WaitUntilPresent(".image-grid .image-box.selected.rotation-0")
+
+    b_new.Click(images[1])
+    b_new.WaitUntilPresent(".image-grid .image-box.selected.rotation-90")
+
+    b_new.Click(images[2])
+    b_new.WaitUntilPresent(".image-grid .image-box.selected.rotation-270")
 
   def testSavesAndLoadsLabels(self):
     with self._FirstWindow() as b:
@@ -76,7 +98,57 @@ class LoadSaveTest(base.TestBase):
     b_new.WaitUntilPresent(".image-grid .image-box.selected .has-text-label-blue")
 
   def testSavesAndLoadsRatings(self):
-    pass
+    with self._FirstWindow() as b:
+      images = b.GetDisplayedElements(".image-grid .image-box")
 
-  def testSavesAndLoadsFilterSettingsAndSelection(self):
-    pass
+      b.Click(images[0])
+      b.app.TriggerAction("Rating1")
+      b.WaitUntilCountEqual(1, ".image-grid .image-box.selected .rate-item.set-on")
+
+      b.Click(images[1])
+      b.app.TriggerAction("Rating2")
+      b.WaitUntilCountEqual(2, ".image-grid .image-box.selected .rate-item.set-on")
+
+      b.Click(images[2])
+      b.app.TriggerAction("Rating3")
+      b.WaitUntilCountEqual(3, ".image-grid .image-box.selected .rate-item.set-on")
+
+    b_new = self.CreateWindow(catalog_path=self.catalog)
+    b_new.WaitUntilCountEqual(self.NUM_IMAGES, ".image-grid .image-box")
+
+    images = b_new.GetDisplayedElements(".image-grid .image-box")
+    b_new.Click(images[0])
+    b_new.WaitUntilCountEqual(1, ".image-grid .image-box.selected .rate-item.set-on")
+
+    b_new.Click(images[1])
+    b_new.WaitUntilCountEqual(2, ".image-grid .image-box.selected .rate-item.set-on")
+
+    b_new.Click(images[2])
+    b_new.WaitUntilCountEqual(3, ".image-grid .image-box.selected .rate-item.set-on")
+
+  def testSavesAndLoadsSelection(self):
+    with self._FirstWindow() as b:
+      images = b.GetDisplayedElements(".image-grid .image-box")
+      b.Click(images[5])
+
+      e = b.GetDisplayedElement(".image-grid .image-box.selected .title")
+      sel_text = e.text
+
+    b_new = self.CreateWindow(catalog_path=self.catalog)
+    b_new.WaitUntilCountEqual(self.NUM_IMAGES, ".image-grid .image-box")
+    e = b_new.GetDisplayedElement(".image-grid .image-box.selected .title")
+    self.assertEqual(sel_text, e.text)
+
+  def testSavesAndLoadsLabelFilter(self):
+    with self._FirstWindow() as b:
+      images = b.GetDisplayedElements(".image-grid .image-box")
+
+      b.Click(images[0])
+      b.app.TriggerAction("LabelRed")
+      b.WaitUntilPresent(".image-grid .image-box.selected .has-text-label-red")
+
+      b.Click('.labels > .row:contains("Red [1]") .check')
+
+    b_new = self.CreateWindow(catalog_path=self.catalog)
+    b_new.WaitUntilCountEqual(1, ".image-grid .image-box")
+    b_new.WaitUntilPresent('.labels > .row:contains("Red [1]") input:checked ~ .check')
