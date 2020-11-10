@@ -24,13 +24,13 @@ export default defineComponent({
         return;
       }
 
-      const srcs: string[] = [];
-      for (const uid of [
-        primary,
-        ...Object.keys(storeSingleton().state.selection.additional)
-      ]) {
-        srcs.push(storeSingleton().state.images[uid].path)
-      }
+      const selection = storeSingleton().state.selection;
+      const srcUids: string[] = storeSingleton().currentList().items.filter(uid => {
+        return uid === selection.primary || selection.additional[uid] !== undefined;
+      })
+
+      const images = storeSingleton().state.images;
+      const srcs = srcUids.map(uid => images[uid].path);
 
       await apiServiceSingleton().exportToPath(
         srcs,
