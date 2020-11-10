@@ -301,6 +301,8 @@ import { storeSingleton, transientStoreSingleton } from '@/store';
 import { apiServiceSingleton } from '@/backend/api';
 import * as log from 'loglevel';
 import { actionServiceSingleton } from './actions';
+import { watchEffect } from '@vue/composition-api';
+import { backendMirrorSingleton } from './backend/backend-mirror';
 
 
 export default Vue.extend({
@@ -330,6 +332,10 @@ export default Vue.extend({
       }
 
       (this as any)['loaded'] = true;
+    });
+
+    watchEffect(() => {
+      document.title = backendMirrorSingleton().state.catalogPath || '<unnamed>';
     });
   },
   methods: {
