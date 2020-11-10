@@ -1,5 +1,4 @@
-import { RotateCCWAction, RotateCWAction, ExportToFolderAction } from '@/actions/edit';
-import { ShowMediaFileAction } from '@/actions/file';
+import { RotateCCWAction, RotateCWAction, ExportToFolderAction, ShowMediaFileAction } from '@/actions/selection';
 import { electronHelperService } from '@/lib/electron-helper-service';
 import { transientStoreSingleton } from '@/store';
 import { computed, defineComponent } from '@vue/composition-api';

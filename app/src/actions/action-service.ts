@@ -1,11 +1,31 @@
+import { reactive, watchEffect } from '@vue/composition-api';
 import log from 'loglevel';
 import { Action } from './action';
+import Vue from 'vue';
+import { electronHelperService } from '@/lib/electron-helper-service';
 
 export class ActionService {
   private readonly _actions: { [key: string]: Action } = {};
 
+  // Note: Vue 2 reactivity system doesn't detect keys if they're added to the top level of a reactive object.
+  private readonly _statusState = reactive({
+    statusByAction: {} as { [key: string]: boolean },
+  });
+
+  constructor() {
+    watchEffect(() => {
+      electronHelperService().updateMenuActionStatus(this.statusMap);
+    });
+  }
+
   registerAction(action: Action) {
     this._actions[action.name] = action;
+
+    watchEffect(() => {
+      if (this._statusState.statusByAction[action.name] !== action.enabled.value) {
+        Vue.set(this._statusState.statusByAction, action.name, action.enabled.value);
+      }
+    });
   }
 
   async performAction(name: string, ...args: any[]): Promise<void> {
@@ -19,6 +39,10 @@ export class ActionService {
 
   get actions(): { readonly [key: string]: Action } {
     return this._actions;
+  }
+
+  get statusMap(): { readonly [key: string]: boolean } {
+    return this._statusState.statusByAction;
   }
 }
 

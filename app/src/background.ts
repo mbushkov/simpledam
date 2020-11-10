@@ -302,15 +302,47 @@ app.on('ready', async () => {
         {
           role: 'delete'
         },
-        {
-          id: 'LabelRed',
-          label: 'Label with Red',
-          click: function () {
-            const win = BrowserWindow.getFocusedWindow();
-            win?.webContents.send('action', 'LabelRed');
-          }
-        },
       ]
+    },
+    {
+      label: 'Selection',
+      submenu: [
+        menuItem('ShoeMediaFile', 'Show Media File'),
+        menuItem('ExportToFolder', 'Export To Folder...'),
+        { type: 'separator' },
+        {
+          label: 'Rating',
+          submenu: [
+            menuItem('Rating0', 'None'),
+            { type: 'separator' },
+            menuItem('Rating1', '★'),
+            menuItem('Rating2', '★★'),
+            menuItem('Rating3', '★★★'),
+            menuItem('Rating4', '★★★★'),
+            menuItem('Rating5', '★★★★★'),
+          ],
+        },
+        {
+          label: 'Label',
+          submenu: [
+            menuItem('LabelNone', 'None'),
+            { type: 'separator' },
+            menuItem('LabelRed', 'Red'),
+            menuItem('LabelGreen', 'Green'),
+            menuItem('LabelBlue', 'Blue'),
+            menuItem('LabelBrown', 'Brown'),
+            menuItem('LabelMagenta', 'Magenta'),
+            menuItem('LabelOrange', 'Orange'),
+            menuItem('LabelYellow', 'Yellow'),
+            menuItem('LabelCyan', 'Cyan'),
+            menuItem('LabelGray', 'Gray'),
+          ]
+        },
+        { type: 'separator' },
+        menuItem('RotateCW', 'Rotate 90° CW'),
+        menuItem('RotateCCW', 'Rotate 90° CCW'),
+        menuItem('DefaultOrientation', 'Default Orientation'),
+      ],
     },
     {
       role: 'window',
@@ -402,6 +434,7 @@ function menuItem(id: string, label: string, accelerator?: string) {
 ipcMain.on('show-image-menu', async () => {
   const template = [
     menuItem('ShowMediaFile', 'Show Media File'),
+    menuItem('ExportToFolder', 'Export To Folder...'),
     { type: 'separator' },
     {
       label: 'Rating',
@@ -479,6 +512,20 @@ ipcMain.on('show-rating-menu', async () => {
   // TODO: remove the type override.
   const menu = Menu.buildFromTemplate(template as any);
   menu.popup();
+});
+
+ipcMain.on('update-menu-action-status', async (_, statusMap: { readonly [key: string]: boolean }) => {
+  const menu = Menu.getApplicationMenu();
+  if (!menu) {
+    return;
+  }
+
+  for (const key in statusMap) {
+    const menuItem = menu.getMenuItemById(key);
+    if (menuItem) {
+      menuItem.enabled = statusMap[key];
+    }
+  }
 });
 
 // Exit cleanly on request from parent process in development mode.

@@ -1,6 +1,8 @@
 import ExportToFolder from '@/components/modals/ExportToFolder.vue';
+import { electronHelperService } from '@/lib/electron-helper-service';
 import { storeSingleton } from '@/store';
 import { Label, Rating } from "@/store/schema";
+import { computed } from '@vue/composition-api';
 import { ModalProgrammatic } from 'buefy';
 import { Action } from './action';
 
@@ -12,6 +14,7 @@ function labelAction(label: Label): Action {
   return {
     name: `Label${capitalize(Label[label])}`,
     title: `Label With ${capitalize(Label[label])}`,
+    enabled: computed(() => storeSingleton().state.selection.primary !== undefined),
 
     async perform(): Promise<void> {
       storeSingleton().labelSelection(label);
@@ -23,6 +26,7 @@ function rateAction(rating: Rating): Action {
   return {
     name: `Rating${rating}`,
     title: `Rate As ${rating}`,
+    enabled: computed(() => storeSingleton().state.selection.primary !== undefined),
 
     async perform(): Promise<void> {
       storeSingleton().rateSelection(rating);
@@ -52,6 +56,7 @@ export function rateActions(): ReadonlyArray<Action> {
 export class RotateCWAction implements Action {
   readonly name = 'RotateCW';
   readonly title = 'Rotate 90° CW';
+  readonly enabled = computed(() => storeSingleton().state.selection.primary !== undefined);
 
   async perform(): Promise<void> {
     storeSingleton().rotateRight();
@@ -61,6 +66,7 @@ export class RotateCWAction implements Action {
 export class RotateCCWAction implements Action {
   readonly name = 'RotateCCW';
   readonly title = 'Rotate 90° CCW';
+  readonly enabled = computed(() => storeSingleton().state.selection.primary !== undefined);
 
   async perform(): Promise<void> {
     storeSingleton().rotateLeft();
@@ -70,6 +76,7 @@ export class RotateCCWAction implements Action {
 export class FlipHorizontalAction implements Action {
   readonly name = 'FlipHorizontal';
   readonly title = 'Flip Horizontal';
+  readonly enabled = computed(() => storeSingleton().state.selection.primary !== undefined);
 
   async perform(): Promise<void> {
     storeSingleton().flipHorizontally();
@@ -79,6 +86,7 @@ export class FlipHorizontalAction implements Action {
 export class FlipVerticalAction implements Action {
   readonly name = 'FlipVertical';
   readonly title = 'Flip Vertical';
+  readonly enabled = computed(() => storeSingleton().state.selection.primary !== undefined);
 
   async perform(): Promise<void> {
     storeSingleton().flipVertically();
@@ -88,15 +96,34 @@ export class FlipVerticalAction implements Action {
 export class DefaultOrientationAction implements Action {
   readonly name = 'DefaultOrientation';
   readonly title = 'Default Orientation';
+  readonly enabled = computed(() => storeSingleton().state.selection.primary !== undefined);
 
   async perform(): Promise<void> {
     storeSingleton().rotateToDefault();
   }
 }
 
+export class ShowMediaFileAction implements Action {
+  readonly name = 'ShowMediaFile';
+  readonly title = 'Show Media File';
+  readonly enabled = computed(() => storeSingleton().state.selection.primary !== undefined);
+
+  async perform(): Promise<void> {
+    const primarySelection = storeSingleton().state.selection.primary;
+    if (!primarySelection) {
+      return;
+    }
+
+    const path = storeSingleton().state.images[primarySelection].path;
+    console.log('showing media file for', path);
+    electronHelperService().showMediaFile(path);
+  }
+}
+
 export class ExportToFolderAction implements Action {
   readonly name = 'ExportToFolder';
   readonly title = 'Export To Folder';
+  readonly enabled = computed(() => storeSingleton().state.selection.primary !== undefined);
 
   async perform(): Promise<void> {
     ModalProgrammatic.open({

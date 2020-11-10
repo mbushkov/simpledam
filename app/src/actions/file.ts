@@ -1,13 +1,14 @@
 import { apiServiceSingleton } from '@/backend/api';
 import { backendMirrorSingleton } from "@/backend/backend-mirror";
-import { electronHelperService } from '@/lib/electron-helper-service';
 import { storeSingleton } from '@/store';
+import { computed } from '@vue/composition-api';
 import log from 'loglevel';
 import { Action } from './action';
 
 export class SaveAction implements Action {
   readonly name = 'Save';
   readonly title = 'Save';
+  readonly enabled = computed(() => true);
 
   async perform(catalogPath?: string): Promise<void> {
     if (catalogPath === undefined && !backendMirrorSingleton().state.catalogPath) {
@@ -22,6 +23,7 @@ export class SaveAction implements Action {
 export class SaveAsAction implements Action {
   readonly name = 'SaveAs';
   readonly title = 'Save As...';
+  readonly enabled = computed(() => true);
 
   async perform(): Promise<void> {
     return new Promise<void>(resolve => {
@@ -43,18 +45,3 @@ export class SaveAsAction implements Action {
   }
 }
 
-export class ShowMediaFileAction implements Action {
-  readonly name = 'ShowMediaFile';
-  readonly title = 'Show Media File';
-
-  async perform(): Promise<void> {
-    const primarySelection = storeSingleton().state.selection.primary;
-    if (!primarySelection) {
-      return;
-    }
-
-    const path = storeSingleton().state.images[primarySelection].path;
-    console.log('showing media file for', path);
-    electronHelperService().showMediaFile(path);
-  }
-}

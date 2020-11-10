@@ -49,6 +49,10 @@ contextBridge.exposeInMainWorld(
     showRatingMenu() {
       ipcRenderer.send('show-rating-menu');
     },
+
+    updateMenuActionStatus(statusMap) {
+      ipcRenderer.send('update-menu-action-status', statusMap);
+    }
   }
 )
 

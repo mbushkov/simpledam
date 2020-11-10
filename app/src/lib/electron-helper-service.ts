@@ -26,6 +26,10 @@ export class ElectronHelperService {
   showRatingMenu() {
     (window as any).electron.showRatingMenu();
   }
+
+  updateMenuActionStatus(statusMap: { readonly [key: string]: boolean }) {
+    (window as any).electron.updateMenuActionStatus(statusMap);
+  }
 }
 
 let _electronHelperService: ElectronHelperService | undefined;

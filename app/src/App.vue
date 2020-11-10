@@ -321,6 +321,9 @@ export default Vue.extend({
     };
   },
   beforeCreate() {
+    // Ensure the action singleton is created early.
+    actionServiceSingleton();
+
     apiServiceSingleton().fetchState().then(s => {
       if (s !== undefined) {
         storeSingleton().replaceState(s);
