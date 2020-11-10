@@ -1,9 +1,9 @@
-import { defineComponent, computed, ref, onMounted, onBeforeUnmount, watch } from '@vue/composition-api';
-import { storeSingleton, transientStoreSingleton, Direction, ImageViewerTab } from '@/store';
 import { apiServiceSingleton } from '@/backend/api';
-import { Rotation, Label } from '@/store/schema';
-import * as log from 'loglevel';
 import { electronHelperService } from '@/lib/electron-helper-service';
+import { Direction, ImageViewerTab, storeSingleton, transientStoreSingleton } from '@/store';
+import { Label, Rotation } from '@/store/schema';
+import { computed, defineComponent, onBeforeUnmount, onMounted, ref, watch } from '@vue/composition-api';
+import * as log from 'loglevel';
 
 // TODO: implement in a generic way with a global shortcuts handler.
 const LABELS_MAP: { [key: string]: Label } = {
@@ -46,9 +46,9 @@ export default defineComponent({
 
     const img = ref<HTMLImageElement>();
 
-    const scale = ref(100);
+    const scale = ref(transientStoreSingleton().state.singleImageViewerOptions.scale);
 
-    const autoFit = ref(true);
+    const autoFit = ref(transientStoreSingleton().state.singleImageViewerOptions.autoFit);
 
     const imageStyle = computed(() => {
       return {};
@@ -56,8 +56,13 @@ export default defineComponent({
 
     const el = ref<HTMLDivElement>();
 
-    watch([autoFit, imageUrl, curRotation], ([newVal]) => {
-      if (!newVal) {
+    watch([autoFit, imageUrl, curRotation], (newValues) => {
+      transientStoreSingleton().setSingleImageViewerOptions({
+        scale: scale.value,
+        autoFit: autoFit.value,
+      });
+
+      if (!newValues[0]) {
         return;
       }
 
@@ -82,6 +87,8 @@ export default defineComponent({
         scale.value = Math.min(clientWidth / im.preview_size.width * 100,
           clientHeight / im.preview_size.height * 100);
       });
+    }, {
+      immediate: true,
     });
 
     function keyPressed(event: KeyboardEvent) {
