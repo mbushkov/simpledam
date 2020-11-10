@@ -89,8 +89,9 @@ export default defineComponent({
         return;
       }
 
-      // TODO: this depends on the layout use a proper library.
-      if (event.key === '=' && event.metaKey && event.shiftKey) {
+      log.debug('[SingleImage] Key pressed:', event.code);
+
+      if (event.code === 'Equal' && event.metaKey && event.shiftKey) {
         if (scale.value < 1600) {
           if (scale.value > 95) {
             scale.value = scale.value + 25;
@@ -104,7 +105,7 @@ export default defineComponent({
 
         event.preventDefault();
         event.stopImmediatePropagation();
-      } else if (event.key === '-' && event.metaKey) {
+      } else if (event.key === 'Minus' && event.metaKey) {
         if (scale.value > 10) {
           if (scale.value > 125) {
             scale.value = scale.value - 25;
@@ -118,7 +119,7 @@ export default defineComponent({
 
         event.preventDefault();
         event.stopImmediatePropagation();
-      } else if (event.key === '0' && event.metaKey) {
+      } else if (event.key === 'Digit0' && event.metaKey) {
         if (autoFit.value) {
           autoFit.value = false;
           scale.value = 100;
@@ -128,28 +129,28 @@ export default defineComponent({
 
         event.preventDefault();
         event.stopImmediatePropagation();
-      } else if (event.keyCode === 39) {
+      } else if (event.code === 'ArrowRight') {
         store.movePrimarySelection(Direction.RIGHT);
         event.preventDefault();
         return;
-      } else if (event.keyCode === 37) {
+      } else if (event.code === 'ArrowLeft') {
         store.movePrimarySelection(Direction.LEFT);
         event.preventDefault();
         return;
-      } else if (event.keyCode === 38) {
+      } else if (event.code === 'ArrowUp') {
         store.movePrimarySelection(Direction.LEFT);
         event.preventDefault();
         return;
-      } else if (event.keyCode === 40) {
+      } else if (event.code === 'ArrowDown') {
         store.movePrimarySelection(Direction.RIGHT);
         event.preventDefault();
         return;
-      } else if (event.key === ']' && event.metaKey) {
+      } else if (event.code === 'BracketRight' && event.metaKey) {
         log.info('[SingleImage] Rotating right.')
         store.rotateRight();
         event.preventDefault();
         return;
-      } else if (event.key === '[' && event.metaKey) {
+      } else if (event.code === 'BracketLeft' && event.metaKey) {
         log.info('[SingleImage] Rotating left.')
         store.rotateLeft();
         event.preventDefault();

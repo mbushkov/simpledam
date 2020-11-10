@@ -203,6 +203,8 @@ export default defineComponent({
         return;
       }
 
+      log.debug('[ImageGrid] Key pressed:', event.code);
+
       if (event.key === '1' && event.ctrlKey) {
         store.rateSelection(1);
         event.preventDefault
@@ -234,7 +236,7 @@ export default defineComponent({
         return;
       }
 
-      if (event.keyCode === 39) {
+      if (event.code === 'ArrowRight') {
         if (event.shiftKey) {
           store.moveAdditionalSelection(Direction.RIGHT);
         } else {
@@ -242,7 +244,7 @@ export default defineComponent({
         }
         event.preventDefault();
         return;
-      } else if (event.keyCode === 37) {
+      } else if (event.code === 'ArrowLeft') {
         if (event.shiftKey) {
           store.moveAdditionalSelection(Direction.LEFT);
         } else {
@@ -250,7 +252,7 @@ export default defineComponent({
         }
         event.preventDefault();
         return;
-      } else if (event.keyCode === 38) {
+      } else if (event.code === 'ArrowUp') {
         if (event.shiftKey) {
           store.moveAdditionalSelection(Direction.UP);
         } else {
@@ -258,7 +260,7 @@ export default defineComponent({
         }
         event.preventDefault();
         return;
-      } else if (event.keyCode === 40) {
+      } else if (event.code === 'ArrowDown') {
         if (event.shiftKey) {
           store.moveAdditionalSelection(Direction.DOWN);
         } else {
@@ -266,30 +268,30 @@ export default defineComponent({
         }
         event.preventDefault();
         return;
-      } else if (event.key === '=' && event.metaKey && event.shiftKey) {
+      } else if (event.code === 'Equal' && event.metaKey && event.shiftKey) {
         if (store.state.thumbnailSettings.size < 640) {
           store.setThumbnailSize(store.state.thumbnailSettings.size + 40);
         }
         event.preventDefault();
         return;
-      } else if (event.key === '-' && event.metaKey) {
+      } else if (event.code === 'Minus' && event.metaKey) {
         if (store.state.thumbnailSettings.size > 80) {
           store.setThumbnailSize(store.state.thumbnailSettings.size - 40);
         }
         event.preventDefault();
         return;
-      } else if (event.key === ']' && event.metaKey) {
+      } else if (event.code === 'BracketRight' && event.metaKey) {
         store.rotateRight();
         event.preventDefault();
         return;
-      } else if (event.key === '[' && event.metaKey) {
+      } else if (event.code === 'BracketLeft' && event.metaKey) {
         store.rotateLeft();
         event.preventDefault();
         return;
-      } else if (event.key === 'a' && event.metaKey) {
+      } else if (event.code === 'KeyA' && event.metaKey) {
         store.selectAll();
         event.preventDefault();
-      } else if (event.key === 'd' && event.metaKey) {
+      } else if (event.code === 'KeyD' && event.metaKey) {
         store.selectPrimary(undefined);
       }
     }
