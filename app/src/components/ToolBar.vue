@@ -8,13 +8,13 @@
         <b-tab-item label="Media"></b-tab-item>
       </b-tabs>
 
-      <b-icon icon="file-eye-outline" @click.native="showMediaFile"></b-icon>
-      <b-icon icon="file-move-outline" @click.native="ExportToFolder"></b-icon>
+      <b-icon icon="file-eye-outline" :class="{disabled: !selectionPresent}" @click.native="showMediaFile"></b-icon>
+      <b-icon icon="file-move-outline" :class="{disabled: !selectionPresent}" @click.native="exportToFolder"></b-icon>
       <span class="separator"></span>
-      <b-icon icon="rotate-left-variant" @click.native="rotateLeft"></b-icon>
-      <b-icon icon="rotate-right-variant" @click.native="rotateRight"></b-icon>
-      <b-icon icon="texture-box" @click.native="showLabelMenu"></b-icon>
-      <b-icon icon="star-box" @click.native="showRatingMenu"></b-icon>
+      <b-icon icon="rotate-left-variant" :class="{disabled: !selectionPresent}" @click.native="rotateLeft"></b-icon>
+      <b-icon icon="rotate-right-variant" :class="{disabled: !selectionPresent}" @click.native="rotateRight"></b-icon>
+      <b-icon icon="texture-box" :class="{disabled: !selectionPresent}" @click.native="showLabelMenu"></b-icon>
+      <b-icon icon="star-box" :class="{disabled: !selectionPresent}" @click.native="showRatingMenu"></b-icon>
     </div>
   </div>
 </template>
@@ -60,6 +60,13 @@
 
     :hover {
       color: $nm-primary-color;
+    }
+
+    &.disabled {
+      opacity: .5;
+      :hover {
+        color: $nm-text-color;
+      }
     }
   }
 

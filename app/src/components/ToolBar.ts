@@ -1,6 +1,6 @@
 import { RotateCCWAction, RotateCWAction, ExportToFolderAction, ShowMediaFileAction } from '@/actions/selection';
 import { electronHelperService } from '@/lib/electron-helper-service';
-import { transientStoreSingleton } from '@/store';
+import { storeSingleton, transientStoreSingleton } from '@/store';
 import { computed, defineComponent } from '@vue/composition-api';
 
 export default defineComponent({
@@ -11,42 +11,63 @@ export default defineComponent({
       return transientStoreSingleton().state.leftPaneWidth;
     });
 
+    const selectionPresent = computed(() => storeSingleton().state.selection.primary !== undefined);
+
     const currentTab = computed({
       get: () => transientStore.state.imageViewerTab,
       set: (v) => transientStore.setImageViewerTab(v)
     });
 
+    // TODO: base buttons enabled/disabled status on actions "enabled" computed property.
     function showMediaFile() {
-      console.log('show media file');
+      if (!selectionPresent.value) {
+        return;
+      }
       new ShowMediaFileAction().perform();
     }
 
-    function ExportToFolder() {
+    function exportToFolder() {
+      if (!selectionPresent.value) {
+        return;
+      }
       new ExportToFolderAction().perform();
     }
 
     function rotateLeft() {
+      if (!selectionPresent.value) {
+        return;
+      }
       new RotateCCWAction().perform();
     }
 
     function rotateRight() {
+      if (!selectionPresent.value) {
+        return;
+      }
       new RotateCWAction().perform();
     }
 
     function showLabelMenu() {
+      if (!selectionPresent.value) {
+        return;
+      }
       electronHelperService().showLabelMenu();
     }
 
     function showRatingMenu() {
+      if (!selectionPresent.value) {
+        return;
+      }
       electronHelperService().showRatingMenu();
     }
 
     return {
       leftPaneWidth,
+      selectionPresent,
       currentTab,
 
       showMediaFile,
-      ExportToFolder,
+      ExportToFolder: exportToFolder,
       rotateLeft,
       rotateRight,
       showLabelMenu,
