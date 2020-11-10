@@ -6,13 +6,15 @@ import json
 import logging
 import os
 import pathlib
+import shutil
 import signal
 import sys
 import uuid
-from typing import Awaitable, Callable, cast
+from typing import Awaitable, Callable, Dict, List, Mapping, Union, cast
 
 import aiohttp
 import aiojobs.aiohttp
+from multidict import istr
 import portpicker
 from aiohttp import web
 from aiojobs.aiohttp import spawn
@@ -24,7 +26,7 @@ PARSER.add_argument("--port", type=int, default=0)
 PARSER.add_argument("--db-file", type=pathlib.Path, default=None)
 PARSER.add_argument("--dev", default=False, action='store_true')
 
-CORS_HEADERS = {
+CORS_HEADERS: Dict[Union[str, istr], str] = {
     "Access-Control-Allow-Origin":
         "app://.",
     "Access-Control-Allow-Methods":
@@ -54,7 +56,7 @@ async def SendWebSocketData(request: web.Request, data):
   # property will be set correctly.
   to_remove = set(ws for ws in request.app["websockets"] if ws.close_code is not None)
   if to_remove:
-    logging.info("found %d dead websockets, removing", len(to_remove))
+    logging.info("Found %d dead websockets, removing", len(to_remove))
     request.app["websockets"].difference_update(to_remove)
 
   coros = [
@@ -94,7 +96,7 @@ SUPPORTED_EXTENSIONS = frozenset([".jpg", ".jpeg", ".tif", ".png"])
 
 async def ScanFile(path: str, request: web.Request):
   try:
-    image_file = await store.DATA_STORE.RegisterFile(path)
+    image_file = await store.DATA_STORE.RegisterFile(pathlib.Path(path))
     await SendWebSocketData(request, {
         "action": "FILE_REGISTERED",
         "image": image_file.ToJSON(),
@@ -104,15 +106,17 @@ async def ScanFile(path: str, request: web.Request):
         "action": "FILE_REGISTRATION_FAILED",
         "path": str(path),
     })
+    return
 
   async def Thumbnail(image_file):
     try:
-      image_file = await store.DATA_STORE.UpdateFileThumbnail(image_file.uid)
+      thumbnail_file = await store.DATA_STORE.UpdateFileThumbnail(image_file.uid)
     finally:
       backend_state.BACKEND_STATE.ChangePreviewQueueSize(-1)
+
     await SendWebSocketData(request, {
         "action": "THUMBNAIL_UPDATED",
-        "image": image_file.ToJSON(),
+        "image": thumbnail_file.ToJSON(),
     })
 
   if not image_file.preview_timestamp:
@@ -160,6 +164,28 @@ async def MovePathHandler(request: web.Request) -> web.Response:
                         text=f"{e.__class__.__name__}:{str(e)}",
                         content_type="text",
                         headers=CORS_HEADERS)
+
+
+async def ExportToPathHandler(request: web.Request) -> web.Response:
+  data = await request.json()
+
+  srcs: List[str] = data["srcs"]
+  dest: str = data["dest"]
+  prefix_with_index: bool = data["options"]["prefix_with_index"]
+
+  number_length = max(2, len(str(len(srcs))))
+
+  dest_path = pathlib.Path(dest)
+  for index, src in enumerate(srcs):
+    src_path = pathlib.Path(src)
+    dest_name = src_path.name
+
+    if prefix_with_index:
+      dest_name = f"{str(index).zfill(number_length)}_{dest_name}"
+    logging.info("Copying %s -> %s/%s", src_path, dest_path, dest_name)
+    shutil.copy(src_path, dest_path / dest_name, follow_symlinks=True)
+
+  return web.Response(status=200, text="ok", headers=CORS_HEADERS)
 
 
 _CHUNK_LENGTH = 1048576
@@ -251,6 +277,8 @@ def main():
       web.post("/save", SecretCheckWrapper(SaveHandler)),
       web.options("/move-path", AllowCorsHandler),
       web.post("/move-path", SecretCheckWrapper(MovePathHandler)),
+      web.options("/export-to-path", AllowCorsHandler),
+      web.post("/export-to-path", SecretCheckWrapper(ExportToPathHandler)),
       web.get("/images/{uid}", GetImageHandler),
   ])
   app["websockets"] = set()

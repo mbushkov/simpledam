@@ -41,8 +41,16 @@
 // Set your colors
 $primary: $nm-primary-color;
 $primary-invert: $nm-background-color;
-$background: #808080;
+$background: $nm-background-color;
 $text: $nm-text-color;
+$text-strong: $nm-text-color-light;
+
+// Forms
+$input-hover-color: $nm-text-color-light;
+
+// Tabs
+$tabs-toggle-link-border-color: $nm-text-color;
+$tabs-toggle-link-hover-border-color: $nm-primary-color;
 
 // Labels
 $label-none: #ffffff;
@@ -152,6 +160,13 @@ $colors: (
     $label-selected-invert
   )
 );
+
+$form-colors: map-merge($colors, (
+  'primary': (
+    $primary,
+    $nm-text-color,
+  ),
+));
 
 // Links
 $link: $primary;

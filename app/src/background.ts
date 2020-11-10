@@ -369,6 +369,20 @@ ipcMain.on('show-save-catalog-dialog', async (event) => {
   event.reply('show-save-catalog-dialog-reply', path || '');
 });
 
+ipcMain.on('show-destination-folder-dialog', async (event) => {
+  const bw = BrowserWindow.getFocusedWindow();
+  if (!bw) {
+    return;
+  }
+
+  const path = (await dialog.showOpenDialog(bw, {
+    title: 'Select Destination Folder',
+    properties: ['openDirectory', 'createDirectory']
+  })).filePaths[0];
+  event.reply('show-destination-folder-dialog-reply', path || '');
+});
+
+
 ipcMain.on('show-media-file', async (_event: IpcMainEvent, path: string) => {
   shell.showItemInFolder(path);
 });

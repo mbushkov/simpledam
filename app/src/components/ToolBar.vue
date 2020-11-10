@@ -9,6 +9,8 @@
       </b-tabs>
 
       <b-icon icon="file-eye-outline" @click.native="showMediaFile"></b-icon>
+      <b-icon icon="file-move-outline" @click.native="ExportToFolder"></b-icon>
+      <span class="separator"></span>
       <b-icon icon="rotate-left-variant" @click.native="rotateLeft"></b-icon>
       <b-icon icon="rotate-right-variant" @click.native="rotateRight"></b-icon>
       <b-icon icon="texture-box" @click.native="showLabelMenu"></b-icon>
@@ -53,12 +55,16 @@
     color: $nm-text-color;
     position: relative;
     top: -5px;
-    margin-left: .25em;
-    margin-right: .25em;
+    margin-left: .2em;
+    margin-right: .2em;
 
     :hover {
       color: $nm-primary-color;
     }
+  }
+
+  span.separator {
+    width: .75em;
   }
 }
 </style>

@@ -7,6 +7,10 @@ export class ElectronHelperService {
     (window as any).electron.showSaveCatalogDialog(callbackFn);
   }
 
+  showDestinationFolderDialog(callbackFn: (path: string) => void) {
+    (window as any).electron.showDestinationFolderDialog(callbackFn);
+  }
+
   showMediaFile(path: string) {
     (window as any).electron.showMediaFile(path);
   }

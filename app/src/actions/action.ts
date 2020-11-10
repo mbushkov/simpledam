@@ -1,4 +1,4 @@
-interface Action {
+export interface Action {
   readonly name: string;
   readonly title: string;
 

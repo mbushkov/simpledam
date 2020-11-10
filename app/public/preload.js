@@ -27,6 +27,13 @@ contextBridge.exposeInMainWorld(
       ipcRenderer.send('show-save-catalog-dialog');
     },
 
+    showDestinationFolderDialog(callbackFn) {
+      ipcRenderer.once('show-destination-folder-dialog-reply', (_event, path) => {
+        callbackFn(path);
+      });
+      ipcRenderer.send('show-destination-folder-dialog');
+    },
+
     showMediaFile(path) {
       ipcRenderer.send('show-media-file', path);
     },

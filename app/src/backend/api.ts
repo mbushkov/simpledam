@@ -9,6 +9,10 @@ export const PORT = Number(GLOBAL_URL_PARAMS.get('port'));
 export const SECRET = GLOBAL_URL_PARAMS.get('secret');
 export const INITIAL_SCAL_PATH = GLOBAL_URL_PARAMS.get('scan-path');
 
+export interface ExportToPathOptions {
+  prefix_with_index: boolean;
+}
+
 export class ApiService {
   readonly BASE_ADDRESS = `localhost:${PORT}`;
   readonly ROOT = 'http://' + this.BASE_ADDRESS;
@@ -45,6 +49,11 @@ export class ApiService {
   async movePath(src: string, dest: string): Promise<void> {
     const response = await axios.post(this.ROOT + '/move-path', { src, dest }, { headers: this.HEADERS });
     log.info('[API] Move path response: ', response);
+  }
+
+  async exportToPath(srcs: string[], dest: string, options: ExportToPathOptions): Promise<void> {
+    const response = await axios.post(this.ROOT + '/export-to-path', { srcs, dest, options }, { headers: this.HEADERS });
+    log.info('[API] Export to path response: ', response);
   }
 
   async saveStore(path: string, state: ReadonlyState): Promise<void> {

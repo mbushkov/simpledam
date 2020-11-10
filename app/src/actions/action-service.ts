@@ -1,4 +1,5 @@
 import log from 'loglevel';
+import { Action } from './action';
 
 export class ActionService {
   private readonly _actions: { [key: string]: Action } = {};

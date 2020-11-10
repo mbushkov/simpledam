@@ -52,4 +52,4 @@ class BackendState:
     asyncio.gather(*coros)
 
 
-BACKEND_STATE = None
+BACKEND_STATE: BackendState

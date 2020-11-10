@@ -1,4 +1,4 @@
-import { RotateCCWAction, RotateCWAction } from '@/actions/edit';
+import { RotateCCWAction, RotateCWAction, ExportToFolderAction } from '@/actions/edit';
 import { ShowMediaFileAction } from '@/actions/file';
 import { electronHelperService } from '@/lib/electron-helper-service';
 import { transientStoreSingleton } from '@/store';
@@ -22,6 +22,10 @@ export default defineComponent({
       new ShowMediaFileAction().perform();
     }
 
+    function ExportToFolder() {
+      new ExportToFolderAction().perform();
+    }
+
     function rotateLeft() {
       new RotateCCWAction().perform();
     }
@@ -43,6 +47,7 @@ export default defineComponent({
       currentTab,
 
       showMediaFile,
+      ExportToFolder,
       rotateLeft,
       rotateRight,
       showLabelMenu,

@@ -1,5 +1,8 @@
+import ExportToFolder from '@/components/modals/ExportToFolder.vue';
 import { storeSingleton } from '@/store';
 import { Label, Rating } from "@/store/schema";
+import { ModalProgrammatic } from 'buefy';
+import { Action } from './action';
 
 function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
@@ -88,5 +91,17 @@ export class DefaultOrientationAction implements Action {
 
   async perform(): Promise<void> {
     storeSingleton().rotateToDefault();
+  }
+}
+
+export class ExportToFolderAction implements Action {
+  readonly name = 'ExportToFolder';
+  readonly title = 'Export To Folder';
+
+  async perform(): Promise<void> {
+    ModalProgrammatic.open({
+      component: ExportToFolder,
+      trapFocus: true,
+    })
   }
 }

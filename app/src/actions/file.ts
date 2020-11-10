@@ -3,6 +3,7 @@ import { backendMirrorSingleton } from "@/backend/backend-mirror";
 import { electronHelperService } from '@/lib/electron-helper-service';
 import { storeSingleton } from '@/store';
 import log from 'loglevel';
+import { Action } from './action';
 
 export class SaveAction implements Action {
   readonly name = 'Save';
