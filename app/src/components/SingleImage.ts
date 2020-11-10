@@ -105,7 +105,7 @@ export default defineComponent({
 
         event.preventDefault();
         event.stopImmediatePropagation();
-      } else if (event.key === 'Minus' && event.metaKey) {
+      } else if (event.code === 'Minus' && event.metaKey) {
         if (scale.value > 10) {
           if (scale.value > 125) {
             scale.value = scale.value - 25;
@@ -119,7 +119,7 @@ export default defineComponent({
 
         event.preventDefault();
         event.stopImmediatePropagation();
-      } else if (event.key === 'Digit0' && event.metaKey) {
+      } else if (event.code === 'Digit0' && event.metaKey) {
         if (autoFit.value) {
           autoFit.value = false;
           scale.value = 100;
