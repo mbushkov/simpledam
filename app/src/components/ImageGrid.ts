@@ -286,6 +286,11 @@ export default defineComponent({
         store.rotateLeft();
         event.preventDefault();
         return;
+      } else if (event.key === 'a' && event.metaKey) {
+        store.selectAll();
+        event.preventDefault();
+      } else if (event.key === 'd' && event.metaKey) {
+        store.selectPrimary(undefined);
       }
     }
 

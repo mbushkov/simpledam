@@ -4,7 +4,7 @@ import { FilterSettings, ImageFile, ImageList, ImageMetadata, Label, Rating, Rot
 import { bufferTime, catchError, filter, map } from 'rxjs/operators';
 import Vue from 'vue';
 import { TransientStore } from './transient-store';
-import { Direction, selectRange, selectPrimary, movePrimarySelection, moveAdditionalSelection, toggleAdditionalSelection, selectPrimaryPreservingAdditionalIfPossible } from './helpers/selection';
+import { Direction, selectRange, selectPrimary, movePrimarySelection, moveAdditionalSelection, toggleAdditionalSelection, selectPrimaryPreservingAdditionalIfPossible, selectAll } from './helpers/selection';
 import { reactive } from '@vue/composition-api';
 import { filterSettingsInvariant, listForFilterSettingsInvariant, updateItemInList, updateListsPresence, updateListsWithFilter } from './helpers/filtering';
 import { dirName } from './helpers/filesystem';
@@ -90,6 +90,10 @@ export class Store {
 
   public selectRange(uid: string) {
     selectRange(this._state.selection, this.currentList(), uid);
+  }
+
+  public selectAll() {
+    selectAll(this._state.selection, this.currentList());
   }
 
   public moveWithinCurrentList(uids: ReadonlyArray<string>, destIndex: number) {

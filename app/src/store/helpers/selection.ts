@@ -146,3 +146,16 @@ export function selectRange(selection: Selection, currentList: ImageList, uid: s
 
   selection.lastTouched = uid;
 }
+
+// TODO: test
+export function selectAll(selection: Selection, currentList: ImageList) {
+  if (selection.primary === undefined) {
+    selectPrimary(selection, currentList.items[0]);
+  }
+
+  for (const uid of currentList.items) {
+    if (uid !== selection.primary) {
+      Vue.set(selection.additional, uid, true);
+    }
+  }
+}

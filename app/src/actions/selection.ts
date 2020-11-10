@@ -103,6 +103,26 @@ export class DefaultOrientationAction implements Action {
   }
 }
 
+export class SelectAllAction implements Action {
+  readonly name = 'SelectAll';
+  readonly title = 'Select All';
+  readonly enabled = computed(() => true);
+
+  async perform(): Promise<void> {
+    storeSingleton().selectAll();
+  }
+}
+
+export class DeselectAllAction implements Action {
+  readonly name = 'DeselectAll';
+  readonly title = 'Deselect All';
+  readonly enabled = computed(() => true);
+
+  async perform(): Promise<void> {
+    storeSingleton().selectPrimary(undefined);
+  }
+}
+
 export class ShowMediaFileAction implements Action {
   readonly name = 'ShowMediaFile';
   readonly title = 'Show Media File';
