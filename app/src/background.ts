@@ -307,7 +307,7 @@ app.on('ready', async () => {
     {
       label: 'Selection',
       submenu: [
-        menuItem('ShoeMediaFile', 'Show Media File'),
+        menuItem('ShowMediaFile', 'Show Media File'),
         menuItem('ExportToFolder', 'Export To Folder...'),
         { type: 'separator' },
         {
