@@ -444,13 +444,13 @@ ipcMain.on('show-image-menu', async () => {
     {
       label: 'Rating',
       submenu: [
-        menuItem('Rating0', 'None', 'Command+0'),
+        menuItem('Rating0', 'None', 'Ctrl+0'),
         { type: 'separator' },
-        menuItem('Rating1', '★', 'Command+1'),
-        menuItem('Rating2', '★★', 'Command+2'),
-        menuItem('Rating3', '★★★', 'Command+3'),
-        menuItem('Rating4', '★★★★', 'Command+4'),
-        menuItem('Rating5', '★★★★★', 'Command+5'),
+        menuItem('Rating1', '★', 'Ctrl+1'),
+        menuItem('Rating2', '★★', 'Ctrl+2'),
+        menuItem('Rating3', '★★★', 'Ctrl+3'),
+        menuItem('Rating4', '★★★★', 'Ctrl+4'),
+        menuItem('Rating5', '★★★★★', 'Ctrl+5'),
       ],
     },
     {
