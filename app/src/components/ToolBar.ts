@@ -67,7 +67,7 @@ export default defineComponent({
       currentTab,
 
       showMediaFile,
-      ExportToFolder: exportToFolder,
+      exportToFolder,
       rotateLeft,
       rotateRight,
       showLabelMenu,
