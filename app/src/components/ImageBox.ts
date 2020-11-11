@@ -1,5 +1,6 @@
-import { defineComponent, computed, SetupContext, reactive, ref, onMounted, watch } from '@vue/composition-api';
-import { Label, ImageAdjustments, Rotation, Rating } from '@/store/schema';
+import { ImageViewerTab, transientStoreSingleton } from '@/store';
+import { ImageAdjustments, Label, Rating, Rotation } from '@/store/schema';
+import { computed, defineComponent, onMounted, reactive, ref, SetupContext, watch, watchEffect } from '@vue/composition-api';
 
 
 export interface ImageSize {
@@ -165,6 +166,14 @@ export default defineComponent({
       nestedSize.width = nestedRef.value.clientWidth;
       nestedSize.height = nestedRef.value.clientHeight;
     }
+
+    // TODO: this breaks image box's encapsulation. There should be a proper way of alerting
+    // image boxes that their parent component became visible.
+    watchEffect(() => {
+      if (transientStoreSingleton().state.imageViewerTab === ImageViewerTab.THUMBNAILS) {
+        resize();
+      }
+    });
 
     const size = computed(() => props.size);
     onMounted(resize);
