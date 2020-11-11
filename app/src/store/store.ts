@@ -137,6 +137,9 @@ export class Store {
     // Makes sure that the list for this label exists.
     listForFilterSettingsInvariant(this._state.lists, invariant);
 
+    const currentList = this.currentList();
+    const primaryIndex = currentList.items.indexOf(this._state.selection.primary);
+
     for (const sel of Object.keys(this._state.selection.additional).concat(this._state.selection.primary)) {
       const prevLabel = this._state.metadata[sel].label;
       Vue.set(this._state.metadata[sel], 'label', label);
@@ -145,6 +148,12 @@ export class Store {
         this.updateItemInCurrentList(sel);
         updateListsPresence(this._state.lists, sel, invariant);
       }
+    }
+
+    if (currentList.items.length === 0) {
+      this.selectPrimary(undefined);
+    } else {
+      this.selectPrimary(currentList.items[Math.min(primaryIndex, currentList.items.length - 1)]);
     }
   }
 
@@ -188,6 +197,9 @@ export class Store {
     // Makes sure that the list for this label exists.
     listForFilterSettingsInvariant(this._state.lists, invariant);
 
+    const currentList = this.currentList();
+    const primaryIndex = currentList.items.indexOf(this._state.selection.primary);
+
     for (const sel of Object.keys(this._state.selection.additional).concat(this._state.selection.primary)) {
       const prevRating = this._state.metadata[sel].rating;
       Vue.set(this._state.metadata[sel], 'rating', rating);
@@ -197,6 +209,12 @@ export class Store {
         updateListsPresence(this._state.lists, sel, invariant);
       }
     }
+
+    if (currentList.items.length === 0) {
+      this.selectPrimary(undefined);
+    } else {
+      this.selectPrimary(currentList.items[Math.min(primaryIndex, currentList.items.length - 1)]);
+    }    
   }
 
   public changeRatingFilter(rating: Rating, state: boolean, allowMultiple: boolean) {

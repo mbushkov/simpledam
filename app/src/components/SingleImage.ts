@@ -57,6 +57,7 @@ export default defineComponent({
     const el = ref<HTMLDivElement>();
 
     watch([autoFit, imageUrl, curRotation], (newValues) => {
+      // TODO: store scale and autofit directly in transient store and use it from there. This will also allow to add corresponding toolbar buttons.
       transientStoreSingleton().setSingleImageViewerOptions({
         scale: scale.value,
         autoFit: autoFit.value,
