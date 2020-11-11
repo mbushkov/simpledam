@@ -3,7 +3,7 @@
     <div class="left-pane" :style="{width: leftPaneWidth.toString() + 'px'}">
     </div>
     <div class="right-pane">
-      <b-tabs class="top-tabs" size="is-small" type="is-toggle" v-model="currentTab">
+      <b-tabs class="mode-panel top-tabs" size="is-small" type="is-toggle" v-model="currentTab">
         <b-tab-item label="Thumbnails"></b-tab-item>
         <b-tab-item label="Media"></b-tab-item>
       </b-tabs>
