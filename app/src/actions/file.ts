@@ -1,5 +1,6 @@
 import { apiServiceSingleton } from '@/backend/api';
 import { backendMirrorSingleton } from "@/backend/backend-mirror";
+import { electronHelperService } from '@/lib/electron-helper-service';
 import { storeSingleton } from '@/store';
 import { computed } from '@vue/composition-api';
 import log from 'loglevel';
@@ -15,8 +16,19 @@ export class SaveAction implements Action {
       return new SaveAsAction().perform();
     } else {
       log.info('[App] Saving existing catalog to: ', backendMirrorSingleton().state.catalogPath);
-      apiServiceSingleton().saveStore(catalogPath ?? backendMirrorSingleton().state.catalogPath, storeSingleton().state);
+      await apiServiceSingleton().saveStore(catalogPath ?? backendMirrorSingleton().state.catalogPath, storeSingleton().state);
     }
+  }
+}
+
+export class SaveAndCloseAction implements Action {
+  readonly name = 'SaveAndClose';
+  readonly title = 'Save And Close';
+  readonly enabled = computed(() => true);
+
+  async perform(): Promise<void> {
+    await new SaveAction().perform();
+    electronHelperService().closeWindow();
   }
 }
 

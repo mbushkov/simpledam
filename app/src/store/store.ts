@@ -11,32 +11,37 @@ import { dirName } from './helpers/filesystem';
 
 export { Direction } from './helpers/selection';
 
+const _INITIAL_STATE: State = {
+  version: 1,
+
+  filterSettings: {
+    selectedLabels: [],
+    selectedRatings: [],
+    selectedPaths: [],
+  },
+  filtersInvariant: '',
+
+  thumbnailSettings: {
+    ratio: ThumbnailRatio.RATIO_4x3,
+    size: 200,
+  },
+  selection: {
+    primary: undefined,
+    lastTouched: undefined,
+    additional: {},
+  },
+
+  images: {},
+  metadata: {},
+  lists: {},
+  paths: {},  
+};
+
+export const INITIAL_STATE: ReadonlyState = _INITIAL_STATE;
 
 export class Store {
   private _state: State = reactive({
-    version: 1,
-
-    filterSettings: {
-      selectedLabels: [],
-      selectedRatings: [],
-      selectedPaths: [],
-    },
-    filtersInvariant: '',
-
-    thumbnailSettings: {
-      ratio: ThumbnailRatio.RATIO_4x3,
-      size: 200,
-    },
-    selection: {
-      primary: undefined,
-      lastTouched: undefined,
-      additional: {},
-    },
-
-    images: {},
-    metadata: {},
-    lists: {},
-    paths: {},
+    ..._INITIAL_STATE
   });
 
   constructor(

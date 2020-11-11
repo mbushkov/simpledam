@@ -308,6 +308,8 @@ import * as log from 'loglevel';
 import { actionServiceSingleton } from './actions';
 import { watchEffect } from '@vue/composition-api';
 import { backendMirrorSingleton } from './backend/backend-mirror';
+import { electronHelperService } from './lib/electron-helper-service';
+import { INITIAL_STATE } from './store/store';
 
 
 export default Vue.extend({
@@ -390,6 +392,19 @@ export default Vue.extend({
 (window as any).addEventListener('nm-action', (event: CustomEvent<{actionName: string, args: any[]}>) => {
   actionServiceSingleton().performAction(event.detail.actionName, ...event.detail.args);
 });
+(window as any).addEventListener('nm-check-for-unsaved-changes', async () => {
+  const currentState = storeSingleton().state;
+  const savedState = (await apiServiceSingleton().fetchState()) || INITIAL_STATE;
+  const currentStateStr = JSON.stringify(currentState);
+  const savedStateStr = JSON.stringify(savedState);
+
+  if (currentStateStr !== savedStateStr) {
+    electronHelperService().confirmClosingWindow();
+  } else {
+    electronHelperService().closeWindow();
+  }
+});
+
 </script>
 
 <style>

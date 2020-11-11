@@ -133,6 +133,11 @@ async function createWindow(options: CreateWindowOptions = {}) {
     win.loadURL(url)
   }
 
+  win.on('close', (e) => {
+    e.preventDefault();
+    win?.webContents.send('check-for-unsaved-changes');
+  });
+
   win.on('closed', () => {
     console.log('[BACKEND]: Killing on windows close.')
     backend.kill('SIGKILL');
@@ -543,6 +548,37 @@ if (isDevelopment) {
     });
   }
 }
+
+ipcMain.on('close-window', () => {
+  const win = BrowserWindow.getFocusedWindow();
+  if (!win) {
+    return;
+  }
+
+  win.destroy();
+});
+
+ipcMain.on('confirm-closing-window', () => {
+  const win = BrowserWindow.getFocusedWindow();
+  if (!win) {
+    return;
+  }
+
+  const choice = dialog.showMessageBoxSync(
+    {
+      type: 'question',
+      buttons: ['Save', 'Cancel', 'Don\'t save'],
+      title: 'Unsaved Changes',
+      message: 'Do you want to save the changes you made in the document?'
+    });
+  if (choice === 2) {
+    win.destroy();
+  } else if (choice === 1) {
+    return;
+  } else if (choice === 0) {
+    win?.webContents.send('action', 'SaveAndClose');
+  }
+});
 
 // For e2e tests.
 ipcMain.on('raw:open-dev-tools', () => {

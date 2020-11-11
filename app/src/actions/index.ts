@@ -1,5 +1,5 @@
 import { ActionService } from './action-service';
-import { SaveAction, SaveAsAction } from './file';
+import { SaveAction, SaveAndCloseAction, SaveAsAction } from './file';
 import { DefaultOrientationAction, DeselectAllAction, ExportToFolderAction, FlipHorizontalAction, FlipVerticalAction, labelActions, rateActions, RotateCCWAction, RotateCWAction, SelectAllAction, ShowMediaFileAction } from './selection';
 
 let _actionService: ActionService | undefined;
@@ -8,6 +8,7 @@ export function actionServiceSingleton(): ActionService {
     _actionService = new ActionService();
 
     _actionService.registerAction(new SaveAction());
+    _actionService.registerAction(new SaveAndCloseAction());
     _actionService.registerAction(new SaveAsAction());
     _actionService.registerAction(new ShowMediaFileAction());
 

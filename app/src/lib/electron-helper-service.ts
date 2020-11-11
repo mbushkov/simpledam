@@ -30,6 +30,14 @@ export class ElectronHelperService {
   updateMenuActionStatus(statusMap: { readonly [key: string]: boolean }) {
     (window as any).electron.updateMenuActionStatus(statusMap);
   }
+
+  closeWindow() {
+    (window as any).electron.closeWindow();
+  }
+
+  confirmClosingWindow() {
+    (window as any).electron.confirmClosingWindow();
+  }
 }
 
 let _electronHelperService: ElectronHelperService | undefined;

@@ -52,7 +52,15 @@ contextBridge.exposeInMainWorld(
 
     updateMenuActionStatus(statusMap) {
       ipcRenderer.send('update-menu-action-status', statusMap);
-    }
+    },
+
+    closeWindow() {
+      ipcRenderer.send('close-window');
+    },
+
+    confirmClosingWindow() {
+      ipcRenderer.send('confirm-closing-window');
+    },
   }
 )
 
@@ -65,6 +73,10 @@ ipcRenderer.on('action', (_, actionName, ...args) => {
       args
     }
   }));
+});
+
+ipcRenderer.on('check-for-unsaved-changes', () => {
+  window.dispatchEvent(new CustomEvent('nm-check-for-unsaved-changes'));
 });
 
 webFrame.setZoomFactor(1);
