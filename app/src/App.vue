@@ -309,7 +309,7 @@ import { actionServiceSingleton } from './actions';
 import { watchEffect } from '@vue/composition-api';
 import { backendMirrorSingleton } from './backend/backend-mirror';
 import { electronHelperService } from './lib/electron-helper-service';
-import { INITIAL_STATE } from './store/store';
+import { initialState } from './store/store';
 
 
 export default Vue.extend({
@@ -394,7 +394,7 @@ export default Vue.extend({
 });
 (window as any).addEventListener('nm-check-for-unsaved-changes', async () => {
   const currentState = storeSingleton().state;
-  const savedState = (await apiServiceSingleton().fetchState()) || INITIAL_STATE;
+  const savedState = (await apiServiceSingleton().fetchState()) || initialState();
   const currentStateStr = JSON.stringify(currentState);
   const savedStateStr = JSON.stringify(savedState);
 
