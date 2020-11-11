@@ -34,7 +34,13 @@ function _initialState(): State {
 
     images: {},
     metadata: {},
-    lists: {},
+    lists: {
+      // This would be created automatically anyway. But having this here allows for easy changes detection when checking if we need to show an "unsaved changes" dialog.
+      '': {
+        presenceMap: {},
+        items: [],
+      }
+    },
     paths: {},  
   };
 }
