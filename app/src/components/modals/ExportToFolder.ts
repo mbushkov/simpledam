@@ -6,8 +6,8 @@ import { computed, defineComponent, ref } from '@vue/composition-api';
 export default defineComponent({
   setup(_, { emit }) {
     const prefixWithIndex = ref<boolean>(true);
-    const destinationPath = ref<string | undefined>();
-    const noneConstant = computed(() => '<none>');
+    const destinationPath = ref<string | undefined>();  
+    const noneConstant = computed(() => '<destination folder not selected>');
 
     function openFolderDialog() {
       electronHelperService().showDestinationFolderDialog((path) => {

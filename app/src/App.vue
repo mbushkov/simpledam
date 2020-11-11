@@ -207,6 +207,11 @@ body {
   background-color: $nm-background-color !important;
 }
 
+// Do not show modal close button.
+button.modal-close {
+  display: none;
+}
+
 ::-webkit-scrollbar {
   background-color: transparent;
 }

@@ -147,6 +147,7 @@ export class ExportToFolderAction implements Action {
 
   async perform(): Promise<void> {
     ModalProgrammatic.open({
+      width: 500,
       component: ExportToFolder,
       trapFocus: true,
     })

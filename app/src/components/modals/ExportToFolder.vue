@@ -6,9 +6,11 @@
 
     <div class="content">
       <div class="destination-path">
-        <div class="path">{{ destinationPath || noneConstant }}</div>
-        <button class="button is-light is-small" @click="openFolderDialog">Browse Folder</button>
+        <div class="path"><span v-if="destinationPath">{{ destinationPath }}</span><span v-if="!destinationPath"><em>{{ noneConstant }}</em></span></div>
+        <button class="button is-light is-small" @click="openFolderDialog">Select Folder</button>
       </div>
+
+      <hr>
       
       <div>
         <b-checkbox v-model="prefixWithIndex">Prefix filenames with index</b-checkbox>
@@ -47,12 +49,21 @@
     padding-top: 1em;
     margin: 0;
 
+    hr {
+      height: 1px;
+    }
+
     .destination-path {
       display: flex;
       align-content: center;
+      margin-bottom: 1em;
 
       .path {
         flex-grow: 1;
+        display: flex;
+        align-items: center;
+        word-break: break-word;
+        margin-right: 1em;
       }
 
       button {
