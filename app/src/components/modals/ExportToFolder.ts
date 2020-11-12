@@ -7,6 +7,7 @@ export default defineComponent({
   setup(_, { emit }) {
     const prefixWithIndex = ref<boolean>(true);
     const destinationPath = ref<string | undefined>();  
+    const inProgress = ref<boolean>(false);
     const noneConstant = computed(() => '<destination folder not selected>');
 
     function openFolderDialog() {
@@ -32,6 +33,7 @@ export default defineComponent({
       const images = storeSingleton().state.images;
       const srcs = srcUids.map(uid => images[uid].path);
 
+      inProgress.value = true;
       await apiServiceSingleton().exportToPath(
         srcs,
         destinationPath.value!,
@@ -44,6 +46,7 @@ export default defineComponent({
     return {
       prefixWithIndex,
       destinationPath,
+      inProgress,
       noneConstant,
 
       openFolderDialog,

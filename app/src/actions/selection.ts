@@ -150,6 +150,7 @@ export class ExportToFolderAction implements Action {
       width: 500,
       component: ExportToFolder,
       trapFocus: true,
+      canCancel: false,
     })
   }
 }

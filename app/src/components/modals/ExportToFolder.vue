@@ -7,19 +7,20 @@
     <div class="content">
       <div class="destination-path">
         <div class="path"><span v-if="destinationPath">{{ destinationPath }}</span><span v-if="!destinationPath"><em>{{ noneConstant }}</em></span></div>
-        <button class="button is-light is-small" @click="openFolderDialog">Select Folder</button>
+        <button class="button is-light is-small" :disabled="inProgress" @click="openFolderDialog">Select Folder</button>
       </div>
 
       <hr>
       
       <div>
-        <b-checkbox v-model="prefixWithIndex">Prefix filenames with index</b-checkbox>
+        <b-checkbox :disabled="inProgress" v-model="prefixWithIndex">Prefix filenames with index</b-checkbox>
       </div>
     </div>
 
     <div class="bottom">
-      <button class="button is-light is-small" @click="$emit('close')">Close</button>
-      <button class="button is-primary is-small" :disabled="!destinationPath" @click="startExport">Export</button>
+      <b-progress v-if="inProgress" class="progress"></b-progress>
+      <button class="button is-light is-small" :disabled="inProgress" @click="$emit('close')">Close</button>
+      <button class="button is-primary is-small" :disabled="inProgress || !destinationPath" @click="startExport">Export</button>
     </div>
 </div>
 </template>
@@ -74,10 +75,16 @@
 
   .bottom {
     display: flex;
+    align-items: center;
     justify-content: flex-end;
-    align-content: center;
 
     padding: 1em;
+
+    .progress {
+      width: 100%;
+      padding-right: 1em;
+      margin-bottom: 0;
+    }
 
     button {
       min-width: 80px;
