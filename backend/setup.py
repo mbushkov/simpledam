@@ -16,6 +16,7 @@ setup_args = dict(
         "bson==0.5.9",
         "pillow-simd==7.0.0.post3",
         "portpicker==1.3.1",
+        "rawpy==0.15.0",
     ],
     extras_require={
         "dev": ["pyinstaller==3.6"],

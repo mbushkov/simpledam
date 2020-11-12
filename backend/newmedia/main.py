@@ -1,23 +1,20 @@
 import argparse
 import asyncio
-import collections
-import dataclasses
 import json
 import logging
 import os
 import pathlib
 import shutil
-import signal
 import sys
 import uuid
-from typing import Awaitable, Callable, Dict, List, Mapping, Union, cast
+from typing import Awaitable, Callable, Dict, List, Union, cast
 
 import aiohttp
 import aiojobs.aiohttp
-from multidict import istr
 import portpicker
 from aiohttp import web
 from aiojobs.aiohttp import spawn
+from multidict import istr
 
 from newmedia import backend_state, store
 
@@ -91,9 +88,6 @@ async def WebSocketHandler(request: web.Request) -> web.WebSocketResponse:
   return ws
 
 
-SUPPORTED_EXTENSIONS = frozenset([".jpg", ".jpeg", ".tif", ".png"])
-
-
 async def ScanFile(path: str, request: web.Request):
   try:
     image_file = await store.DATA_STORE.RegisterFile(pathlib.Path(path))
@@ -134,7 +128,7 @@ async def ScanPathHandler(request: web.Request) -> web.Response:
     for root, dirs, files in os.walk(path):
       for f in files:
         n, ext = os.path.splitext(f)
-        if ext.lower() in SUPPORTED_EXTENSIONS:
+        if ext.lower() in store.SUPPORTED_EXTENSIONS:
           path = str(pathlib.Path(root) / f)
           logging.info("Found path: %s", path)
           await ScanFile(path, request)

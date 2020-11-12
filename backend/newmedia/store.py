@@ -7,11 +7,12 @@ import os
 import pathlib
 import time
 import uuid
-from typing import Any, Dict, Iterator, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple, cast
 
 import aiosqlite
 import bson
 from PIL import Image, ImageMath
+import rawpy
 
 from newmedia import backend_state
 
@@ -73,8 +74,8 @@ class ImageFile:
     return ImageFile(
         data["path"],
         data["uid"],
-        Size.FromJSON(data["size"]),
-        Size.FromJSON(data["preview_size"]),
+        Size.FromJSON(data["size"]) or Size(0, 0),
+        Size.FromJSON(data["preview_size"]) or Size(0, 0),
         data["preview_timestamp"],
     )
 
@@ -84,8 +85,38 @@ class ImageFile:
 
 MAX_DIMENSION = 1600
 
+_SUPPORTED_PILLOW_EXTENSIONS = frozenset([
+    ".jpg", ".jpeg", ".tiff", ".png", ".bmp", ".gif", ".icns", ".ico", ".pcx", ".ppm", ".sgi",
+    ".webp", ".xbm", ".psd", ".xpm"
+])
+_SUPPORTED_RAWPY_EXTENSIONS = frozenset([
+    ".3fr", ".ari", ".arw", ".bay", ".braw", ".crw", ".cr2", ".cr3", ".cap", ".data", ".dcs",
+    ".dcr", ".dng", ".drf", ".eip", ".erf", ".fff", ".gpr", ".iiq", ".k25", ".kdc", ".mdc", ".mef",
+    ".mos", ".mrw", ".nef", ".nrw", ".obm", ".orf", ".pef", ".ptx", ".pxn", ".r3d", ".raf", ".raw",
+    ".rwl", ".rw2", ".rwz", ".sr2", ".srf", ".srw", ".x3f"
+])
+
+SUPPORTED_EXTENSIONS = _SUPPORTED_PILLOW_EXTENSIONS | _SUPPORTED_RAWPY_EXTENSIONS
+
 
 def _GetFileInfo(path: pathlib.Path, prev_info: Optional[ImageFile]) -> ImageFile:
+  _, ext = os.path.splitext(path.name)
+  ext = ext.lower()
+
+  start_time = time.time()
+  try:
+    if ext in _SUPPORTED_PILLOW_EXTENSIONS:
+      return _GetPillowFileInfo(path, prev_info=prev_info)
+    elif ext in _SUPPORTED_RAWPY_EXTENSIONS:
+      return _GetRawPyFileInfo(path, prev_info=prev_info)
+    else:
+      raise ValueError(f"Path {path} does not have a supported extension.")
+  finally:
+    end_time = time.time()
+    logging.info("GetFileInfo %s took %.2fs", path, end_time - start_time)
+
+
+def _GetPillowFileInfo(path: pathlib.Path, prev_info: Optional[ImageFile]) -> ImageFile:
   try:
     im = Image.open(path)
     stat = os.stat(path)
@@ -110,7 +141,46 @@ def _GetFileInfo(path: pathlib.Path, prev_info: Optional[ImageFile]) -> ImageFil
     im.close()
 
 
+def _GetRawPyFileInfo(path: pathlib.Path, prev_info: Optional[ImageFile]) -> ImageFile:
+  try:
+    stat = os.stat(path)
+    with rawpy.imread(str(path)) as raw:
+      sizes = raw.sizes
+  except (IOError, rawpy.LibRawError) as e:
+    raise ImageProcessingError(e)
+
+  uid = prev_info and prev_info.uid or uuid.uuid4().hex
+  if prev_info and prev_info.preview_timestamp and (stat.st_mtime * 1000 >
+                                                    prev_info.preview_timestamp):
+    prev_info = None
+
+  return ImageFile(
+      str(path),
+      uid,
+      Size(sizes.width, sizes.height),
+      prev_info and prev_info.preview_size or None,
+      prev_info and prev_info.preview_timestamp or None,
+  )
+
+
 def _ThumbnailFile(image_file: ImageFile) -> Tuple[ImageFile, bytes]:
+  _, ext = os.path.splitext(image_file.path)
+  ext = ext.lower()
+
+  start_time = time.time()
+  try:
+    if ext in _SUPPORTED_PILLOW_EXTENSIONS:
+      return _ThumbnailPillowFile(image_file)
+    elif ext in _SUPPORTED_RAWPY_EXTENSIONS:
+      return _ThumbnailRawPyFile(image_file)
+    else:
+      raise ValueError(f"Path {image_file.path} does not have a supported extension.")
+  finally:
+    end_time = time.time()
+    logging.info("ThumbnailFile %s took %.2fs", image_file.path, end_time - start_time)
+
+
+def _ThumbnailPillowFile(image_file: ImageFile) -> Tuple[ImageFile, bytes]:
   try:
     im = Image.open(image_file.path)
     # Grayscale tiffs first have to be normalized to have values ranging from 0 to 255 (IIUC, floating point values are ok).
@@ -123,6 +193,39 @@ def _ThumbnailFile(image_file: ImageFile) -> Tuple[ImageFile, bytes]:
 
     im = im.convert("RGB")
   except IOError as e:
+    raise ImageProcessingError(e)
+
+  try:
+    width, height = im.size
+    im.thumbnail((MAX_DIMENSION, MAX_DIMENSION))
+    target_width, target_height = im.size
+
+    out = io.BytesIO()
+    im.save(out, format='JPEG')
+
+    return (
+        ImageFile(
+            image_file.path,
+            image_file.uid,
+            Size(width, height),
+            Size(target_width, target_height),
+            int(time.time() * 1000),
+        ),
+        out.getvalue(),
+    )
+  finally:
+    im.close()
+
+
+def _ThumbnailRawPyFile(image_file: ImageFile) -> Tuple[ImageFile, bytes]:
+  try:
+    with rawpy.imread(image_file.path) as raw:
+      rgb = raw.postprocess(
+          half_size=True,
+          output_bps=8,
+      )
+      im = Image.fromarray(rgb)
+  except (IOError, rawpy.LibRawError) as e:
     raise ImageProcessingError(e)
 
   try:
@@ -235,14 +338,14 @@ VALUES ('state', ?)
     backend_state.BACKEND_STATE.SetCatalogOpProgress(None, None)
     backend_state.BACKEND_STATE.catalog_path = path
 
-  async def GetSavedState(self) -> Optional[Dict[str, Any]]:
+  async def GetSavedState(self) -> Optional[Dict[Any, Any]]:
     conn = await self._GetConn()
     cur_state = None
     async with conn.execute("SELECT blob FROM RendererState", []) as cursor:
       async for row in cursor:
         cur_state = bson.loads(row[0])
 
-    return cur_state
+    return cast(Optional[Dict[Any, Any]], cur_state)
 
   async def RegisterFile(self, path: pathlib.Path) -> ImageFile:
     loop = asyncio.get_running_loop()
