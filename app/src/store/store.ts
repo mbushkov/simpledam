@@ -277,6 +277,7 @@ export class Store {
       }
     }
 
+    this._state.filtersInvariant = filterSettingsInvariant(this._state.filterSettings);
     updateListsWithFilter(this._state.filterSettings, this._state.lists, this._state.images, this._state.metadata);
     this.selectPrimary(undefined);
   }
