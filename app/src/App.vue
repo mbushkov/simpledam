@@ -358,11 +358,13 @@ export default Vue.extend({
 
     splitpanesReady() {
       // TODO: this is a horrible hack - rewrite vue inifinite scroller to make this unnecessary.
-      setTimeout(() => {
-        log.debug('[App] Handling initial split panes resize.');
-        (this.$refs['imageViewerRef'] as any).handleResize();
-        this.handleResize();
-      }, 1000);
+      for (let i = 0; i < 5000; i += 100) {
+        setTimeout(() => {
+          log.debug('[App] Handling initial split panes resize.');
+          (this.$refs['imageViewerRef'] as any).handleResize();
+          this.handleResize();
+        }, i);
+      }
     },
 
     splitpanesResizing() {
