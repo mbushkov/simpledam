@@ -7,7 +7,7 @@ from PIL import Image, ImageDraw
 from newmedia_e2e.lib.base import BrowserWindow
 from selenium.webdriver.common.keys import Keys
 
-from newmedia_e2e.lib import base
+from newmedia_e2e.lib import base, selectors
 
 
 class ImageGridTest(base.TestBase):
@@ -16,7 +16,7 @@ class ImageGridTest(base.TestBase):
 
   def _GetSortedImages(self, b: BrowserWindow):
     return sorted(
-        b.GetDisplayedElements('.image-grid .image-box'),
+        b.GetDisplayedElements(selectors.ImageBoxes()),
         key=lambda i: (i.rect["y"], i.rect["x"]),
     )
 
@@ -32,16 +32,16 @@ class ImageGridTest(base.TestBase):
 
   def testClickingOnEachImageHighlightsIt(self):
     b = self.CreateWindow(self.temp_dir)
-    b.WaitUntilCountEqual(self.NUM_IMAGES, ".image-grid img")
+    b.WaitUntilCountEqual(self.NUM_IMAGES, selectors.ImageBoxes())
 
     images = self._GetSortedImages(b)
     for image in images:
       b.Click(image)
-      self.assertEqual(image, b.GetDisplayedElement('.image-grid .image-box.selected'))
+      b.WaitUntilEqual(image, lambda: b.GetDisplayedElement(selectors.SelectedImageBox()))
 
   def testPressingArrowKeysChangesSelection(self):
     b = self.CreateWindow(self.temp_dir)
-    b.WaitUntilCountEqual(self.NUM_IMAGES, ".image-grid img")
+    b.WaitUntilCountEqual(self.NUM_IMAGES, selectors.ImageBoxes())
 
     images = self._GetSortedImages(b)
     y_offsets = list(sorted(set(e.rect["y"] for e in images)))
@@ -50,24 +50,24 @@ class ImageGridTest(base.TestBase):
     b.Click(images[0])
 
     b.SendKeys(Keys.RIGHT)
-    b.WaitUntilEqual(lambda: b.GetDisplayedElement('.image-grid .image-box.selected'),
-                     lambda: b.GetDisplayedElements('.image-grid .image-box')[1])
+    b.WaitUntilEqual(lambda: b.GetDisplayedElement(selectors.SelectedImageBox()),
+                     lambda: b.GetDisplayedElements(selectors.ImageBoxes())[1])
 
     b.SendKeys(Keys.LEFT)
-    b.WaitUntilEqual(lambda: b.GetDisplayedElement('.image-grid .image-box.selected'),
-                     lambda: b.GetDisplayedElements('.image-grid .image-box')[0])
+    b.WaitUntilEqual(lambda: b.GetDisplayedElement(selectors.SelectedImageBox()),
+                     lambda: b.GetDisplayedElements(selectors.ImageBoxes())[0])
 
     b.SendKeys(Keys.DOWN)
     b.WaitUntilEqual(y_offsets[1],
-                     lambda: b.GetDisplayedElement('.image-grid .image-box.selected').rect["y"])
+                     lambda: b.GetDisplayedElement(selectors.SelectedImageBox()).rect["y"])
 
     b.SendKeys(Keys.UP)
     b.WaitUntilEqual(y_offsets[0],
-                     lambda: b.GetDisplayedElement('.image-grid .image-box.selected').rect["y"])
+                     lambda: b.GetDisplayedElement(selectors.SelectedImageBox()).rect["y"])
 
   def testResizinginSingleImageViewHandledCorrectlyByImageGrid(self):
     b = self.CreateWindow(self.temp_dir)
-    b.WaitUntilCountEqual(self.NUM_IMAGES, ".image-grid .image-box")
+    b.WaitUntilCountEqual(self.NUM_IMAGES, selectors.ImageBoxes())
 
     images = self._GetSortedImages(b)
     # There was a bug when resizing in a single image made the grid switch to a single column.
@@ -77,16 +77,16 @@ class ImageGridTest(base.TestBase):
 
     # Double click on an image and wait until the Media tab gets highlighted.
     b.DoubleClick(images[0])
-    b.WaitUntilPresent(".mode-panel li.is-active:contains('Media')")
+    b.WaitUntilPresent(selectors.ModePanel("Media", is_active=True))
 
     # Resized the window and switch back to the thumbnails tab.
     b.electron.ResizeWindowBy(200, 200)
-    b.Click(".mode-panel a:contains('Thumbnails')")
+    b.Click(selectors.ModePanel("Thumbnails"))
 
     # Wait until all images are displayed, make sure they're not in a single column.
-    b.WaitUntilCountEqual(self.NUM_IMAGES, ".image-grid .image-box")
+    b.WaitUntilCountEqual(self.NUM_IMAGES, selectors.ImageBoxes())
 
     # Check that there's more than one column.
-    images = b.GetDisplayedElements('.image-grid .image-box')
+    images = b.GetDisplayedElements(selectors.ImageBoxes())
     x_offsets = set(e.rect["x"] for e in images)
     self.assertGreater(len(x_offsets), 1)

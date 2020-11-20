@@ -5,8 +5,7 @@ from typing import cast
 
 from PIL import Image, ImageDraw
 
-from newmedia_e2e.lib.base import BrowserWindow
-from newmedia_e2e.lib import base
+from newmedia_e2e.lib import base, selectors
 
 
 class FilteringTest(base.TestBase):
@@ -29,15 +28,15 @@ class FilteringTest(base.TestBase):
 
   def testFiltersByPath(self):
     b = self.CreateWindow(self.temp_dir)
-    b.WaitUntilCountEqual(self.NUM_IMAGES, ".image-grid .image-box")
+    b.WaitUntilCountEqual(self.NUM_IMAGES, selectors.ImageBoxes())
 
     # Click on the path filter.
     path_0 = os.path.join(self.temp_dir, "0")
-    b.Click(f".paths .row:contains('{path_0}') label")
+    b.Click(selectors.PathFilterRadioButton(path_0))
 
-    b.WaitUntilCountEqual(1, ".image-grid .image-box")
-    b.WaitUntilPresent(".image-grid .image-box .title:contains('0.png')")
+    b.WaitUntilCountEqual(1, selectors.ImageBoxes())
+    b.WaitUntilPresent(selectors.ImageBoxWithTitle("0.png"))
 
     # Click on the same path filter again to remove it.
-    b.Click(f".paths .row:contains('{path_0}') label")
-    b.WaitUntilCountEqual(self.NUM_IMAGES, ".image-grid img")
+    b.Click(selectors.PathFilterRadioButton(path_0))
+    b.WaitUntilCountEqual(self.NUM_IMAGES, selectors.ImageBoxes())
