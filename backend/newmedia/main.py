@@ -125,9 +125,9 @@ async def ScanPathHandler(request: web.Request) -> web.Response:
   logging.info("Scanning path: %s", path)
 
   if os.path.isdir(path):
-    for root, dirs, files in os.walk(path):
-      for f in files:
-        n, ext = os.path.splitext(f)
+    for root, _, files in os.walk(path):
+      for f in sorted(files):
+        _, ext = os.path.splitext(f)
         if ext.lower() in store.SUPPORTED_EXTENSIONS:
           path = str(pathlib.Path(root) / f)
           logging.info("Found path: %s", path)
