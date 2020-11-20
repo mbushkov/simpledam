@@ -26,11 +26,9 @@ export default defineComponent({
 
     function handleResize() {
       if (imageGridRef.value) {
-        console.log(['imagegridref', imageGridRef.value]);
         (imageGridRef.value as any).handleResize();
       }
       if (singleImageRef.value) {
-        console.log(['singleImageref', singleImageRef.value]);
         (singleImageRef.value as any).handleResize();
       }
     }
