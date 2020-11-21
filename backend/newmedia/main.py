@@ -4,13 +4,16 @@ import json
 import logging
 import os
 import pathlib
-import shutil
 import sys
 import uuid
 from typing import Awaitable, Callable, Dict, List, Union, cast
 
-import aiohttp
 import aiojobs.aiohttp
+from newmedia.communicator import Communicator
+from newmedia.long_operation_runner import LongOperationRunner
+from newmedia.long_operations.export import ExportToPathOperation
+from newmedia.long_operations.save import SaveOperation
+from newmedia.long_operations.scan import ScanPathsOperation
 import portpicker
 from aiohttp import web
 from aiojobs.aiohttp import spawn
@@ -46,96 +49,25 @@ async def SavedStateHandler(request: web.Request) -> web.Response:
   return web.json_response({"state": state}, content_type="text", headers=CORS_HEADERS)
 
 
-async def SendWebSocketData(request: web.Request, data):
-  # Remove websockets that were closed abnormally. Chromium will close local
-  # websocket connections every time the machine goes to sleep. On the backend
-  # side these websockets won't receive any notification, but their close_code
-  # property will be set correctly.
-  to_remove = set(ws for ws in request.app["websockets"] if ws.close_code is not None)
-  if to_remove:
-    logging.info("Found %d dead websockets, removing", len(to_remove))
-    request.app["websockets"].difference_update(to_remove)
-
-  coros = [
-      asyncio.shield(cast(web.WebSocketResponse, ws).send_json(data))
-      for ws in request.app["websockets"]
-  ]
-  asyncio.gather(*coros)
-
-
 async def WebSocketHandler(request: web.Request) -> web.WebSocketResponse:
   ws = web.WebSocketResponse(compress=False)
   await ws.prepare(request)
 
-  logging.info("Websocket connection opened")
-  request.app["websockets"].add(ws)
+  communicator = cast(Communicator, request.app["communicator"])
+  await communicator.ListenToWebSocket(ws)
 
-  async for msg in ws:
-    if msg.type == aiohttp.WSMsgType.TEXT:
-      logging.info("Got text WebSocket message: %s", msg)
-    elif msg.type == aiohttp.WSMsgType.CLOSING:
-      logging.info("WebSocket connection is about to close.")
-    elif msg.type == aiohttp.WSMsgType.ERROR:
-      logging.error('WebSocket connection closed with exception %s' % ws.exception())
-    elif msg.type == aiohttp.WSMsgType.CLOSED:
-      logging.info("WebSocket connection closed exiting.")
-    else:
-      logging.info("Message of type: %s %s", msg.type, msg)
-
-  request.app["websockets"].remove(ws)
-
-  logging.info("WebSocket connection closed.")
   return ws
-
-
-async def ScanFile(path: str, request: web.Request):
-  try:
-    image_file = await store.DATA_STORE.RegisterFile(pathlib.Path(path))
-    await SendWebSocketData(request, {
-        "action": "FILE_REGISTERED",
-        "image": image_file.ToJSON(),
-    })
-  except store.ImageProcessingError:
-    await SendWebSocketData(request, {
-        "action": "FILE_REGISTRATION_FAILED",
-        "path": str(path),
-    })
-    return
-
-  async def Thumbnail(image_file):
-    try:
-      thumbnail_file = await store.DATA_STORE.UpdateFileThumbnail(image_file.uid)
-    finally:
-      backend_state.BACKEND_STATE.ChangePreviewQueueSize(-1)
-
-    await SendWebSocketData(request, {
-        "action": "THUMBNAIL_UPDATED",
-        "image": thumbnail_file.ToJSON(),
-    })
-
-  if not image_file.preview_timestamp:
-    backend_state.BACKEND_STATE.ChangePreviewQueueSize(1)
-    await spawn(request, Thumbnail(image_file))
 
 
 async def ScanPathHandler(request: web.Request) -> web.Response:
   data = await request.json()
   path: str = data["path"]
 
-  logging.info("Scanning path: %s", path)
+  communicator = cast(Communicator, request.app["communicator"])
+  long_operation_runnter = cast(LongOperationRunner, request.app["long_operation_runner"])
 
-  if os.path.isdir(path):
-    for root, _, files in os.walk(path):
-      for f in sorted(files):
-        _, ext = os.path.splitext(f)
-        if ext.lower() in store.SUPPORTED_EXTENSIONS:
-          path = str(pathlib.Path(root) / f)
-          logging.info("Found path: %s", path)
-          await ScanFile(path, request)
-          logging.info("Processing done.")
-  elif os.path.isfile(path):
-    logging.info("Scan file: %s", path)
-    await ScanFile(path, request)
+  await spawn(request,
+              long_operation_runnter.RunLongOperation(ScanPathsOperation([path], communicator)))
 
   return web.Response(text="ok", content_type="text", headers=CORS_HEADERS)
 
@@ -145,9 +77,11 @@ async def MovePathHandler(request: web.Request) -> web.Response:
   src: str = data["src"]
   dest: str = data["dest"]
 
+  communicator = cast(Communicator, request.app["communicator"])
+
   try:
     image_file = await store.DATA_STORE.MoveFile(pathlib.Path(src), pathlib.Path(dest))
-    await SendWebSocketData(request, {
+    await communicator.SendWebSocketData({
         "action": "FILE_REGISTERED",
         "image": image_file.ToJSON(),
     })
@@ -167,19 +101,13 @@ async def ExportToPathHandler(request: web.Request) -> web.Response:
   dest: str = data["dest"]
   prefix_with_index: bool = data["options"]["prefix_with_index"]
 
-  number_length = max(2, len(str(len(srcs))))
+  long_operation_runnter = cast(LongOperationRunner, request.app["long_operation_runner"])
 
-  dest_path = pathlib.Path(dest)
-  for index, src in enumerate(srcs):
-    src_path = pathlib.Path(src)
-    dest_name = src_path.name
+  await spawn(
+      request,
+      long_operation_runnter.RunLongOperation(ExportToPathOperation(srcs, dest, prefix_with_index)))
 
-    if prefix_with_index:
-      dest_name = f"{str(index).zfill(number_length)}_{dest_name}"
-    logging.info("Copying %s -> %s/%s", src_path, dest_path, dest_name)
-    shutil.copy(src_path, dest_path / dest_name, follow_symlinks=True)
-
-  return web.Response(status=200, text="ok", headers=CORS_HEADERS)
+  return web.Response(text="ok", content_type="text", headers=CORS_HEADERS)
 
 
 _CHUNK_LENGTH = 1048576
@@ -213,9 +141,9 @@ async def SaveHandler(request: web.Request) -> web.Response:
   path: str = data["path"]
   state = data["state"]
 
-  logging.info("Saving to: %s", path)
+  long_operation_runnter = cast(LongOperationRunner, request.app["long_operation_runner"])
 
-  await store.DATA_STORE.SaveStore(path, state)
+  await spawn(request, long_operation_runnter.RunLongOperation(SaveOperation(state, path)))
 
   return web.Response(text="ok", content_type="text", headers=CORS_HEADERS)
 
@@ -256,6 +184,9 @@ def main():
 
   store.InitDataStore(args.db_file)
 
+  communicator = Communicator()
+  long_operation_runner = LongOperationRunner(communicator)
+
   # TODO: max request size is 1 Gb. This creates a natural
   # limit on the library size. We should look into how to
   # do streaming updates.
@@ -275,13 +206,14 @@ def main():
       web.post("/export-to-path", SecretCheckWrapper(ExportToPathHandler)),
       web.get("/images/{uid}", GetImageHandler),
   ])
-  app["websockets"] = set()
+  app["communicator"] = communicator
+  app["long_operation_runner"] = long_operation_runner
   aiojobs.aiohttp.setup(app)
 
   # Die if the parent process dies.
   asyncio.get_event_loop().create_task(DieIfParentDies())
 
-  backend_state.BACKEND_STATE = backend_state.BackendState(app)
+  backend_state.BACKEND_STATE = backend_state.BackendState(communicator)
 
   port = args.port or portpicker.pick_unused_port()
   secret = uuid.uuid4().hex

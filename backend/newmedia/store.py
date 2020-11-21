@@ -7,7 +7,7 @@ import os
 import pathlib
 import time
 import uuid
-from typing import Any, Dict, Optional, Tuple, cast
+from typing import Any, Callable, Dict, Optional, Tuple, cast
 
 import aiosqlite
 import bson
@@ -282,7 +282,7 @@ class DataStore:
     if self._conn is not None:
       return self._conn
 
-    backend_state.BACKEND_STATE.catalog_path = self._db_path
+    await backend_state.BACKEND_STATE.ChangeCatalogPath(self._db_path)
     self._conn = await aiosqlite.connect(self._db_path)
 
     if self._db_path:
@@ -293,14 +293,12 @@ class DataStore:
         remaining = remaining or 1
         total = total or 1
         logging.info("Loading file: %s %d %d", status, remaining, total)
-        backend_state.BACKEND_STATE.SetCatalogOpProgress("load", 1 - round(remaining / total * 100))
 
       def Backup():
         self._conn._conn.backup(copy_conn._conn, pages=100, progress=Progress)
 
       await self._conn._execute(Backup)
       await self._conn.close()
-      backend_state.BACKEND_STATE.SetCatalogOpProgress(None, None)
 
       self._conn = copy_conn
 
@@ -310,7 +308,10 @@ class DataStore:
 
   # TODO: hold a global lock of some kind while saving the store.
   # At least make sure no new pictures are registered during the save.
-  async def SaveStore(self, path, renderer_state_json):
+  async def SaveStore(self,
+                      path,
+                      renderer_state_json,
+                      progress: Optional[Callable[[float], Any]] = None):
     self._db_path = path
 
     serialized = bson.dumps(renderer_state_json)
@@ -328,15 +329,14 @@ VALUES ('state', ?)
       remaining = remaining or 1
       total = total or 1
       logging.info("Saving file: %s %d %d", status, remaining, total)
-      backend_state.BACKEND_STATE.SetCatalogOpProgress("save", 1 - round(remaining / total * 100))
+      progress(1 - float(remaining) / total)
 
     def Backup():
       conn._conn.backup(copy_conn._conn, pages=100, progress=Progress)
 
     await conn._execute(Backup)
     await copy_conn.close()
-    backend_state.BACKEND_STATE.SetCatalogOpProgress(None, None)
-    backend_state.BACKEND_STATE.catalog_path = path
+    await backend_state.BACKEND_STATE.ChangeCatalogPath(path)
 
   async def GetSavedState(self) -> Optional[Dict[Any, Any]]:
     conn = await self._GetConn()

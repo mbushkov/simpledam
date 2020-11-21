@@ -1,55 +1,58 @@
-import asyncio
-from typing import cast, Optional
+from typing import Dict
 
-from aiohttp import web
+from newmedia.communicator import Communicator
+from newmedia.long_operation import LongOperationStatus
 
 
 class BackendState:
 
-  def __init__(self, app):
+  async def _SendUpdate(self):
+    await self._communicator.SendWebSocketData({
+        "action": "BACKEND_STATE_UPDATE",
+        "state": self._ToJSON(),
+    })
+
+  def _ToJSON(self):
+    long_operations = {}
+    for k, v in self._long_operations.items():
+      long_operations[k] = v.ToJSON()
+
+    return {
+        "catalogPath": self._catalog_path,
+        "previewQueueSize": self._preview_queue_size,
+        "longOperations": long_operations,
+    }
+
+  def __init__(self, communicator: Communicator):
     self._catalog_path: str = ""
     self._preview_queue_size: int = 0
-    self._catalog_op_name: Optional[str] = None
-    self._catalog_op_progress: Optional[int] = None
-    self._app = app
+    self._long_operations: Dict[str, LongOperationStatus] = {}
+
+    self._communicator = communicator
 
   @property
   def catalog_path(self) -> str:
     return self._catalog_path
 
-  @catalog_path.setter
-  def catalog_path(self, value: str):
+  async def ChangeCatalogPath(self, value: str):
     self._catalog_path = value
-    self._SendUpdate()
+    await self._SendUpdate()
 
   @property
   def preview_queue_size(self) -> int:
     return self._preview_queue_size
 
-  def ChangePreviewQueueSize(self, delta: int):
+  async def ChangePreviewQueueSize(self, delta: int):
     self._preview_queue_size += delta
-    self._SendUpdate()
+    await self._SendUpdate()
 
-  def SetCatalogOpProgress(self, name: Optional[str], progress: Optional[int]):
-    self._catalog_op_name = name
-    self._catalog_op_progress = progress
+  async def SetLongOperationStatus(self, oid: str, status: LongOperationStatus):
+    self._long_operations[oid] = status
+    await self._SendUpdate()
 
-  def _ToJSON(self):
-    return {
-        "catalogPath": self._catalog_path,
-        "previewQueueSize": self._preview_queue_size,
-        "catalogOpName": self._catalog_op_name,
-        "catalogOpProgress": self._catalog_op_progress,
-    }
-
-  def _SendUpdate(self):
-    coros = [
-        cast(web.WebSocketResponse, ws).send_json({
-            "action": "BACKEND_STATE_UPDATE",
-            "state": self._ToJSON(),
-        }) for ws in self._app["websockets"]
-    ]
-    asyncio.gather(*coros)
+  async def UnsetLongOperationStatus(self, oid: str):
+    del self._long_operations[oid]
+    await self._SendUpdate()
 
 
 BACKEND_STATE: BackendState
