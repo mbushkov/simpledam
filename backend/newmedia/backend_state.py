@@ -1,7 +1,7 @@
 from typing import Dict
 
 from newmedia.communicator import Communicator
-from newmedia.long_operation import LongOperationStatus
+from newmedia.long_operation import Status
 
 
 class BackendState:
@@ -26,7 +26,7 @@ class BackendState:
   def __init__(self, communicator: Communicator):
     self._catalog_path: str = ""
     self._preview_queue_size: int = 0
-    self._long_operations: Dict[str, LongOperationStatus] = {}
+    self._long_operations: Dict[str, Status] = {}
 
     self._communicator = communicator
 
@@ -46,7 +46,7 @@ class BackendState:
     self._preview_queue_size += delta
     await self._SendUpdate()
 
-  async def SetLongOperationStatus(self, oid: str, status: LongOperationStatus):
+  async def SetLongOperationStatus(self, oid: str, status: Status):
     self._long_operations[oid] = status
     await self._SendUpdate()
 

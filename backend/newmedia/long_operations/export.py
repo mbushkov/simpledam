@@ -3,7 +3,7 @@ import pathlib
 import shutil
 
 from typing import AsyncIterator, Collection
-from newmedia.long_operation import LongOperation, LongOperationStatus
+from newmedia.long_operation import LogCallback, LongOperation, Status, StatusCallback
 
 
 class ExportToPathOperation(LongOperation):
@@ -14,7 +14,7 @@ class ExportToPathOperation(LongOperation):
     self.dest = dest
     self.prefix_with_index = prefix_with_index
 
-  async def Run(self) -> AsyncIterator[LongOperationStatus]:
+  async def Run(self, status_callback: StatusCallback, log_callback: LogCallback) -> None:
     number_length = max(2, len(str(len(self.srcs))))
 
     dest_path = pathlib.Path(self.dest)
@@ -28,4 +28,4 @@ class ExportToPathOperation(LongOperation):
       logging.info("Copying %s -> %s/%s", src_path, dest_path, dest_name)
       shutil.copy(src_path, dest_path / dest_name, follow_symlinks=True)
 
-      yield LongOperationStatus(f"Exporting {dest_name}", float(index) / len(self.srcs))
+      await status_callback(Status(f"Exporting {dest_name}", float(index) / len(self.srcs)))

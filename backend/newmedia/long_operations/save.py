@@ -3,7 +3,7 @@ import logging
 
 from typing import AsyncIterator
 from newmedia import store
-from newmedia.long_operation import LongOperation, LongOperationStatus
+from newmedia.long_operation import LogCallback, LongOperation, Status, StatusCallback
 from newmedia.utils.json_type import JSON
 
 
@@ -14,7 +14,7 @@ class SaveOperation(LongOperation):
     self.state = state
     self.path = path
 
-  async def Run(self) -> AsyncIterator[LongOperationStatus]:
+  async def Run(self, status_callback: StatusCallback, log_callback: LogCallback) -> None:
     logging.info("Saving to: %s", self.path)
 
     q: asyncio.Queue = asyncio.Queue()
@@ -35,4 +35,4 @@ class SaveOperation(LongOperation):
       if save_task in done:
         return
       else:
-        yield LongOperationStatus("Saving", get_task.result())
+        await status_callback(Status("Saving", get_task.result()))

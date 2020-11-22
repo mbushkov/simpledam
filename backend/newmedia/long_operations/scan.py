@@ -7,7 +7,7 @@ import pathlib
 from typing import AsyncIterator, Iterable, Set
 from asyncio.futures import Future
 from newmedia.communicator import Communicator
-from newmedia.long_operation import LongOperation, LongOperationStatus
+from newmedia.long_operation import LogCallback, LongOperation, Status, StatusCallback
 from newmedia import backend_state
 from newmedia import store
 
@@ -49,7 +49,7 @@ class ScanPathsOperation(LongOperation):
     self.paths = paths
     self.communicator = communicator
 
-  async def Run(self) -> AsyncIterator[LongOperationStatus]:
+  async def Run(self, status_callback: StatusCallback, log_callback: LogCallback) -> None:
     paths_to_process = []
 
     for p in self.paths:
@@ -66,7 +66,8 @@ class ScanPathsOperation(LongOperation):
 
     preview_tasks: Set["Future"] = set()
     for i, p in enumerate(paths_to_process):
-      yield LongOperationStatus(f"Processing {p}", float(i) / len(paths_to_process) * 50)
+      await status_callback(Status(f"Processing {p}", float(i) / len(paths_to_process) * 50))
+
       logging.info("Found path: %s", p)
       preview_coro = ScanFile(p, self.communicator)
       if preview_coro is not None:
@@ -75,8 +76,9 @@ class ScanPathsOperation(LongOperation):
 
     while True:
       done, pending = await asyncio.wait(preview_tasks, return_when=asyncio.FIRST_COMPLETED)
-      yield LongOperationStatus(f"Thumbnail {len(done)} out of {len(preview_tasks)}",
-                                float(len(done)) / len(preview_tasks) * 50 + 50)
+      await status_callback(
+          Status(f"Thumbnail {len(done)} out of {len(preview_tasks)}",
+                 float(len(done)) / len(preview_tasks) * 50 + 50))
       if not pending:
         break
       preview_tasks = pending
