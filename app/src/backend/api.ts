@@ -24,7 +24,7 @@ export class ApiService {
 
   constructor(ws: Observable<unknown> | undefined = undefined) {
     if (INITIAL_SCAL_PATH) {
-      this.scanPath(INITIAL_SCAL_PATH);
+      this.scanPaths([INITIAL_SCAL_PATH]);
     }
 
     this.ws = (ws ?? webSocket(`ws://${this.BASE_ADDRESS}/ws`)).pipe(
@@ -48,8 +48,8 @@ export class ApiService {
 
   readonly ws: Observable<Action>;
 
-  async scanPath(path: string): Promise<void> {
-    const response = await axios.post(this.ROOT + '/scan-path', { path }, { headers: this.HEADERS });
+  async scanPaths(paths: readonly string[]): Promise<void> {
+    const response = await axios.post(this.ROOT + '/scan-paths', { paths }, { headers: this.HEADERS });
     log.info('[API] Scan path response: ', response);
   }
 

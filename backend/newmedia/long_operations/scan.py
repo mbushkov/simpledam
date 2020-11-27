@@ -56,7 +56,7 @@ class ScanPathsOperation(LongOperation):
       logging.info("Scanning path: %s", p)
       if os.path.isdir(p):
         for root, _, files in os.walk(p):
-          for f in sorted(files):
+          for f in files:
             _, ext = os.path.splitext(f)
             if ext.lower() in store.SUPPORTED_EXTENSIONS:
               path = str(pathlib.Path(root) / f)
@@ -65,7 +65,7 @@ class ScanPathsOperation(LongOperation):
         paths_to_process.append(p)
 
     preview_tasks: Set["Future"] = set()
-    for i, p in enumerate(paths_to_process):
+    for i, p in enumerate(sorted(paths_to_process)):
       await status_callback(Status(f"Processing {p}", float(i) / len(paths_to_process) * 50))
 
       logging.info("Found path: %s", p)

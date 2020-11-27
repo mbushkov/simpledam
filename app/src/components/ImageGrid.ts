@@ -136,9 +136,7 @@ export default defineComponent({
       if (result.contents.kind === 'internal') {
         store.moveWithinCurrentList(result.contents.uids, dragIndicatorIndex.value);
       } else {
-        for (const p of result.contents.paths) {
-          apiService.scanPath(p);
-        }
+        apiService.scanPaths(result.contents.paths);
       }
     }
 

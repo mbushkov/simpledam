@@ -6,7 +6,7 @@ import os
 import pathlib
 import sys
 import uuid
-from typing import Awaitable, Callable, Dict, List, Union, cast
+from typing import Awaitable, Callable, Dict, Iterable, List, Union, cast
 
 import aiojobs.aiohttp
 from newmedia.communicator import Communicator
@@ -59,15 +59,15 @@ async def WebSocketHandler(request: web.Request) -> web.WebSocketResponse:
   return ws
 
 
-async def ScanPathHandler(request: web.Request) -> web.Response:
+async def ScanPathsHandler(request: web.Request) -> web.Response:
   data = await request.json()
-  path: str = data["path"]
+  paths: Iterable[str] = data["paths"]
 
   communicator = cast(Communicator, request.app["communicator"])
   long_operation_runnter = cast(LongOperationRunner, request.app["long_operation_runner"])
 
   await spawn(request,
-              long_operation_runnter.RunLongOperation(ScanPathsOperation([path], communicator)))
+              long_operation_runnter.RunLongOperation(ScanPathsOperation(paths, communicator)))
 
   return web.Response(text="ok", content_type="text", headers=CORS_HEADERS)
 
@@ -196,8 +196,8 @@ def main():
       web.get("/ws", WebSocketHandler),
       web.options("/saved-state", AllowCorsHandler),
       web.get("/saved-state", SecretCheckWrapper(SavedStateHandler)),
-      web.options("/scan-path", AllowCorsHandler),
-      web.post("/scan-path", SecretCheckWrapper(ScanPathHandler)),
+      web.options("/scan-paths", AllowCorsHandler),
+      web.post("/scan-paths", SecretCheckWrapper(ScanPathsHandler)),
       web.options("/save", AllowCorsHandler),
       web.post("/save", SecretCheckWrapper(SaveHandler)),
       web.options("/move-path", AllowCorsHandler),
