@@ -1,3 +1,4 @@
+
 export class ElectronHelperService {
   dragStart(paths: string[], thumbnailUrl: string, callbackFn: () => void) {
     (window as any).electron.dragStart(paths, thumbnailUrl, callbackFn);
@@ -40,11 +41,14 @@ export class ElectronHelperService {
   }
 }
 
-let _electronHelperService: ElectronHelperService | undefined;
-
-export function electronHelperService(): ElectronHelperService {
-  if (_electronHelperService === undefined) {
-    _electronHelperService = new ElectronHelperService();
+let _electronHelperServiceSingleton: ElectronHelperService | undefined;
+export function electronHelperServiceSingleton(): ElectronHelperService {
+  if (!_electronHelperServiceSingleton) {
+    throw new Error('electronHelperServiceSingleton not set');
   }
-  return _electronHelperService;
+  return _electronHelperServiceSingleton;
+}
+
+export function setElectronHelperServiceSingleton(value: ElectronHelperService) {
+  _electronHelperServiceSingleton = value;
 }

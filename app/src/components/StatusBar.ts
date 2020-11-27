@@ -1,11 +1,13 @@
+import { backendMirrorSingleton } from '@/backend/backend-mirror';
+import { transientStoreSingleton } from '@/store';
 import { defineComponent } from '@vue/composition-api';
 
-import { backendMirrorSingleton } from '@/backend/backend-mirror';
 
 export default defineComponent({
   setup() {
 
     return {
+      transientStoreState: transientStoreSingleton().state,
       backendState: backendMirrorSingleton().state,
     }
   }

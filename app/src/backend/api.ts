@@ -1,8 +1,10 @@
+import { ReadonlyState, State } from '@/store/schema';
 import axios from 'axios';
-import { webSocket } from 'rxjs/webSocket';
-import { State, ReadonlyState } from '@/store/schema';
-import { catchError } from 'rxjs/operators';
 import * as log from 'loglevel';
+import { Observable } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+import { webSocket } from 'rxjs/webSocket';
+import { Action } from './actions';
 
 const GLOBAL_URL_PARAMS = new URLSearchParams(window.location.search);
 export const PORT = Number(GLOBAL_URL_PARAMS.get('port'));
@@ -20,26 +22,31 @@ export class ApiService {
     'X-nm-secret': SECRET,
   };
 
-  constructor() {
+  constructor(ws: Observable<unknown> | undefined = undefined) {
     if (INITIAL_SCAL_PATH) {
       this.scanPath(INITIAL_SCAL_PATH);
     }
+
+    this.ws = (ws ?? webSocket(`ws://${this.BASE_ADDRESS}/ws`)).pipe(
+      catchError(err => {
+        log.info('[API] WebSocket connection broken (retry is due): ', err);
+        // Chromium will close the websocket evert time the system goes to sleep.
+        // Thus, it's necessary to retry.
+        return webSocket(`ws://${this.BASE_ADDRESS}/ws`);
+      }),
+      map(v => v as Action),
+    );
+
+    this.ws.subscribe({
+      next(i) {
+        if (log.getLevel() <= log.levels.TRACE) {
+          log.trace('[API] Got WebSocket message: ', i);
+        }
+      }
+    });
   }
 
-  readonly ws = webSocket(`ws://${this.BASE_ADDRESS}/ws`).pipe(
-    catchError(err => {
-      log.info('[API] WebSocket connection broken (retry is due): ', err);
-      // Chromium will close the websocket evert time the system goes to sleep.
-      // Thus, it's necessary to retry.
-      return webSocket(`ws://${this.BASE_ADDRESS}/ws`);
-    }),
-  );
-
-  readonly wsLogging = this.ws.subscribe(i => {
-    if (log.getLevel() <= log.levels.TRACE) {
-      log.trace('[API] Got WebSocket message: ', i);
-    }
-  });
+  readonly ws: Observable<Action>;
 
   async scanPath(path: string): Promise<void> {
     const response = await axios.post(this.ROOT + '/scan-path', { path }, { headers: this.HEADERS });
@@ -93,11 +100,16 @@ export class ApiService {
   }
 }
 
-export let _apiService: ApiService | undefined;
-export function apiServiceSingleton() {
-  if (!_apiService) {
-    _apiService = new ApiService();
+let _apiServiceSingleton: ApiService | undefined;
+
+export function apiServiceSingleton(): ApiService {
+  if (!_apiServiceSingleton) {
+    throw new Error('apiServiceSingleton not set');
   }
 
-  return _apiService;
+  return _apiServiceSingleton;
+}
+
+export function setApiServiceSingleton(value: ApiService) {
+  _apiServiceSingleton = value;
 }

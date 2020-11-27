@@ -1,5 +1,5 @@
 import { apiServiceSingleton } from '@/backend/api';
-import { electronHelperService } from '@/lib/electron-helper-service';
+import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
 import { Direction, ImageViewerTab, storeSingleton, transientStoreSingleton } from '@/store';
 import { Label, Rotation } from '@/store/schema';
 import { computed, defineComponent, onBeforeUnmount, onMounted, ref, watch } from '@vue/composition-api';
@@ -257,7 +257,7 @@ export default defineComponent({
 
     function contextClicked() {
       log.info('[SingleImage] Context-clicked, showing context menu.');
-      electronHelperService().showImageMenu();
+      electronHelperServiceSingleton().showImageMenu();
     }
 
     onMounted(() => {

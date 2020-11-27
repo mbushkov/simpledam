@@ -1,5 +1,5 @@
 import ExportToFolder from '@/components/modals/ExportToFolder.vue';
-import { electronHelperService } from '@/lib/electron-helper-service';
+import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
 import { storeSingleton } from '@/store';
 import { Label, Rating } from "@/store/schema";
 import { computed } from '@vue/composition-api';
@@ -136,7 +136,7 @@ export class ShowMediaFileAction implements Action {
 
     const path = storeSingleton().state.images[primarySelection].path;
     console.log('showing media file for', path);
-    electronHelperService().showMediaFile(path);
+    electronHelperServiceSingleton().showMediaFile(path);
   }
 }
 

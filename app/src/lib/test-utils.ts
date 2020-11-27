@@ -1,8 +1,20 @@
+import { setActionServiceSingleton } from '@/actions';
+import { ActionService } from '@/actions/action-service';
+import { ApiService, setApiServiceSingleton } from '@/backend/api';
+import { BackendMirror, setBackendMirrorSingleton } from '@/backend/backend-mirror';
 import { Immutable } from '@/lib/type-utils';
+import { setStoreSingleton, setTransientStoreSingleton } from '@/store';
+import { Store } from '@/store/store';
+import { TransientStore } from '@/store/transient-store';
 import VueCompositionApi, { computed, defineComponent, reactive, UnwrapRef } from '@vue/composition-api';
-import { mount, Wrapper } from '@vue/test-utils';
+import { mount as originalMount, MountOptions, shallowMount as originalShallowMount, ShallowMountOptions, ThisTypedMountOptions, ThisTypedShallowMountOptions, VueClass, Wrapper } from '@vue/test-utils';
 import Buefy from 'buefy';
-import Vue from 'vue';
+import { Subject } from 'rxjs';
+import sinon from 'sinon';
+import Vue, { Component } from 'vue';
+import { ComponentOptions, DefaultProps, FunctionalComponentOptions, PropsDefinition } from 'vue/types/options';
+import { DragHelperService, setDragHelperServiceSingleton } from './drag-helper-service';
+import { ElectronHelperService, setElectronHelperServiceSingleton } from './electron-helper-service';
 
 export interface ObservableWrapper<T extends object> {
   readonly value: UnwrapRef<T>;
@@ -10,6 +22,37 @@ export interface ObservableWrapper<T extends object> {
   nextTick(): Promise<Immutable<T>>;
   snapshot(): Immutable<T>;
 }
+
+export function testAppComponent(): Component {
+  return defineComponent({
+    name: 'app',
+    setup() {
+    }
+  });
+}
+
+export function mount<V extends Vue>(component: VueClass<V>, options?: ThisTypedMountOptions<V>): Wrapper<V>
+export function mount<V extends Vue>(component: ComponentOptions<V>, options?: ThisTypedMountOptions<V>): Wrapper<V>
+export function mount<Props = DefaultProps, PropDefs = PropsDefinition<Props>>(component: FunctionalComponentOptions<Props, PropDefs>, options?: MountOptions<Vue>): Wrapper<Vue>;
+export function mount(component: any, options?: any): Wrapper<any> {
+  return originalMount(component, {
+    ...options,
+    parentComponent: options?.parentComponent ?? testAppComponent(),
+  });
+}
+
+export function shallowMount<V extends Vue>(component: VueClass<V>, options?: ThisTypedShallowMountOptions<V>): Wrapper<V>
+export function shallowMount<V extends Vue>(component: ComponentOptions<V>, options?: ThisTypedShallowMountOptions<V>): Wrapper<V>
+export function shallowMount<Props = DefaultProps, PropDefs = PropsDefinition<Props>>(component: FunctionalComponentOptions<Props, PropDefs>, options?: ShallowMountOptions<Vue>): Wrapper<Vue>;
+export function shallowMount(component: any, options?: any): Wrapper<any> {
+  return originalShallowMount(component, {
+    ...options,
+    parentComponent: options?.parentComponent ?? testAppComponent(),
+  });
+}
+
+
+
 
 /**
  * Creates a component that builds a recursive JSON representation of a given reactive object
@@ -96,11 +139,33 @@ export function createJSONWrapper<T extends object>(observableValue: T): Observa
   };
 }
 
-export function setupComponentTestEnv() {
-  Vue.use(VueCompositionApi);
-  Vue.use(Buefy);
-}
 
 export function setupTestEnv() {
   Vue.use(VueCompositionApi);
+
+  const electronHelperService = sinon.createStubInstance(ElectronHelperService);
+  setElectronHelperServiceSingleton(electronHelperService);
+
+  const apiService = new ApiService(new Subject<unknown>());
+  setApiServiceSingleton(apiService);
+
+  const actionService = new ActionService(electronHelperService);
+  setActionServiceSingleton(actionService);
+
+  const transientStore = new TransientStore(apiService.ws);
+  setTransientStoreSingleton(transientStore);
+
+  const store = new Store(transientStore, apiService);
+  setStoreSingleton(store);
+
+  const backendMirror = new BackendMirror(apiService);
+  setBackendMirrorSingleton(backendMirror);
+
+  const dragHelperService = new DragHelperService(electronHelperService);
+  setDragHelperServiceSingleton(dragHelperService);
+}
+
+export function setupComponentTestEnv() {
+  setupTestEnv();
+  Vue.use(Buefy);
 }

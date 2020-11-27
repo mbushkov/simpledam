@@ -1,8 +1,8 @@
+import { ElectronHelperService } from '@/lib/electron-helper-service';
 import { reactive, watchEffect } from '@vue/composition-api';
 import log from 'loglevel';
-import { Action } from './action';
 import Vue from 'vue';
-import { electronHelperService } from '@/lib/electron-helper-service';
+import { Action } from './action';
 
 export class ActionService {
   private readonly _actions: { [key: string]: Action } = {};
@@ -12,9 +12,9 @@ export class ActionService {
     statusByAction: {} as { [key: string]: boolean },
   });
 
-  constructor() {
+  constructor(electronHelperService: ElectronHelperService) {
     watchEffect(() => {
-      electronHelperService().updateMenuActionStatus(this.statusMap);
+      electronHelperService.updateMenuActionStatus(this.statusMap);
     });
   }
 

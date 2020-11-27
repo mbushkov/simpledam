@@ -5,8 +5,8 @@ import { ImageData, SelectionType } from './ImageBox';
 import ImageBox from './ImageBox.vue';
 import { Label } from '@/store/schema';
 import * as log from 'loglevel';
-import { DRAG_HELPER_SERVICE } from '../lib/drag-helper-service';
-import { electronHelperService } from '@/lib/electron-helper-service';
+import { dragHelperServiceSingleton } from '../lib/drag-helper-service';
+import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
 
 interface Row {
   key: string;
@@ -128,7 +128,7 @@ export default defineComponent({
     function containerDropped(event: DragEvent) {
       dragIndicatorVisible.value = false;
 
-      const result = DRAG_HELPER_SERVICE.finishDrag(event);
+      const result = dragHelperServiceSingleton().finishDrag(event);
       if (!result) {
         return;
       }
@@ -327,7 +327,7 @@ export default defineComponent({
         uids.add(additionalUid);
       }
       const files = Array.from(uids).map(u => store.state.images[u]);
-      DRAG_HELPER_SERVICE.startDrag(event, files, apiService.thumbnailUrl(uid))
+      dragHelperServiceSingleton().startDrag(event, files, apiService.thumbnailUrl(uid))
     }
 
     function imageBoxClicked(uid: string, event: MouseEvent) {
@@ -342,7 +342,7 @@ export default defineComponent({
 
     function imageBoxContextClicked(uid: string) {
       store.selectPrimaryPreservingAdditionalIfPossible(uid);
-      electronHelperService().showImageMenu();
+      electronHelperServiceSingleton().showImageMenu();
     }
 
     function imageBoxDoubleClicked(uid: string, event: MouseEvent) {

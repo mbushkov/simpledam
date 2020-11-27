@@ -1,42 +1,22 @@
-import { apiServiceSingleton } from './api';
-import { filter, map } from 'rxjs/operators';
+import { BackendStateUpdateAction } from '@/backend/actions';
 import { reactive } from '@vue/composition-api';
 import * as log from 'loglevel';
+import { filter, map } from 'rxjs/operators';
 import Vue from 'vue';
-
-export declare interface LongOperationStatus {
-  readonly status: string;
-  readonly progress: number;
-}
+import { ApiService } from './api';
 
 export declare interface BackendState {
   readonly catalogPath: string;
   readonly previewQueueSize: number;
-  readonly longOperations: { readonly [key: string]: LongOperationStatus };
 }
 
-declare interface Action {
-  action: string;
-}
+export class BackendMirror {
 
-declare interface BackendStateUpdateAction extends Action {
-  state: any;
-}
+  constructor(private readonly apiService: ApiService) { }
 
-
-class BackendMirror {
-
-  private readonly apiService = apiServiceSingleton();
-
-  readonly state: BackendState = reactive<BackendState>({
-    catalogPath: '',
-    previewQueueSize: 0,
-    longOperations: {},
-  });
-
-  readonly updateBackendState$ = this.apiService.ws.pipe(
+  private readonly updateBackendState$ = this.apiService.ws.pipe(
     filter((v) => {
-      return (v as Action).action === 'BACKEND_STATE_UPDATE';
+      return v.action === 'BACKEND_STATE_UPDATE';
     }),
     map((v) => {
       log.debug('[BackendMirror] Got state update: ', v);
@@ -47,14 +27,23 @@ class BackendMirror {
       }
     }),
   ).subscribe();
+
+  readonly state: BackendState = reactive<BackendState>({
+    catalogPath: '',
+    previewQueueSize: 0,
+  });
 }
 
 
-let _backendMirror: BackendMirror | undefined;
-export function backendMirrorSingleton() {
-  if (!_backendMirror) {
-    _backendMirror = new BackendMirror();
-  }
+let _backendMirrorSingleton: BackendMirror | undefined;
 
-  return _backendMirror;
+export function backendMirrorSingleton(): BackendMirror {
+  if (!_backendMirrorSingleton) {
+    throw new Error('backendMirrorSingleton not set');
+  }
+  return _backendMirrorSingleton;
+}
+
+export function setBackendMirrorSingleton(value: BackendMirror) {
+  _backendMirrorSingleton = value;
 }

@@ -1,22 +1,31 @@
 import { Store } from './store';
 import { TransientStore } from './transient-store';
-import { apiServiceSingleton } from '@/backend/api';
 
 export { Direction } from './store';
 export { ImageViewerTab } from './transient-store';
 
-let _transientStore: TransientStore | undefined;
+let _transientStoreSingleton: TransientStore | undefined;
 export function transientStoreSingleton(): TransientStore {
-  if (!_transientStore) {
-    _transientStore = new TransientStore();
+  if (!_transientStoreSingleton) {
+    throw new Error('transientStoreSingleton not set');
   }
-  return _transientStore;
+
+  return _transientStoreSingleton;
 }
 
-let _store: Store | undefined;
+export function setTransientStoreSingleton(value: TransientStore) {
+  _transientStoreSingleton = value;
+}
+
+let _storeSingleton: Store | undefined;
 export function storeSingleton(): Store {
-  if (!_store) {
-    _store = new Store(transientStoreSingleton(), apiServiceSingleton());
+  if (!_storeSingleton) {
+    throw new Error('storeSingleton not set');
   }
-  return _store;
+
+  return _storeSingleton;
+}
+
+export function setStoreSingleton(value: Store) {
+  _storeSingleton = value;
 }

@@ -308,7 +308,7 @@ import * as log from 'loglevel';
 import { actionServiceSingleton } from './actions';
 import { watchEffect } from '@vue/composition-api';
 import { backendMirrorSingleton } from './backend/backend-mirror';
-import { electronHelperService } from './lib/electron-helper-service';
+import { electronHelperServiceSingleton,  } from './lib/electron-helper-service';
 import { initialState } from './store/store';
 
 
@@ -330,9 +330,6 @@ export default Vue.extend({
     };
   },
   beforeCreate() {
-    // Ensure the action singleton is created early.
-    actionServiceSingleton();
-
     apiServiceSingleton().fetchState().then(s => {
       if (s !== undefined) {
         storeSingleton().replaceState(s);
@@ -401,9 +398,9 @@ export default Vue.extend({
   const savedStateStr = JSON.stringify(savedState);
 
   if (currentStateStr !== savedStateStr) {
-    electronHelperService().confirmClosingWindow();
+    electronHelperServiceSingleton().confirmClosingWindow();
   } else {
-    electronHelperService().closeWindow();
+    electronHelperServiceSingleton().closeWindow();
   }
 });
 

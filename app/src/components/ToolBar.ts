@@ -1,5 +1,5 @@
 import { RotateCCWAction, RotateCWAction, ExportToFolderAction, ShowMediaFileAction } from '@/actions/selection';
-import { electronHelperService } from '@/lib/electron-helper-service';
+import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
 import { storeSingleton, transientStoreSingleton } from '@/store';
 import { computed, defineComponent } from '@vue/composition-api';
 
@@ -51,14 +51,14 @@ export default defineComponent({
       if (!selectionPresent.value) {
         return;
       }
-      electronHelperService().showLabelMenu();
+      electronHelperServiceSingleton().showLabelMenu();
     }
 
     function showRatingMenu() {
       if (!selectionPresent.value) {
         return;
       }
-      electronHelperService().showRatingMenu();
+      electronHelperServiceSingleton().showRatingMenu();
     }
 
     return {

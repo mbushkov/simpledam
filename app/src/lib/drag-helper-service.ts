@@ -1,5 +1,5 @@
 import * as log from 'loglevel';
-import { ElectronHelperService, electronHelperService } from './electron-helper-service';
+import { ElectronHelperService, electronHelperServiceSingleton } from './electron-helper-service';
 
 interface InternalDragContents {
   readonly kind: 'internal';
@@ -27,7 +27,7 @@ export class DragHelperService {
   private readonly electronHelperService: ElectronHelperService;
 
   constructor(_electronHelperService?: ElectronHelperService) {
-    this.electronHelperService = _electronHelperService || electronHelperService();
+    this.electronHelperService = _electronHelperService || electronHelperServiceSingleton();
   }
 
   startDrag(event: DragEvent, files: UidAndPath[], thumbnailUrl: string) {
@@ -127,4 +127,14 @@ export class DragHelperService {
   }
 }
 
-export const DRAG_HELPER_SERVICE = new DragHelperService();
+let _dragHelperServiceSingleton: DragHelperService | undefined;
+export function dragHelperServiceSingleton(): DragHelperService {
+  if (!_dragHelperServiceSingleton) {
+    throw new Error('dragHelperServiceSingleton not set');
+  }
+  return _dragHelperServiceSingleton;
+}
+
+export function setDragHelperServiceSingleton(value: DragHelperService) {
+  _dragHelperServiceSingleton = value;
+}

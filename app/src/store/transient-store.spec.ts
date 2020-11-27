@@ -1,14 +1,18 @@
-import { TransientStore, ImageViewerTab } from '@/store/transient-store';
-import { expect } from 'chai'
+import { Action } from '@/backend/actions';
 import { createJSONWrapper, setupTestEnv } from '@/lib/test-utils';
+import { ImageViewerTab, TransientStore } from '@/store/transient-store';
+import { expect } from 'chai';
+import { Subject } from 'rxjs';
 
 setupTestEnv();
 
 describe('TransientStore', () => {
+  let action$: Subject<Action>;
   let ts: TransientStore;
 
   beforeEach(() => {
-    ts = new TransientStore();
+    action$ = new Subject();
+    ts = new TransientStore(action$);
   });
 
 

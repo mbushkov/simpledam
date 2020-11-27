@@ -3,7 +3,7 @@ import { defineComponent, computed, reactive } from '@vue/composition-api';
 import { storeSingleton } from '@/store';
 import { apiServiceSingleton } from '@/backend/api';
 import Pane from './Pane.vue';
-import { DRAG_HELPER_SERVICE } from '@/lib/drag-helper-service';
+import { dragHelperServiceSingleton } from '@/lib/drag-helper-service';
 import * as log from 'loglevel';
 
 declare interface PathEntry {
@@ -46,7 +46,7 @@ export default defineComponent({
     }
 
     function rowDraggedOver(path: string, event: DragEvent) {
-      if (DRAG_HELPER_SERVICE.eventHasFiles(event)) {
+      if (dragHelperServiceSingleton().eventHasFiles(event)) {
         Vue.set(highlights, path, true);
       }
     }
@@ -60,7 +60,7 @@ export default defineComponent({
 
       Vue.set(highlights, path, false)
 
-      const dragResult = DRAG_HELPER_SERVICE.finishDrag(event);
+      const dragResult = dragHelperServiceSingleton().finishDrag(event);
       if (!dragResult) {
         return;
       }

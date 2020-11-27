@@ -6,7 +6,7 @@
     >{{ backendState.previewQueueSize }} previews pending</div>
 
     <div class="long-operations">
-      <div v-for="(item, key) in backendState.longOperations" :key="key" class="operation">
+      <div v-for="(item, key) in transientStoreState.longOperations" :key="key" class="operation">
         <div class="status">{{item.status}}</div>
         <div class="progress"> <b-progress :value="item.progress" :max="100" format="percent" show-value size="is-small"></b-progress></div>
       </div>

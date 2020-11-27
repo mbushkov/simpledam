@@ -1,6 +1,6 @@
 import { apiServiceSingleton } from '@/backend/api';
 import { backendMirrorSingleton } from "@/backend/backend-mirror";
-import { electronHelperService } from '@/lib/electron-helper-service';
+import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
 import { storeSingleton } from '@/store';
 import { computed } from '@vue/composition-api';
 import log from 'loglevel';
@@ -28,7 +28,7 @@ export class SaveAndCloseAction implements Action {
 
   async perform(): Promise<void> {
     await new SaveAction().perform();
-    electronHelperService().closeWindow();
+    electronHelperServiceSingleton().closeWindow();
   }
 }
 

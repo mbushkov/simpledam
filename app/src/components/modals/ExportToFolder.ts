@@ -1,5 +1,5 @@
 import { apiServiceSingleton } from '@/backend/api';
-import { electronHelperService } from '@/lib/electron-helper-service';
+import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
 import { storeSingleton } from '@/store';
 import { computed, defineComponent, ref } from '@vue/composition-api';
 
@@ -11,7 +11,7 @@ export default defineComponent({
     const noneConstant = computed(() => '<destination folder not selected>');
 
     function openFolderDialog() {
-      electronHelperService().showDestinationFolderDialog((path) => {
+      electronHelperServiceSingleton().showDestinationFolderDialog((path) => {
         if (path) {
           destinationPath.value = path;
         }
