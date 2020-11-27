@@ -160,11 +160,19 @@ app.on('open-file', async (event: Event, path: string) => {
   }
 });
 
+let appStartedQuitting = false;
+app.on('before-quit', () => {
+  appStartedQuitting = true;
+  for (const win of windows) {
+    win.close();
+  }
+});
+
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
   // On macOS it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== 'darwin') {
+  if (appStartedQuitting || process.platform !== 'darwin') {
     app.quit()
   }
 })
