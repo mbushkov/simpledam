@@ -4,42 +4,58 @@ import logging
 import os
 import pathlib
 
-from typing import AsyncIterator, Iterable, Set
+from typing import Iterable, Set
 from asyncio.futures import Future
 from newmedia.communicator import Communicator
 from newmedia.long_operation import LogCallback, LongOperation, Status, StatusCallback
 from newmedia import backend_state
 from newmedia import store
+from newmedia.store import ImageFile
 
 
-async def ScanFile(path: str, communicator: Communicator):
+async def ThumbnailFile(image_file: ImageFile, communicator: Communicator):
+
+  if image_file.preview_timestamp:
+    return
+
+  await backend_state.BACKEND_STATE.ChangePreviewQueueSize(1)
+
   try:
-    image_file = await store.DATA_STORE.RegisterFile(pathlib.Path(path))
-    await communicator.SendWebSocketData({
-        "action": "FILE_REGISTERED",
-        "image": image_file.ToJSON(),
-    })
-  except store.ImageProcessingError:
-    await communicator.SendWebSocketData({
-        "action": "FILE_REGISTRATION_FAILED",
-        "path": str(path),
-    })
-    return None
+    thumbnail_file = await store.DATA_STORE.UpdateFileThumbnail(image_file.uid)
+  finally:
+    await backend_state.BACKEND_STATE.ChangePreviewQueueSize(-1)
 
-  async def Thumbnail(image_file):
-    try:
-      thumbnail_file = await store.DATA_STORE.UpdateFileThumbnail(image_file.uid)
-    finally:
-      await backend_state.BACKEND_STATE.ChangePreviewQueueSize(-1)
+  await communicator.SendWebSocketData({
+      "action": "THUMBNAIL_UPDATED",
+      "image": thumbnail_file.ToJSON(),
+  })
 
-    await communicator.SendWebSocketData({
-        "action": "THUMBNAIL_UPDATED",
-        "image": thumbnail_file.ToJSON(),
-    })
 
-  if not image_file.preview_timestamp:
-    await backend_state.BACKEND_STATE.ChangePreviewQueueSize(1)
-    await Thumbnail(image_file)
+async def ScanFilesBatch(paths: Iterable[str], communicator: Communicator) -> Iterable[Task]:
+
+  async def DoNothing():
+    pass
+
+  coros = (store.DATA_STORE.RegisterFile(pathlib.Path(p)) for p in paths)
+  results = await asyncio.gather(*coros, return_exceptions=True)
+  tasks = []
+  for p, r in zip(paths, results):
+    if isinstance(r, Exception):
+      await communicator.SendWebSocketData({
+          "action": "FILE_REGISTRATION_FAILED",
+          "path": str(p),
+      })
+      tasks.append(asyncio.create_task(DoNothing()))
+    elif isinstance(r, ImageFile):
+      await communicator.SendWebSocketData({
+          "action": "FILE_REGISTERED",
+          "image": r.ToJSON(),
+      })
+      tasks.append(asyncio.create_task(ThumbnailFile(r, communicator)))
+    else:
+      raise AssertionError("This else branch shouldn't have been reached.")
+
+  return tasks
 
 
 class ScanPathsOperation(LongOperation):
@@ -65,14 +81,16 @@ class ScanPathsOperation(LongOperation):
         paths_to_process.append(p)
 
     preview_tasks: Set["Future"] = set()
-    for i, p in enumerate(sorted(paths_to_process)):
-      await status_callback(Status(f"Processing {p}", float(i) / len(paths_to_process) * 50))
+    batch_size = 8
+    paths = sorted(paths_to_process)
+    for i in range(0, len(paths), batch_size):
+      chunk = paths[i:i + batch_size]
 
-      logging.info("Found path: %s", p)
-      preview_coro = ScanFile(p, self.communicator)
-      if preview_coro is not None:
-        preview_tasks.add(asyncio.create_task(preview_coro))
-      logging.info("Processing done.")
+      await status_callback(
+          Status(f"Processing {chunk[0]}",
+                 float(i * batch_size) / len(paths_to_process) * 50))
+      new_tasks = await ScanFilesBatch(chunk, self.communicator)
+      preview_tasks.update(new_tasks)
 
     while True:
       done, pending = await asyncio.wait(preview_tasks, return_when=asyncio.FIRST_COMPLETED)
