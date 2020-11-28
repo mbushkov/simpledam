@@ -14,7 +14,8 @@ from newmedia.store import ImageFile
 
 
 async def ThumbnailFile(image_file: ImageFile, communicator: Communicator):
-
+  # TODO: improve the logic to correctly process RAW files with existing thumbnails.
+  # We might want to rerender them sometimes.
   if image_file.preview_timestamp:
     return
 
@@ -41,6 +42,7 @@ async def ScanFilesBatch(paths: Iterable[str], communicator: Communicator) -> It
   tasks = []
   for p, r in zip(paths, results):
     if isinstance(r, Exception):
+      logging.error("Failed processing %s: %s", p, r)
       await communicator.SendWebSocketData({
           "action": "FILE_REGISTRATION_FAILED",
           "path": str(p),
@@ -86,12 +88,11 @@ class ScanPathsOperation(LongOperation):
     for i in range(0, len(paths), batch_size):
       chunk = paths[i:i + batch_size]
 
-      await status_callback(
-          Status(f"Processing {chunk[0]}",
-                 float(i * batch_size) / len(paths_to_process) * 50))
+      await status_callback(Status(f"Processing {chunk[0]}", float(i) / len(paths_to_process) * 50))
       new_tasks = await ScanFilesBatch(chunk, self.communicator)
       preview_tasks.update(new_tasks)
 
+    logging.info("Got %d preview tasks.", len(preview_tasks))
     while True:
       done, pending = await asyncio.wait(preview_tasks, return_when=asyncio.FIRST_COMPLETED)
       await status_callback(

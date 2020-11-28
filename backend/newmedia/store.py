@@ -83,7 +83,7 @@ class ImageFile:
     return dataclasses.asdict(self)
 
 
-MAX_DIMENSION = 1600
+MAX_DIMENSION = 3200
 
 _SUPPORTED_PILLOW_EXTENSIONS = frozenset([
     ".jpg", ".jpeg", ".tiff", ".png", ".bmp", ".gif", ".icns", ".ico", ".pcx", ".ppm", ".sgi",
@@ -99,7 +99,7 @@ _SUPPORTED_RAWPY_EXTENSIONS = frozenset([
 SUPPORTED_EXTENSIONS = _SUPPORTED_PILLOW_EXTENSIONS | _SUPPORTED_RAWPY_EXTENSIONS
 
 
-def _GetFileInfo(path: pathlib.Path, prev_info: Optional[ImageFile]) -> ImageFile:
+def _GetFileInfo(path: pathlib.Path, prev_info: Optional[ImageFile]) -> Tuple[ImageFile, bytes]:
   _, ext = os.path.splitext(path.name)
   ext = ext.lower()
 
@@ -111,12 +111,16 @@ def _GetFileInfo(path: pathlib.Path, prev_info: Optional[ImageFile]) -> ImageFil
       return _GetRawPyFileInfo(path, prev_info=prev_info)
     else:
       raise ValueError(f"Path {path} does not have a supported extension.")
+  except Exception as e:
+    logging.exception(e)
+    raise
   finally:
     end_time = time.time()
     logging.info("GetFileInfo %s took %.2fs", path, end_time - start_time)
 
 
-def _GetPillowFileInfo(path: pathlib.Path, prev_info: Optional[ImageFile]) -> ImageFile:
+def _GetPillowFileInfo(path: pathlib.Path,
+                       prev_info: Optional[ImageFile]) -> Tuple[ImageFile, bytes]:
   try:
     im = Image.open(path)
     stat = os.stat(path)
@@ -136,18 +140,47 @@ def _GetPillowFileInfo(path: pathlib.Path, prev_info: Optional[ImageFile]) -> Im
         Size(width, height),
         prev_info and prev_info.preview_size or None,
         prev_info and prev_info.preview_timestamp or None,
-    )
+    ), b""
   finally:
     im.close()
 
 
-def _GetRawPyFileInfo(path: pathlib.Path, prev_info: Optional[ImageFile]) -> ImageFile:
+def _GetRawPyFileInfo(path: pathlib.Path,
+                      prev_info: Optional[ImageFile]) -> Tuple[ImageFile, bytes]:
   try:
     stat = os.stat(path)
     with rawpy.imread(str(path)) as raw:
       sizes = raw.sizes
-  except (IOError, rawpy.LibRawError) as e:
+
+      preview_bytes = b""
+      try:
+        thumb = raw.extract_thumb()
+      except rawpy.LibRawNoThumbnailError:  # type: ignore
+        logging.info("No RAW thumbnail found: %s", path)
+      except rawpy.LibRawUnsupportedThumbnailError:  # type: ignore
+        logging.info("Unsupported RAW thumbnail: %s", path)
+      else:
+        if thumb.format == rawpy.ThumbFormat.JPEG:  # type: ignore
+          preview_bytes = thumb.data
+        elif thumb.format == rawpy.ThumbFormat.BITMAP:  # type: ignore
+          logging.info("Ignoring non-JPEG RAW thumbnail: %s", path)
+  except (IOError, rawpy.LibRawError) as e:  # type: ignore
     raise ImageProcessingError(e)
+
+  preview_size = None
+  preview_timestamp = None
+  if preview_bytes:
+    preview_bytes_io = io.BytesIO(preview_bytes)
+    with Image.open(preview_bytes_io) as preview_img:
+      preview_img.thumbnail((MAX_DIMENSION, MAX_DIMENSION))
+      preview_size = Size(preview_img.width, preview_img.height)
+      out = io.BytesIO()
+      preview_img.save(out, format='JPEG')
+      preview_bytes = out.getvalue()
+
+    preview_timestamp = int(time.time() * 1000)
+    logging.info("Found existing RAW preview, %dx%d (original %dx%d)", preview_size.width,
+                 preview_size.height, sizes.width, sizes.height)
 
   uid = prev_info and prev_info.uid or uuid.uuid4().hex
   if prev_info and prev_info.preview_timestamp and (stat.st_mtime * 1000 >
@@ -158,12 +191,14 @@ def _GetRawPyFileInfo(path: pathlib.Path, prev_info: Optional[ImageFile]) -> Ima
       str(path),
       uid,
       Size(sizes.width, sizes.height),
-      prev_info and prev_info.preview_size or None,
-      prev_info and prev_info.preview_timestamp or None,
-  )
+      preview_size or (prev_info and prev_info.preview_size) or None,
+      preview_timestamp or (prev_info and prev_info.preview_timestamp) or None,
+  ), preview_bytes
 
 
 def _ThumbnailFile(image_file: ImageFile) -> Tuple[ImageFile, bytes]:
+  logging.info("Thumbnailing file: %s", image_file.path)
+
   _, ext = os.path.splitext(image_file.path)
   ext = ext.lower()
 
@@ -223,9 +258,11 @@ def _ThumbnailRawPyFile(image_file: ImageFile) -> Tuple[ImageFile, bytes]:
       rgb = raw.postprocess(
           half_size=True,
           output_bps=8,
+          use_camera_wb=True,
       )
       im = Image.fromarray(rgb)
-  except (IOError, rawpy.LibRawError) as e:
+  except (IOError, rawpy.LibRawError) as e:  # type: ignore
+    logging.exception(e)
     raise ImageProcessingError(e)
 
   try:
@@ -359,14 +396,15 @@ VALUES ('state', ?)
         prev_info = ImageFile.FromJSON(bson.loads(row[0]))
         prev_blob = row[1]
 
-    result = await loop.run_in_executor(self._info_thread_pool, _GetFileInfo, path, prev_info)
+    result, preview_bytes = await loop.run_in_executor(self._info_thread_pool, _GetFileInfo, path,
+                                                       prev_info)
     serialized = bson.dumps(result.ToJSON())
 
     await conn.execute_insert(
         """
 INSERT OR REPLACE INTO ImageData(uid, path, info, blob)
 VALUES (?, ?, ?, ?)
-      """, (result.uid, str(result.path), serialized, prev_blob))
+      """, (result.uid, str(result.path), serialized, preview_bytes or prev_blob))
     await conn.commit()
 
     return result
