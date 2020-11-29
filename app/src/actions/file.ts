@@ -57,3 +57,14 @@ export class SaveAsAction implements Action {
   }
 }
 
+export class ScanPathsAction implements Action {
+  readonly name = 'ScanPaths';
+  readonly title = 'Scan Paths...';
+  readonly enabled = computed(() => true);
+
+  async perform(paths?: readonly string[]): Promise<void> {
+    if (paths) {
+      await apiServiceSingleton().scanPaths(paths);
+    }
+  }
+}

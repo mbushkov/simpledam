@@ -1,5 +1,5 @@
 import { ActionService } from './action-service';
-import { SaveAction, SaveAndCloseAction, SaveAsAction } from './file';
+import { SaveAction, SaveAndCloseAction, SaveAsAction, ScanPathsAction } from './file';
 import { DefaultOrientationAction, DeselectAllAction, ExportToFolderAction, FlipHorizontalAction, FlipVerticalAction, labelActions, rateActions, RotateCCWAction, RotateCWAction, SelectAllAction, ShowMediaFileAction } from './selection';
 
 let _actionServiceSingleton: ActionService | undefined;
@@ -22,6 +22,7 @@ export function registerAllActions(actionService: ActionService) {
   actionService.registerAction(new SaveAndCloseAction());
   actionService.registerAction(new SaveAsAction());
   actionService.registerAction(new ShowMediaFileAction());
+  actionService.registerAction(new ScanPathsAction());
 
   actionService.registerAction(new SelectAllAction());
   actionService.registerAction(new DeselectAllAction());
