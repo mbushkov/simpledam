@@ -42,6 +42,12 @@ def SelectedImageBox(title: Optional[str] = None,
       f".image-grid .image-box.selected{title_str}{rotation_str}{label_str}{rating_str}")
 
 
+def ImageViewerFilename(contains: Optional[str] = None):
+  if contains is not None:
+    contains_str = f":contains('{contains}')"
+  return f".mode-panel .filename{contains_str}"
+
+
 def LabelFilterRadioButton(label: str,
                            items_count: Optional[int] = None,
                            checked: Optional[bool] = None) -> Selector:

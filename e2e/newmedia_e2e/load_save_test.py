@@ -20,7 +20,7 @@ class LoadSaveTest(base.TestBase):
     b.Close()
 
   def setUp(self):
-    self.temp_dir = images.CreateTempImages(self)
+    self.temp_dir = images.CreateTempImages(self, count=self.NUM_IMAGES)
     self.catalog = str(os.path.join(self.temp_dir, "c.nmcatalog"))
 
   def testSavesAndLoadsImagesSet(self):

@@ -15,7 +15,7 @@ class ImageGridTest(base.TestBase):
     )
 
   def setUp(self):
-    self.temp_dir = images.CreateTempImages(self)
+    self.temp_dir = images.CreateTempImages(self, count=self.NUM_IMAGES)
 
   def testClickingOnEachImageHighlightsIt(self):
     b = self.CreateWindow(self.temp_dir)
