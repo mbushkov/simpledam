@@ -11,9 +11,18 @@ def ImageBoxWithTitle(title: str) -> Selector:
   return Selector(f".image-grid .image-box .title:contains('{title}')")
 
 
-def SelectedImageBox(rotation: Optional[int] = None,
+def ImageBoxWithIndex(index: int) -> Selector:
+  return Selector(f".image-grid .image-box:visible:nth({index})")
+
+
+def SelectedImageBox(title: Optional[str] = None,
+                     rotation: Optional[int] = None,
                      label: Optional[str] = None,
                      rating: Optional[int] = None) -> Selector:
+  title_str = ""
+  if title is not None:
+    title_str = f":has(.title:contains('{title}'))"
+
   rotation_str = ""
   if rotation is not None:
     rotation_str = f".rotation-{rotation}"
@@ -29,11 +38,8 @@ def SelectedImageBox(rotation: Optional[int] = None,
     else:
       rating_str = ":has(:not(.rate-item.set-on))"
 
-  return Selector(f".image-grid .image-box.selected{rotation_str}{label_str}{rating_str}")
-
-
-def SelectedImageBoxTitle() -> Selector:
-  return Selector(".image-grid .image-box.selected .title")
+  return Selector(
+      f".image-grid .image-box.selected{title_str}{rotation_str}{label_str}{rating_str}")
 
 
 def LabelFilterRadioButton(label: str,

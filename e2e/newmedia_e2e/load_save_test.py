@@ -1,13 +1,9 @@
 import contextlib
 import os
-import shutil
-import tempfile
-from typing import Iterator, cast
-
-from PIL import Image, ImageDraw
+from typing import Iterator
 
 from newmedia_e2e.lib.base import BrowserWindow
-from newmedia_e2e.lib import base, selectors
+from newmedia_e2e.lib import base, images, selectors
 
 
 class LoadSaveTest(base.TestBase):
@@ -24,16 +20,8 @@ class LoadSaveTest(base.TestBase):
     b.Close()
 
   def setUp(self):
-    self.temp_dir = tempfile.mkdtemp()
-    self.addCleanup(shutil.rmtree, self.temp_dir)
-
+    self.temp_dir = images.CreateTempImages(self)
     self.catalog = str(os.path.join(self.temp_dir, "c.nmcatalog"))
-
-    for i in range(self.NUM_IMAGES):
-      img = Image.new("RGB", (500, 500), color=(20 * i, 20 * i, 20 * i))
-      d = cast(ImageDraw.ImageDraw, ImageDraw.Draw(img))
-      d.text((10, 10), "Image %d" % i, fill=(255, 255, 0))
-      img.save(os.path.join(self.temp_dir, "%d.png" % i))
 
   def testSavesAndLoadsImagesSet(self):
     with self._FirstWindow():
@@ -123,8 +111,7 @@ class LoadSaveTest(base.TestBase):
 
     b_new = self.CreateWindow(catalog_path=self.catalog)
     b_new.WaitUntilCountEqual(self.NUM_IMAGES, selectors.ImageBoxes())
-    e = b_new.GetDisplayedElement(selectors.SelectedImageBoxTitle())
-    self.assertEqual(e.text, "5.png")
+    b_new.WaitUntilPresent(selectors.SelectedImageBox(title="5.png"))
 
   def testSavesAndLoadsLabelFilter(self):
     with self._FirstWindow() as b:
