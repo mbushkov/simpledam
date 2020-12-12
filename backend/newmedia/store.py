@@ -86,8 +86,8 @@ class ImageFile:
 MAX_DIMENSION = 3200
 
 _SUPPORTED_PILLOW_EXTENSIONS = frozenset([
-    ".jpg", ".jpeg", ".tiff", ".png", ".bmp", ".gif", ".icns", ".ico", ".pcx", ".ppm", ".sgi",
-    ".webp", ".xbm", ".psd", ".xpm"
+    ".jpg", ".jpeg", ".tif", ".tiff", ".png", ".bmp", ".gif", ".icns", ".ico", ".pcx", ".ppm",
+    ".sgi", ".webp", ".xbm", ".psd", ".xpm"
 ])
 _SUPPORTED_RAWPY_EXTENSIONS = frozenset([
     ".3fr", ".ari", ".arw", ".bay", ".braw", ".crw", ".cr2", ".cr3", ".cap", ".data", ".dcs",
