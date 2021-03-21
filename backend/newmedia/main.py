@@ -64,10 +64,10 @@ async def ScanPathsHandler(request: web.Request) -> web.Response:
   paths: Iterable[str] = data["paths"]
 
   communicator = cast(Communicator, request.app["communicator"])
-  long_operation_runnter = cast(LongOperationRunner, request.app["long_operation_runner"])
+  long_operation_runner = cast(LongOperationRunner, request.app["long_operation_runner"])
 
   await spawn(request,
-              long_operation_runnter.RunLongOperation(ScanPathsOperation(paths, communicator)))
+              long_operation_runner.RunLongOperation(ScanPathsOperation(paths, communicator)))
 
   return web.Response(text="ok", content_type="text", headers=CORS_HEADERS)
 
@@ -101,11 +101,11 @@ async def ExportToPathHandler(request: web.Request) -> web.Response:
   dest: str = data["dest"]
   prefix_with_index: bool = data["options"]["prefix_with_index"]
 
-  long_operation_runnter = cast(LongOperationRunner, request.app["long_operation_runner"])
+  long_operation_runner = cast(LongOperationRunner, request.app["long_operation_runner"])
 
   await spawn(
       request,
-      long_operation_runnter.RunLongOperation(ExportToPathOperation(srcs, dest, prefix_with_index)))
+      long_operation_runner.RunLongOperation(ExportToPathOperation(srcs, dest, prefix_with_index)))
 
   return web.Response(text="ok", content_type="text", headers=CORS_HEADERS)
 
@@ -144,9 +144,9 @@ async def SaveHandler(request: web.Request) -> web.Response:
   path: str = data["path"]
   state = data["state"]
 
-  long_operation_runnter = cast(LongOperationRunner, request.app["long_operation_runner"])
+  long_operation_runner = cast(LongOperationRunner, request.app["long_operation_runner"])
 
-  await spawn(request, long_operation_runnter.RunLongOperation(SaveOperation(state, path)))
+  await spawn(request, long_operation_runner.RunLongOperation(SaveOperation(state, path)))
 
   return web.Response(text="ok", content_type="text", headers=CORS_HEADERS)
 
