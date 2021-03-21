@@ -19,7 +19,6 @@
     "@vue/composition-api": "^1.0.0-rc.5",
     "axios": "^0.21.1",
     "buefy": "^0.9.4",
-    "install": "^0.13.0",
     "loglevel": "^1.7.1",
     "rxjs": "^6.6.6",
     "splitpanes": "^2.3.6",
