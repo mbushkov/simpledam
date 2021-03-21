@@ -4,7 +4,7 @@ module.exports = {
       nodeIntegration: false,
       builderOptions: {
         appId: 'simpledam',
-        productName: 'Simpledam',
+        productName: 'simpledam',
         extraFiles: [
           {
             from: '../backend/dist/backend',
@@ -15,11 +15,21 @@ module.exports = {
         fileAssociations: [
           {
             ext: 'nmcatalog',
-            name: 'Simpledam Catalog',
+            name: 'simpledam catalog',
             role: 'Editor',
           },
         ],
         // See https://nklayman.github.io/vue-cli-plugin-electron-builder/guide/configuration.html#webpack-configuration
+        mac: {
+          hardenedRuntime: true,
+          gatekeeperAssess: false,
+          entitlements: "build/entitlements.mac.plist",
+          entitlementsInherit: "build/entitlements.mac.plist"
+
+          dmg: {
+            sign: false,
+          },
+        },
       }
     }
   }

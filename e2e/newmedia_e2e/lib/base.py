@@ -209,7 +209,7 @@ class TestBase(unittest.TestCase):
                     args,
                 "binary":
                     os.path.join(os.path.dirname(__file__), "..", "..", "..",
-                                 "app/dist_electron/mac/Simpledam.app/Contents/MacOS/Simpledam"),
+                                 "app/dist_electron/mac/simpledam.app/Contents/MacOS/simpledam"),
                 "extensions": [],
                 "windowTypes": ["webview"]
             },
