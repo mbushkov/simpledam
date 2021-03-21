@@ -71,6 +71,7 @@ class ScanPathsOperation(LongOperation):
     paths_to_process = []
 
     for p in self.paths:
+      await status_callback(Status(f"Scanning path: {p}", 0))
       logging.info("Scanning path: %s", p)
       if os.path.isdir(p):
         for root, _, files in os.walk(p):
@@ -92,12 +93,16 @@ class ScanPathsOperation(LongOperation):
       new_tasks = await ScanFilesBatch(chunk, self.communicator)
       preview_tasks.update(new_tasks)
 
-    logging.info("Got %d preview tasks.", len(preview_tasks))
+    num_done_tasks = 0
+    num_preview_tasks = len(preview_tasks)
+    logging.info("Got %d preview tasks.", num_preview_tasks)
     while True:
-      done, pending = await asyncio.wait(preview_tasks, return_when=asyncio.FIRST_COMPLETED)
       await status_callback(
-          Status(f"Thumbnail {len(done)} out of {len(preview_tasks)}",
-                 float(len(done)) / len(preview_tasks) * 50 + 50))
+          Status(f"Thumbnail {num_done_tasks} out of {num_preview_tasks}",
+                 float(num_done_tasks) / num_preview_tasks * 50 + 50))
+
+      done, pending = await asyncio.wait(preview_tasks, return_when=asyncio.FIRST_COMPLETED)
+      num_done_tasks += len(done)
       if not pending:
         break
       preview_tasks = pending
