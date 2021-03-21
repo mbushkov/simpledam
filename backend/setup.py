@@ -17,6 +17,7 @@ setup_args = dict(
         "imagecodecs==2021.2.26",  # implicit dependency of tifffile
         "pillow-simd==7.0.0.post3",
         "portpicker==1.3.1",
+        "pyobjc==7.1",
         "rawpy==0.16.0",
         "tifffile==2021.3.17",
     ],
