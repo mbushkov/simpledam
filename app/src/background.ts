@@ -99,7 +99,7 @@ async function createWindow(options: CreateWindowOptions = {}) {
 
   // Create the browser window.
   const win = new BrowserWindow({
-    title: 'SimpleDAM (pre-alpha)' + (options.catalogPath ? ` - ${options.catalogPath}` : ''),
+    title: 'Simpledam (pre-alpha)' + (options.catalogPath ? ` - ${options.catalogPath}` : ''),
     width: 1024,
     height: 768,
     minWidth: 1024,
@@ -260,7 +260,7 @@ app.on('ready', async () => {
             const paths = dialog.showOpenDialogSync({
               title: 'Open Catalog',
               filters: [
-                { name: 'SimpleDAM Catalogs', extensions: ['nmcatalog'] },
+                { name: 'Simpledam Catalogs', extensions: ['nmcatalog'] },
               ],
               properties: ['openFile'],
             });

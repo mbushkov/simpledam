@@ -4,7 +4,7 @@ module.exports = {
       nodeIntegration: false,
       builderOptions: {
         appId: 'simpledam',
-        productName: 'SimpleDAM',
+        productName: 'Simpledam',
         extraFiles: [
           {
             from: '../backend/dist/backend',
@@ -15,7 +15,7 @@ module.exports = {
         fileAssociations: [
           {
             ext: 'nmcatalog',
-            name: 'SimpleDAM Catalog',
+            name: 'Simpledam Catalog',
             role: 'Editor',
           },
         ],

@@ -1,4 +1,4 @@
-# SimpleDAM
+# Simpledam
 
 # TODO
 
