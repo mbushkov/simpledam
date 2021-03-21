@@ -21,6 +21,8 @@ export default defineComponent({
       const sel = storeSingleton().state.selection.primary;
       if (sel) {
         return storeSingleton().state.images[sel];
+      } else {
+        return undefined;
       }
     });
 
