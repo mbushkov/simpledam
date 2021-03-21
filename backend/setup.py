@@ -12,12 +12,12 @@ setup_args = dict(
     install_requires=[
         "aiohttp[speedups]==3.6.2",
         "aiojobs==0.2.2",
-        "aiosqlite==0.12.0"
+        "aiosqlite==0.12.0",
         "bson==0.5.9",
         "imagecodecs==2021.2.26",  # implicit dependency of tifffile
         "pillow-simd==7.0.0.post3",
         "portpicker==1.3.1",
-        "rawpy==0.15.0",
+        "rawpy==0.16.0",
         "tifffile==2021.3.17",
     ],
     extras_require={
