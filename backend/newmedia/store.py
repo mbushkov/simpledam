@@ -12,7 +12,9 @@ from typing import Any, Callable, Dict, Optional, Tuple, cast
 import aiosqlite
 import bson
 from PIL import Image, ImageMath
+import numpy
 import rawpy
+import tifffile  # allows low-level TIFF manipulation. Needed for formats not yet handled by PIL (16-bit color TIFFS)
 
 from newmedia import backend_state
 
@@ -222,6 +224,22 @@ def _ThumbnailPillowFile(image_file: ImageFile) -> Tuple[ImageFile, bytes]:
     if im.mode == "RGBA":
       back = Image.new('RGBA', im.size, color="palegreen")
       im = Image.alpha_composite(back, im)
+    elif im.mode == "RGBX" and im.format == "TIFF":
+      np: numpy.ndarray = tifffile.imread(image_file.path)  # type: ignore
+      # PIL doesn't support 16-bit-per-channel images well, but we can convert it to 8-bit images - that should be enough
+      # for preview purposes.
+      if np.dtype == "uint16":
+        # fun note: using np / 16 produces an interesting color effect
+        np = (np / 256).astype("uint8")  # type: ignore
+      else:
+        np = np.astype("uint8")  # type: ignore
+
+      if np.shape[2] == 4:
+        im = Image.fromarray(np, "RGBA")
+        # Consider applying a transparency mask here.
+        # NOTE: applying/not applying transparency should, ideally, be configurable when previews are generated.
+      elif np.shape[2] == 3:
+        im = Image.fromarray(np, "RGB")
     elif im.mode.startswith("I;"):
       im = im.convert("F")
       im = ImageMath.eval('im/256', {'im': im}).convert('L')
