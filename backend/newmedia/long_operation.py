@@ -2,9 +2,7 @@ import abc
 import dataclasses
 import enum
 import uuid
-from typing import AsyncIterator, Awaitable, Callable, Union
-
-from typing_extensions import Literal
+from typing import AsyncIterator, Awaitable, Callable, Literal, Union
 
 
 @dataclasses.dataclass

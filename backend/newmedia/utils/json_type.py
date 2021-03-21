@@ -1,5 +1,4 @@
-from typing import Any, List, Mapping, Union
-from typing_extensions import Protocol, runtime_checkable
+from typing import Any, List, Mapping, Protocol, Union, runtime_checkable
 
 # Possible JSON Values
 JSON_v = Union[str, int, float, bool, None]
