@@ -115,6 +115,9 @@ _CHUNK_LENGTH = 1048576
 
 async def GetImageHandler(request: web.Request) -> web.StreamResponse:
   uid = request.match_info.get("uid")
+  if uid is None:
+    raise ValueError("'uid' parameter is missing")
+
   io_stream = await store.DATA_STORE.ReadFileBlob(uid)
 
   try:

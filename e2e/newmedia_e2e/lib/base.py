@@ -123,7 +123,7 @@ class BrowserWindow:
     def Check():
       result = fn(*args)
       if callable(expected):
-        expected_value = expected()
+        expected_value = expected()  # type: ignore
       else:
         expected_value = expected
       if result != expected_value:
