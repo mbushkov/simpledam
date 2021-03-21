@@ -10,10 +10,10 @@ setup_args = dict(
     packages=find_namespace_packages(),
     entry_points={"console_scripts": ["newmedia_backend = newmedia.main:main",]},
     install_requires=[
-        "aiohttp[speedups]==3.6.2",
-        "aiojobs==0.2.2",
-        "aiosqlite==0.12.0",
-        "bson==0.5.9",
+        "aiohttp[speedups]==3.7.4.post0",
+        "aiojobs==0.3.0",
+        "aiosqlite==0.17.0",
+        "bson==0.5.10",
         "imagecodecs==2021.2.26",  # implicit dependency of tifffile
         "pillow-simd==7.0.0.post3",
         "portpicker==1.3.1",
@@ -21,7 +21,7 @@ setup_args = dict(
         "tifffile==2021.3.17",
     ],
     extras_require={
-        "dev": ["pyinstaller==3.6"],
+        "dev": ["pyinstaller==4.2"],
     },
     data_files=[],
 )
