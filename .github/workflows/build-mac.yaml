@@ -16,14 +16,16 @@ jobs:
           node-version: '14'
       - name: Init venv
         run: |
-          python -m venv venv3
-          source venv3/bin/activate
+          python -m venv ${{ github.workspace }}/.venv3
+          source ${{ github.workspace }}/.venv3/bin/activate
           pip install --upgrade pip wheel setuptools
       - name: Install the backend Python package
         run: |
-          pip install ${{ github.workspace }}/backend
+          source ${{ github.workspace }}/.venv3/bin/activate
+          pip install ${{ github.workspace }}/backend[dev]
       - name: Build PyInstaller-based binary
         run: |
+          source ${{ github.workspace }}/.venv3/bin/activate
           cd ${{ github.workspace }}/backend
           pyinstaller ./backend.spec
       - name: Build Electron app
