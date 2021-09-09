@@ -14,8 +14,8 @@ setup_args = dict(
         "aiojobs==0.3.0",
         "aiosqlite==0.17.0",
         "bson==0.5.10",
-        "imagecodecs==2021.2.26",  # implicit dependency of tifffile
-        "pillow-simd==7.0.0.post3",
+        "imagecodecs==2021.6.8",  # implicit dependency of tifffile
+        "pillow==8.3.1",
         "portpicker==1.3.1",
         "pyobjc==7.1",
         "rawpy==0.16.0",
