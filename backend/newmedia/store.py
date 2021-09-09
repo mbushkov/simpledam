@@ -7,7 +7,7 @@ import os
 import pathlib
 import time
 import uuid
-from typing import Any, Callable, Dict, Optional, Tuple, cast
+from typing import Any, Callable, Dict, List, Optional, Tuple, cast
 
 import aiosqlite
 import bson
@@ -64,7 +64,7 @@ class Size:
 
 
 @dataclasses.dataclass
-class ImageFile:
+class ImageFileV1:
   path: str
   uid: str
   size: Size
@@ -73,7 +73,7 @@ class ImageFile:
 
   @classmethod
   def FromJSON(cls, data):
-    return ImageFile(
+    return ImageFileV1(
         data["path"],
         data["uid"],
         Size.FromJSON(data["size"]) or Size(0, 0),
@@ -84,6 +84,55 @@ class ImageFile:
   def ToJSON(self):
     return dataclasses.asdict(self)
 
+
+@dataclasses.dataclass
+class ImageFilePreviewV2:
+  preview_size: Size
+  preview_timestamp: int
+
+  @classmethod
+  def FromJSON(cls, data):
+    return ImageFilePreviewV2(
+        Size.FromJSON(data["size"]) or Size(0, 0),
+        data["preview_timestamp"],
+    )
+
+  def ToJSON(self):
+    return {
+        "preview_size": self.preview_size.ToJSON(),
+        "preview_timestamp": self.preview_timestamp,
+    }
+
+
+@dataclasses.dataclass
+class ImageFileV2:
+  path: str
+  uid: str
+  size: Size
+  previews: List[ImageFilePreviewV2]
+
+  @classmethod
+  def FromV1(cls, v1: ImageFileV1):
+    previews = []
+    if v1.preview_size and v1.preview_timestamp:
+      previews.append(ImageFilePreviewV2(v1.preview_size, v1.preview_timestamp))
+
+    return ImageFileV2(v1.path, v1.uid, v1.size, previews)
+
+  @classmethod
+  def FromJSON(cls, data):
+    return ImageFileV2(
+        data["path"],
+        data["uid"],
+        Size.FromJSON(data["size"]) or Size(0, 0),
+        [ImageFilePreviewV2.FromJSON(v) for v in data["previews"]],
+    )
+
+  def ToJSON(self):
+    return dataclasses.asdict(self)
+
+
+ImageFile = ImageFileV1
 
 MAX_DIMENSION = 3200
 
