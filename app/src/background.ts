@@ -8,6 +8,8 @@ import { ChildProcess, spawn } from 'child_process';
 import { app, BrowserWindow, dialog, ipcMain, IpcMainEvent, Menu, nativeImage, protocol, session, shell } from 'electron';
 import path from 'path';
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib';
+import { OpenWithEntries } from './backend/api-model';
+import { buildImageContextMenuTemplate } from './background/context-menu';
 
 console.log('Raw arguments: ', process.argv);
 
@@ -416,10 +418,19 @@ ipcMain.on('show-media-file', async (_event: IpcMainEvent, path: string) => {
   shell.showItemInFolder(path);
 });
 
-function menuItem(id: string, label: string, accelerator?: string) {
+function menuItem(id: string, label: string, accelerator?: string, iconBase64?: string) {
+  let icon: nativeImage | undefined;
+  if (iconBase64) {
+    icon = nativeImage.createFromDataURL('data:image/png;base64,' + iconBase64).resize({
+      width: 16,
+      height: 16,
+    });
+  }
+
   return {
     id,
     label,
+    icon,
     accelerator,
     click: function () {
       const win = BrowserWindow.getFocusedWindow();
@@ -428,50 +439,9 @@ function menuItem(id: string, label: string, accelerator?: string) {
   }
 }
 
-ipcMain.on('show-image-menu', async () => {
-  const template = [
-    menuItem('ShowMediaFile', 'Show Media File'),
-    menuItem('ExportToFolder', 'Export To Folder...'),
-    { type: 'separator' },
-    {
-      label: 'Rating',
-      submenu: [
-        menuItem('Rating0', 'None', 'Ctrl+0'),
-        { type: 'separator' },
-        menuItem('Rating1', '★', 'Ctrl+1'),
-        menuItem('Rating2', '★★', 'Ctrl+2'),
-        menuItem('Rating3', '★★★', 'Ctrl+3'),
-        menuItem('Rating4', '★★★★', 'Ctrl+4'),
-        menuItem('Rating5', '★★★★★', 'Ctrl+5'),
-      ],
-    },
-    {
-      label: 'Label',
-      submenu: [
-        menuItem('LabelNone', 'None', '0'),
-        { type: 'separator' },
-        menuItem('LabelRed', 'Red', '1'),
-        menuItem('LabelGreen', 'Green', '2'),
-        menuItem('LabelBlue', 'Blue', '3'),
-        menuItem('LabelBrown', 'Brown', '4'),
-        menuItem('LabelMagenta', 'Magenta', '5'),
-        menuItem('LabelOrange', 'Orange', '6'),
-        menuItem('LabelYellow', 'Yellow', '7'),
-        menuItem('LabelCyan', 'Cyan', '8'),
-        menuItem('LabelGray', 'Gray', '9'),
-      ]
-    },
-    { type: 'separator' },
-    menuItem('RotateCW', 'Rotate 90° CW', 'Command+]'),
-    menuItem('RotateCCW', 'Rotate 90° CCW', 'Command+['),
-    // TODO: implement flipping support.
-    // item('FlipVertical', 'Flip Vertical'),
-    // item('FlipHorizontal', 'Flip Horizontal'),
-    menuItem('DefaultOrientation', 'Default Orientation'),
-  ];
-
-  // TODO: remove the type override.
-  const menu = Menu.buildFromTemplate(template as any);
+ipcMain.on('show-image-menu', async (event: IpcMainEvent, openWithEntries?: OpenWithEntries) => {
+  const template = buildImageContextMenuTemplate(openWithEntries);
+  const menu = Menu.buildFromTemplate(template);
   menu.popup();
 });
 

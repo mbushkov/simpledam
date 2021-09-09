@@ -38,8 +38,8 @@ contextBridge.exposeInMainWorld(
       ipcRenderer.send('show-media-file', path);
     },
 
-    showImageMenu() {
-      ipcRenderer.send('show-image-menu');
+    showImageMenu(openWithEntries) {
+      ipcRenderer.send('show-image-menu', openWithEntries);
     },
 
     showLabelMenu() {

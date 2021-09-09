@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { webSocket } from 'rxjs/webSocket';
 import { Action } from './actions';
+import { OpenWithEntries } from './api-model';
 
 const GLOBAL_URL_PARAMS = new URLSearchParams(window.location.search);
 export const PORT = Number(GLOBAL_URL_PARAMS.get('port'));
@@ -93,6 +94,17 @@ export class ApiService {
     const response = await axios.get(this.ROOT + '/saved-state', { responseType: 'text', headers: this.HEADERS });
     log.info('[API] Fetch state response: ', response);
     return this.replaceNullWithUndefined(response.data['state'] || undefined);
+  }
+
+  async fetchOpenWith(path: string): Promise<OpenWithEntries | undefined> {
+    const response = await axios.get(this.ROOT + '/open-with-entries', {
+      params: {
+        path
+      },
+      responseType: 'json',
+      headers: this.HEADERS,
+    });
+    return response.data['entries'];
   }
 
   thumbnailUrl(uid: string) {

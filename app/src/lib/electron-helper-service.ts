@@ -1,3 +1,4 @@
+import { OpenWithEntries } from "@/backend/api-model";
 
 export class ElectronHelperService {
   dragStart(paths: string[], thumbnailUrl: string, callbackFn: () => void) {
@@ -16,8 +17,8 @@ export class ElectronHelperService {
     (window as any).electron.showMediaFile(path);
   }
 
-  showImageMenu() {
-    (window as any).electron.showImageMenu();
+  showImageMenu(openWithEntries?: OpenWithEntries) {
+    (window as any).electron.showImageMenu(openWithEntries);
   }
 
   showLabelMenu() {

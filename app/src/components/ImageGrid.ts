@@ -338,9 +338,12 @@ export default defineComponent({
       }
     }
 
-    function imageBoxContextClicked(uid: string) {
+    async function imageBoxContextClicked(uid: string) {
       store.selectPrimaryPreservingAdditionalIfPossible(uid);
-      electronHelperServiceSingleton().showImageMenu();
+
+      const filePath = store.state.images[uid].path;
+      const openWithEntries = await apiService.fetchOpenWith(filePath);
+      electronHelperServiceSingleton().showImageMenu(openWithEntries);
     }
 
     function imageBoxDoubleClicked(uid: string, event: MouseEvent) {

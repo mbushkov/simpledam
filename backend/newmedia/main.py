@@ -14,6 +14,7 @@ from newmedia.long_operation_runner import LongOperationRunner
 from newmedia.long_operations.export import ExportToPathOperation
 from newmedia.long_operations.save import SaveOperation
 from newmedia.long_operations.scan import ScanPathsOperation
+from newmedia.utils import macos
 import portpicker
 from aiohttp import web
 from aiojobs.aiohttp import spawn
@@ -46,7 +47,7 @@ async def AllowCorsHandler(request: web.Request) -> web.Response:
 
 async def SavedStateHandler(request: web.Request) -> web.Response:
   state = await store.DATA_STORE.GetSavedState()
-  return web.json_response({"state": state}, content_type="text", headers=CORS_HEADERS)
+  return web.json_response({"state": state}, content_type="application/json", headers=CORS_HEADERS)
 
 
 async def WebSocketHandler(request: web.Request) -> web.WebSocketResponse:
@@ -151,6 +152,17 @@ async def SaveHandler(request: web.Request) -> web.Response:
   return web.Response(text="ok", content_type="text", headers=CORS_HEADERS)
 
 
+async def GetOpenWithEntriesHandler(request: web.Request) -> web.Response:
+  path = request.query.get("path")
+  if path is None:
+    raise ValueError("'uid' parameter is missing")
+
+  entries = macos.GetOpenWithEntries(path)
+  return web.json_response({"entries": entries.ToJSON()},
+                           content_type="application/json",
+                           headers=CORS_HEADERS)
+
+
 async def DieIfParentDies():
   ppid = os.getppid()
   logging.info("Parent pid %d", ppid)
@@ -196,6 +208,7 @@ def main():
   app = web.Application(client_max_size=1024 * 1024 * 1024)
   app.add_routes([
       web.get("/", RootHandler),
+      # Store and state methods.
       web.get("/ws", WebSocketHandler),
       web.options("/saved-state", AllowCorsHandler),
       web.get("/saved-state", SecretCheckWrapper(SavedStateHandler)),
@@ -208,6 +221,9 @@ def main():
       web.options("/export-to-path", AllowCorsHandler),
       web.post("/export-to-path", SecretCheckWrapper(ExportToPathHandler)),
       web.get("/images/{uid}", GetImageHandler),
+      # OS helper methods.
+      web.options("/open-with-entries", AllowCorsHandler),
+      web.get("/open-with-entries", SecretCheckWrapper(GetOpenWithEntriesHandler)),
   ])
   app["communicator"] = communicator
   app["long_operation_runner"] = long_operation_runner
