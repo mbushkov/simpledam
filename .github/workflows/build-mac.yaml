@@ -1,7 +1,7 @@
 name: Building MacOS package
 on: [push]
 jobs:
-  Explore-GitHub-Actions:
+  Build-Package:
     runs-on: macos-10.15
     steps:
       - name: Check out repository code
@@ -10,11 +10,30 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.9'
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
       - name: Init venv
         run: |
           python -m venv venv3
           source venv3/bin/activate
-          pip install --upgrade pip
-      - name: Build and install backend package
+          pip install --upgrade pip wheel setuptools
+      - name: Install the backend Python package
         run: |
           pip install ${{ github.workspace }}/backend
+      - name: Build PyInstaller-based binary
+        run: |
+          cd ${{ github.workspace }}/backend
+          pyinstaller ./backend.spec
+      - name: Build Electron app
+        run: |
+          cd ${{ github.workspace }}/app
+          npm install
+          npm run electron:package
+      - name: Archive the built app
+        uses: actions/upload-artifact@v2
+        with:
+          name: dmg
+          path: ${{ github.workspace }}/app/dist_electron/*.dmg
+          retention-days: 7
