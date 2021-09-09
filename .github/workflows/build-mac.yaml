@@ -36,6 +36,7 @@ jobs:
       - name: Archive the built app
         uses: actions/upload-artifact@v2
         with:
-          name: dmg
+          name: simpledam_dmg_package
           path: ${{ github.workspace }}/app/dist_electron/*.dmg
+          if-no-files-found: error
           retention-days: 7
