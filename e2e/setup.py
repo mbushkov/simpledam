@@ -10,6 +10,7 @@ setup_args = dict(
     packages=find_namespace_packages(),
     install_requires=[
         "selenium==3.141.0",
+        "pytest==6.2.5",
     ],
     data_files=[(
         "newmedia_e2e/assets",
