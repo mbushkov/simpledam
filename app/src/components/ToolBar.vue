@@ -8,19 +8,19 @@
         <b-tab-item label="Media"></b-tab-item>
       </b-tabs>
 
-      <b-icon icon="file-eye-outline" :class="{disabled: !selectionPresent}" @click.native="showMediaFile"></b-icon>
-      <b-icon icon="file-move-outline" :class="{disabled: !selectionPresent}" @click.native="exportToFolder"></b-icon>
+      <Icon icon="file-eye-outline" :class="{disabled: !selectionPresent}" @click.native="showMediaFile"></Icon>
+      <Icon icon="file-move-outline" :class="{disabled: !selectionPresent}" @click.native="exportToFolder"></Icon>
       <span class="separator"></span>
-      <b-icon icon="rotate-left-variant" :class="{disabled: !selectionPresent}" @click.native="rotateLeft"></b-icon>
-      <b-icon icon="rotate-right-variant" :class="{disabled: !selectionPresent}" @click.native="rotateRight"></b-icon>
-      <b-icon icon="texture-box" :class="{disabled: !selectionPresent}" @click.native="showLabelMenu"></b-icon>
-      <b-icon icon="star-box" :class="{disabled: !selectionPresent}" @click.native="showRatingMenu"></b-icon>
+      <Icon icon="rotate-left-variant" :class="{disabled: !selectionPresent}" @click.native="rotateLeft"></Icon>
+      <Icon icon="rotate-right-variant" :class="{disabled: !selectionPresent}" @click.native="rotateRight"></Icon>
+      <Icon icon="texture-box" :class="{disabled: !selectionPresent}" @click.native="showLabelMenu"></Icon>
+      <Icon icon="star-box" :class="{disabled: !selectionPresent}" @click.native="showRatingMenu"></Icon>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-@import '../styles/variables';
+@import "../styles/variables";
 
 .toolbar {
   background-color: $nm-background-color;
@@ -55,15 +55,15 @@
     color: $nm-text-color;
     position: relative;
     top: -5px;
-    margin-left: .2em;
-    margin-right: .2em;
+    margin-left: 0.2em;
+    margin-right: 0.2em;
 
     :hover {
       color: $nm-primary-color;
     }
 
     &.disabled {
-      opacity: .5;
+      opacity: 0.5;
       :hover {
         color: $nm-text-color;
       }
@@ -71,12 +71,12 @@
   }
 
   span.separator {
-    width: .75em;
+    width: 0.75em;
   }
 }
 </style>
 
 <script lang="ts">
-import ToolBar from './ToolBar';
+import ToolBar from "./ToolBar";
 export default ToolBar;
 </script>

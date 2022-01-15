@@ -1,6 +1,7 @@
 import { ImageViewerTab, transientStoreSingleton } from '@/store';
 import { ImageAdjustments, Label, Rating, Rotation } from '@/store/schema';
 import { computed, defineComponent, onMounted, reactive, ref, SetupContext, watch, watchEffect } from '@vue/composition-api';
+import Icon from '@/components/core/Icon.vue';
 
 
 export interface ImageSize {
@@ -45,6 +46,9 @@ export default defineComponent({
       type: Number,
       default: 0,
     }
+  },
+  components: {
+    Icon,
   },
   setup(props: Props, context: SetupContext) {
     const nestedRef = ref<HTMLDivElement>();

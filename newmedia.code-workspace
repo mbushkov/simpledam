@@ -25,8 +25,8 @@
 		"python.linting.mypyEnabled": true,
 		"python.linting.pylintEnabled": true,
 		"python.linting.pylintArgs": [
-				"--enable=W0614",
-				"--enable=W0611",
+			"--enable=W0614",
+			"--enable=W0611",
 		],
 		"files.exclude": {
 			"**/__pycache__": true,

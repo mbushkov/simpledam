@@ -2,8 +2,12 @@ import { RotateCCWAction, RotateCWAction, ExportToFolderAction, ShowMediaFileAct
 import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
 import { storeSingleton, transientStoreSingleton } from '@/store';
 import { computed, defineComponent } from '@vue/composition-api';
+import Icon from '@/components/core/Icon.vue';
 
 export default defineComponent({
+  components: {
+    Icon,
+  },
   setup() {
     const transientStore = transientStoreSingleton();
 

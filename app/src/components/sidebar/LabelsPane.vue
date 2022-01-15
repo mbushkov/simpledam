@@ -3,7 +3,7 @@
     <div class="labels">
       <div class="row" v-for="entry in entries" :key="entry.title">
         <div class="label-name">
-          <b-icon :type="{['is-label-' + entry.title]: true}" icon="checkbox-blank" class="icon"></b-icon>
+          <Icon :type="'is-label-' + entry.title" icon="checkbox-blank"></Icon>
           <span
             class="label-title"
           >{{ entry.title[0].toUpperCase() + entry.title.slice(1) }} [{{ entry.keyStroke }}]</span>
@@ -24,7 +24,7 @@
 </template>
 
 <style lang="scss" scoped>
-@import '../../styles/variables';
+@import "../../styles/variables";
 
 .labels {
   display: flex;
@@ -64,6 +64,6 @@
 </style>
 
 <script lang="ts">
-import LabelsPane from './LabelsPane';
+import LabelsPane from "./LabelsPane";
 export default LabelsPane;
 </script>

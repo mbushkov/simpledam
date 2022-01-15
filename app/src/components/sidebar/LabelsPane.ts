@@ -1,6 +1,7 @@
 import { defineComponent, computed, Ref, reactive, watchEffect } from '@vue/composition-api';
 import { storeSingleton } from '@/store';
 import Pane from './Pane.vue';
+import Icon from '@/components/core/Icon.vue';
 import { Label } from '@/store/schema';
 
 declare interface LabelEntry {
@@ -23,6 +24,7 @@ export default defineComponent({
   // type inference enabled
   components: {
     Pane,
+    Icon,
   },
   setup() {
     const store = storeSingleton();

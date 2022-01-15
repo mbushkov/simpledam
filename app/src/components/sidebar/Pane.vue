@@ -10,7 +10,7 @@
       >
         <p class="card-header-title">{{ title }}</p>
         <a class="card-header-icon">
-          <b-icon :icon="props.open ? 'menu-down' : 'menu-up'"></b-icon>
+          <Icon :icon="props.open ? 'menu-down' : 'menu-up'"></Icon>
         </a>
       </div>
       <div class="card-content">
@@ -22,7 +22,7 @@
   </div>
 </template>
 <style lang="scss" scoped>
-@import '../../styles/variables';
+@import "../../styles/variables";
 
 .pane {
   .card {
@@ -57,6 +57,6 @@
 }
 </style>
 <script lang="ts">
-import Pane from './Pane';
+import Pane from "./Pane";
 export default Pane;
 </script>

@@ -20,12 +20,11 @@
     </div>
     <div class="metadata">
       <div class="ib-label" v-if="!isShortVersion">
-        <b-icon
-          :type="{['is-label-' + labelNames[imageData.label]]: true}"
+        <Icon
+          :type="'is-label-' + labelNames[imageData.label]"
           icon="checkbox-blank"
-          size="is-small"
-          class="icon"
-        ></b-icon>
+          size="is-small">
+        </Icon>
       </div>
       <div class="ib-rating">
         <b-rate :disabled="true" :max="5" v-model="imageData.rating" size="is-small"></b-rate>
@@ -39,7 +38,7 @@
 </template>
 
 <style lang="scss" scoped>
-@import '../styles/variables';
+@import "../styles/variables";
 
 .image-box {
   border: 1px solid #454545;
@@ -149,6 +148,6 @@
 </style>
 
 <script lang="ts">
-import ImageBox from './ImageBox';
+import ImageBox from "./ImageBox";
 export default ImageBox;
 </script>
