@@ -27,7 +27,7 @@
         </Icon>
       </div>
       <div class="ib-rating">
-        <b-rate :disabled="true" :max="5" v-model="imageData.rating" size="is-small"></b-rate>
+        <Rating :max="5" :value="imageData.rating" size="is-small"></Rating>
       </div>
     </div>
     <div

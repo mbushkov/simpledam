@@ -5,7 +5,7 @@
         <div class="rating-name">
           <span class="rating-title" v-if="entry.rating === 0">None</span>
           <span class="rating-icons" v-if="entry.rating > 0">
-            <b-rate :disabled="true" :max="entry.rating" size="is-small"></b-rate>
+            <Rating :max="entry.rating" size="is-small"></Rating>
           </span>
         </div>
         <div class="rating-count">

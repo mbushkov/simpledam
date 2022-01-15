@@ -1,8 +1,8 @@
 import { ImageViewerTab, transientStoreSingleton } from '@/store';
-import { ImageAdjustments, Label, Rating, Rotation } from '@/store/schema';
+import { ImageAdjustments, Label, Rating as RatingEnum, Rotation } from '@/store/schema';
 import { computed, defineComponent, onMounted, reactive, ref, SetupContext, watch, watchEffect } from '@vue/composition-api';
 import Icon from '@/components/core/Icon.vue';
-
+import Rating from '@/components/core/Rating.vue';
 
 export interface ImageSize {
   width: number;
@@ -15,7 +15,7 @@ export interface ImageData {
   readonly previewSize?: ImageSize;
   readonly previewUrl: string;
   readonly label: Label;
-  readonly rating: Rating;
+  readonly rating: RatingEnum;
   readonly selectionType: SelectionType;
   readonly adjustments: ImageAdjustments;
 }
@@ -49,6 +49,7 @@ export default defineComponent({
   },
   components: {
     Icon,
+    Rating,
   },
   setup(props: Props, context: SetupContext) {
     const nestedRef = ref<HTMLDivElement>();

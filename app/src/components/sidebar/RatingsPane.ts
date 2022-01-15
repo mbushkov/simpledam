@@ -2,14 +2,15 @@ import { defineComponent, computed, Ref, reactive, watchEffect } from '@vue/comp
 import { storeSingleton } from '@/store';
 import Pane from './Pane.vue';
 import Radio from '@/components/core/Radio.vue';
-import { Rating } from '@/store/schema';
+import Rating from '@/components/core/Rating.vue';
+import { Rating as RatingEnum } from '@/store/schema';
 
 declare interface RatingEntry {
-  rating: Rating;
+  rating: RatingEnum;
   selected: boolean;
 }
 
-function ratingEntry(rating: Rating): RatingEntry {
+function ratingEntry(rating: RatingEnum): RatingEntry {
   return {
     rating,
     selected: false,
@@ -21,6 +22,7 @@ export default defineComponent({
   components: {
     Pane,
     Radio,
+    Rating,
   },
   setup() {
     const store = storeSingleton();
