@@ -22,7 +22,7 @@
             native-value="true"
             v-model="entry.selected"
             v-on:click.native.prevent="pathClicked(entry, $event)"
-          ></Radio
+          ></Radio>
         </div>
       </div>
     </div>

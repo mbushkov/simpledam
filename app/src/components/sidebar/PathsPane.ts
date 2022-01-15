@@ -3,7 +3,7 @@ import { defineComponent, computed, reactive } from '@vue/composition-api';
 import { storeSingleton } from '@/store';
 import { apiServiceSingleton } from '@/backend/api';
 import Pane from './Pane.vue';
-import Radio from '@/components/core/Radop.vue';
+import Radio from '@/components/core/Radio.vue';
 import { dragHelperServiceSingleton } from '@/lib/drag-helper-service';
 import * as log from 'loglevel';
 
