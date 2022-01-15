@@ -10,13 +10,13 @@
         </div>
         <div class="label-count">
           <span class="count">{{ counts[entry.label] }}</span>
-          <b-radio
+          <Radio
             size="is-small"
             type="is-label-selected"
             native-value="true"
             v-model="entry.selected"
             v-on:click.native.prevent="labelClicked(entry, $event)"
-          ></b-radio>
+          ></Radio>
         </div>
       </div>
     </div>

@@ -10,13 +10,13 @@
         </div>
         <div class="rating-count">
           <span class="count">{{ counts[entry.rating] }}</span>
-          <b-radio
+          <Radio
             size="is-small"
             type="is-rating-selected"
             native-value="true"
             v-model="entry.selected"
             v-on:click.native.prevent="ratingClicked(entry, $event)"
-          ></b-radio>
+          ></Radio
         </div>
       </div>
     </div>
@@ -24,7 +24,7 @@
 </template>
 
 <style lang="scss" scoped>
-@import '../../styles/variables';
+@import "../../styles/variables";
 
 .ratings {
   display: flex;
@@ -70,6 +70,6 @@
 </style>
 
 <script lang="ts">
-import RatingsPane from './RatingsPane';
+import RatingsPane from "./RatingsPane";
 export default RatingsPane;
 </script>

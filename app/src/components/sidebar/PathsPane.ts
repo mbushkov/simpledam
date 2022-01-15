@@ -3,6 +3,7 @@ import { defineComponent, computed, reactive } from '@vue/composition-api';
 import { storeSingleton } from '@/store';
 import { apiServiceSingleton } from '@/backend/api';
 import Pane from './Pane.vue';
+import Radio from '@/components/core/Radop.vue';
 import { dragHelperServiceSingleton } from '@/lib/drag-helper-service';
 import * as log from 'loglevel';
 
@@ -16,6 +17,7 @@ export default defineComponent({
   // type inference enabled
   components: {
     Pane,
+    Radio,
   },
   setup() {
     const store = storeSingleton();
