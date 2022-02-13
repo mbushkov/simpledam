@@ -18,7 +18,7 @@
     </div>
 
     <div class="bottom">
-      <b-progress v-if="inProgress" class="progress"></b-progress>
+      <Progress v-if="inProgress" class="progress"></Progress>
       <button class="button is-light is-small" :disabled="inProgress" @click="$emit('close')">Close</button>
       <button class="button is-primary is-small" :disabled="inProgress || !destinationPath" @click="startExport">Export</button>
     </div>
@@ -26,7 +26,7 @@
 </template>
 
 <style lang="scss" scoped>
-@import '../../styles/variables';
+@import "../../styles/variables";
 
 .export-to-folder {
   background-color: $nm-background-color-lighter;
@@ -40,8 +40,8 @@
     font-weight: 700;
     padding-left: 1em;
     padding-right: 1em;
-    padding-top: .25em;
-    padding-bottom: .25em;
+    padding-top: 0.25em;
+    padding-bottom: 0.25em;
   }
 
   .content {
@@ -95,6 +95,6 @@
 </style>
 
 <script lang="ts">
-import ExportToFolder from './ExportToFolder';
+import ExportToFolder from "./ExportToFolder";
 export default ExportToFolder;
 </script>
