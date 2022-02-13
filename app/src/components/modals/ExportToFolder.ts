@@ -2,11 +2,16 @@ import { apiServiceSingleton } from '@/backend/api';
 import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
 import { storeSingleton } from '@/store';
 import { computed, defineComponent, ref } from '@vue/composition-api';
+import Progress from '@/components/core/Progress.vue';
 
 export default defineComponent({
+  components: {
+    Progress,
+  },
+
   setup(_, { emit }) {
     const prefixWithIndex = ref<boolean>(true);
-    const destinationPath = ref<string | undefined>();  
+    const destinationPath = ref<string | undefined>();
     const inProgress = ref<boolean>(false);
     const noneConstant = computed(() => '<destination folder not selected>');
 
