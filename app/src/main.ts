@@ -20,6 +20,7 @@ import { setStoreSingleton, setTransientStoreSingleton } from './store';
 import { Store } from './store/store';
 import { BackendMirror, setBackendMirrorSingleton } from './backend/backend-mirror';
 import { DragHelperService, setDragHelperServiceSingleton } from './lib/drag-helper-service';
+import { ModalHelperService, setModalHelperServiceSingleton } from './lib/modal-helper-service';
 
 log.setDefaultLevel(log.levels.INFO);
 
@@ -57,6 +58,9 @@ setBackendMirrorSingleton(backendMirror);
 
 const dragHelperService = new DragHelperService(electronHelperService);
 setDragHelperServiceSingleton(dragHelperService);
+
+const modalHelperService = new ModalHelperService();
+setModalHelperServiceSingleton(modalHelperService);
 
 // This has to happen at the latest step, as some actions depend on existing singletons.
 registerAllActions(actionService);
