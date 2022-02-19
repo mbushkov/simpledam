@@ -1,7 +1,6 @@
 import Vue from 'vue';
 import VueRx from 'vue-rx';
 import VueCompositionApi from '@vue/composition-api';
-import Buefy from 'buefy';
 import VueVirtualScroller from 'vue-virtual-scroller';
 import VueObserveVisibility from 'vue-observe-visibility'; // required by the virual scroller
 import { Splitpanes, Pane } from 'splitpanes';
