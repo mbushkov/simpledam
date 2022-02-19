@@ -16,16 +16,13 @@
   "main": "background.js",
   "dependencies": {
     "@mdi/font": "^6.5.95",
-    "@vue/composition-api": "^1.4.6",
     "axios": "^0.26.0",
     "bulma": "^0.9.3",
     "loglevel": "^1.8.0",
     "rxjs": "^6.6.6",
-    "splitpanes": "^2.3.8",
-    "vue": "^2.6.14",
-    "vue-observe-visibility": "^1.0.0",
-    "vue-rx": "^6.2.0",
-    "vue-virtual-scroller": "^1.0.10"
+    "splitpanes": "^3.0.6",
+    "vue": "^3.2.31",
+    "vue-virtual-scroller": "^2.0.0-alpha.1"
   },
   "devDependencies": {
     "@types/chai": "^4.3.0",
@@ -42,7 +39,7 @@
     "@vue/cli-plugin-unit-mocha": "^5.0.1",
     "@vue/cli-service": "^5.0.1",
     "@vue/eslint-config-typescript": "^10.0.0",
-    "@vue/test-utils": "^1.3.0",
+    "@vue/test-utils": "^2.0.0-rc.18",
     "babel-eslint": "^10.1.0",
     "chai": "^4.3.6",
     "electron": "^17.0.1",
@@ -62,7 +59,7 @@
     "sinon-chai": "^3.7.0",
     "typescript": "~4.5.5",
     "vue-cli-plugin-electron-builder": "^3.0.0-alpha.4",
-    "vue-template-compiler": "^2.6.14"
+    "@vue/compiler-sfc": "^3.2.31"
   },
   "eslintConfig": {
     "root": true,

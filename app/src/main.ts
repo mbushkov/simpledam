@@ -1,6 +1,4 @@
-import Vue from 'vue';
-import VueRx from 'vue-rx';
-import VueCompositionApi from '@vue/composition-api';
+import { createApp } from 'vue';
 import VueVirtualScroller from 'vue-virtual-scroller';
 import VueObserveVisibility from 'vue-observe-visibility'; // required by the virual scroller
 import { Splitpanes, Pane } from 'splitpanes';
@@ -23,16 +21,14 @@ import { ModalHelperService, setModalHelperServiceSingleton } from './lib/modal-
 
 log.setDefaultLevel(log.levels.INFO);
 
-Vue.use(VueRx);
-Vue.use(VueCompositionApi);
-Vue.use(VueVirtualScroller);
-Vue.use(VueObserveVisibility); // required by the virual scroller
+const app = createApp(App);
 
-Vue.component('splitpane-container', Splitpanes);
+app.use(VueVirtualScroller);
+app.use(VueObserveVisibility); // required by the virual scroller
+
+app.component('splitpane-container', Splitpanes);
 // eslint-disable-next-line vue/multi-word-component-names
-Vue.component('splitpane', Pane);
-
-Vue.config.productionTip = false;
+app.component('splitpane', Pane);
 
 //
 // -> Initializing singletons.
@@ -67,6 +63,5 @@ registerAllActions(actionService);
 // <- Initializing singletons.
 //
 
-new Vue({
-  render: h => h(App),
-}).$mount('#app')
+app.mount('#app');
+
