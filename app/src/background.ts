@@ -5,7 +5,7 @@
 // Portrait of a Gentleman, attributed to Henry Williams
 
 import { ChildProcess, spawn } from 'child_process';
-import { app, BrowserWindow, dialog, ipcMain, IpcMainEvent, Menu, nativeImage, protocol, session, shell } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, IpcMainEvent, Menu, NativeImage, nativeImage, protocol, session, shell } from 'electron';
 import path from 'path';
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib';
 import { OpenWithEntries } from './backend/api-model';
@@ -108,7 +108,6 @@ async function createWindow(options: CreateWindowOptions = {}) {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      enableRemoteModule: false,
       preload: path.join(__static, '/preload.js'),
     }
   });
@@ -419,7 +418,7 @@ ipcMain.on('show-media-file', async (_event: IpcMainEvent, path: string) => {
 });
 
 function menuItem(id: string, label: string, accelerator?: string, iconBase64?: string) {
-  let icon: nativeImage | undefined;
+  let icon: NativeImage | undefined;
   if (iconBase64) {
     icon = nativeImage.createFromDataURL('data:image/png;base64,' + iconBase64).resize({
       width: 16,

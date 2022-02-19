@@ -1,4 +1,4 @@
-import { MenuItemConstructorOptions, nativeImage } from "electron";
+import { MenuItemConstructorOptions, NativeImage, nativeImage } from "electron";
 import { BrowserWindow } from 'electron';
 
 declare interface MenuItemsParams {
@@ -10,7 +10,7 @@ declare interface MenuItemsParams {
 }
 
 export function menuItem(params: MenuItemsParams): MenuItemConstructorOptions {
-  let icon: nativeImage | undefined;
+  let icon: NativeImage | undefined;
   if (params.iconBase64) {
     const dataURL = 'data:image/png;base64,' + params.iconBase64;
     const sourceIcon = nativeImage.createFromDataURL(dataURL);
