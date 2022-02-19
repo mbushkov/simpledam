@@ -3,10 +3,12 @@
     <div class="left-pane" :style="{width: leftPaneWidth.toString() + 'px'}">
     </div>
     <div class="right-pane">
-      <b-tabs class="mode-panel top-tabs" size="is-small" type="is-toggle" v-model="currentTab">
-        <b-tab-item label="Thumbnails"></b-tab-item>
-        <b-tab-item label="Media"></b-tab-item>
-      </b-tabs>
+      <div class="mode-panel top-tabs tabs">
+        <ul>
+          <li :class="{'is-active': isThumbnailsActive()}" @click="setThumbnailsActive()"><a>Thumbnails</a></li>
+          <li :class="{'is-active': isMediaActive()}" @click="setMediaActive()"><a>Media</a></li>
+        </ul>
+      </div>
 
       <Icon icon="file-eye-outline" :class="{disabled: !selectionPresent}" @click.native="showMediaFile"></Icon>
       <Icon icon="file-move-outline" :class="{disabled: !selectionPresent}" @click.native="exportToFolder"></Icon>
