@@ -39,13 +39,13 @@
       margin-bottom: 0;
       margin-right: 3em;
 
-      ::v-deep .tabs li {
+      :deep(.tabs li) {
         width: 80px;
         a {
           border-radius: 0;
         }
       }
-      ::v-deep .tab-content {
+      :deep(.tab-content) {
         margin: 0 !important;
         padding: 0 !important;
       }

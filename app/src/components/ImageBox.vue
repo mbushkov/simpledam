@@ -134,11 +134,10 @@
     }
 
     .ib-rating {
-      ::v-deep {
-        .rate .rate-item.set-on .icon {
+        :deep(.rate .rate-item.set-on .icon) {
           color: $nm-text-color;
         }
-        .rate .icon {
+        :deep(.rate .icon) {
           color: $nm-background-color-lighter-tone-up;
         }
       }
