@@ -29,6 +29,7 @@ Vue.use(VueVirtualScroller);
 Vue.use(VueObserveVisibility); // required by the virual scroller
 
 Vue.component('splitpane-container', Splitpanes);
+// eslint-disable-next-line vue/multi-word-component-names
 Vue.component('splitpane', Pane);
 
 Vue.config.productionTip = false;
