@@ -69,3 +69,10 @@ Note: all instructions below are for MacOS 11 or later.
    ```bash
    pytest ./e2e/newmedia_e2e
    ```
+# Licensing
+
+This software is distributed under the MIT license (see the LICENSE file). It includes bits of pieces of the following MIT licensed software packages:
+
+* Buefy (https://github.com/buefy/buefy) - Copyright (c) 2017-2019 Rafael Beraldo
+* Splitpanes (https://github.com/antoniandre/splitpanes) - Copyright (c) 2018 Antoni Andre
+
