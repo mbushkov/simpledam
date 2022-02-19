@@ -25,7 +25,6 @@ log.setDefaultLevel(log.levels.INFO);
 
 Vue.use(VueRx);
 Vue.use(VueCompositionApi);
-Vue.use(Buefy)
 Vue.use(VueVirtualScroller);
 Vue.use(VueObserveVisibility); // required by the virual scroller
 
