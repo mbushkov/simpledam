@@ -134,12 +134,11 @@
     }
 
     .ib-rating {
-        :deep(.rate .rate-item.set-on .icon) {
-          color: $nm-text-color;
-        }
-        :deep(.rate .icon) {
-          color: $nm-background-color-lighter-tone-up;
-        }
+      :deep(.rate .rate-item.set-on .icon) {
+        color: $nm-text-color;
+      }
+      :deep(.rate .icon) {
+        color: $nm-background-color-lighter-tone-up;
       }
     }
   }
