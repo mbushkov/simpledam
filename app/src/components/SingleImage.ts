@@ -2,8 +2,8 @@ import { apiServiceSingleton } from '@/backend/api';
 import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
 import { Direction, ImageViewerTab, storeSingleton, transientStoreSingleton } from '@/store';
 import { Label, Rotation } from '@/store/schema';
-import { computed, defineComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import * as log from 'loglevel';
+import { computed, defineComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 // TODO: implement in a generic way with a global shortcuts handler.
 const LABELS_MAP: { [key: string]: Label } = {
@@ -260,15 +260,18 @@ export default defineComponent({
       electronHelperServiceSingleton().showImageMenu();
     }
 
+    const resizeObserver = new ResizeObserver(handleResize);
     onMounted(() => {
       window.addEventListener('keydown', keyPressed);
       window.addEventListener('resize', handleResize);
       handleResize();
+      resizeObserver.observe(el.value!);
     });
 
     onBeforeUnmount(() => {
       window.removeEventListener('keydown', keyPressed);
       window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
     });
 
     return {

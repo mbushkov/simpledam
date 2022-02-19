@@ -161,15 +161,16 @@ $tool-bar-height: $status-bar-height * 2;
 <script lang="ts">
 import { apiServiceSingleton } from "@/backend/api";
 import { storeSingleton, transientStoreSingleton } from "@/store";
+import * as log from "loglevel";
 import {
   ComponentPublicInstance,
   defineComponent,
-  nextTick,
+  onBeforeUnmount,
   onMounted,
   ref,
+  watch,
   watchEffect,
 } from "vue";
-import * as log from "loglevel";
 import { backendMirrorSingleton } from "./backend/backend-mirror";
 import ImageViewer from "./components/ImageViewer.vue";
 import SideBar from "./components/sidebar/SideBar.vue";
@@ -198,6 +199,11 @@ export default defineComponent({
       window.addEventListener("resize", handleResize);
     });
 
+    const resizeObserver = new ResizeObserver(handleResize);
+    onBeforeUnmount(() => {
+      resizeObserver.disconnect();
+    });
+
     watchEffect(() => {
       document.title =
         backendMirrorSingleton().state.catalogPath || "<unnamed>";
@@ -209,8 +215,17 @@ export default defineComponent({
     const sideBarSizePx = ref(250);
     const loaded = ref(false);
 
-    const leftPane = ref<ComponentPublicInstance>();
+    const leftPane = ref<ComponentPublicInstance | undefined>();
     const imageViewerRef = ref<InstanceType<typeof ImageViewer>>();
+
+    watch(leftPane, (r, oldR) => {
+      if (oldR) {
+        resizeObserver.unobserve(oldR.$el);
+      }
+      if (r) {
+        resizeObserver.observe(r.$el);
+      }
+    });
 
     function handleResize() {
       if (leftPane.value) {
@@ -221,23 +236,12 @@ export default defineComponent({
     }
 
     function splitpanesReady() {
-      // TODO: this is a horrible hack - rewrite vue inifinite scroller to make this unnecessary.
-      for (let i = 0; i < 5000; i += 100) {
-        setTimeout(() => {
-          log.debug("[App] Handling initial split panes resize.");
-          imageViewerRef.value?.handleResize();
-          handleResize();
-        }, i);
-      }
+      handleResize();
     }
 
     function splitpanesResizing() {
       handleResize();
-
       log.debug("[App] Split panes are currently resizing.");
-      if (imageViewerRef.value) {
-        nextTick(imageViewerRef.value.handleResize);
-      }
     }
 
     function splitpanesResized() {
@@ -252,7 +256,6 @@ export default defineComponent({
         "[App] Split panes done resizing. Sidebar size: ",
         sideBarSizePx.value
       );
-      imageViewerRef.value.handleResize();
     }
 
     return {

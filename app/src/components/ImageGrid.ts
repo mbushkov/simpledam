@@ -1,12 +1,12 @@
-import { defineComponent, computed, onMounted, onBeforeUnmount, ref, watchEffect, watch } from 'vue';
-import { storeSingleton, transientStoreSingleton, Direction, ImageViewerTab } from '@/store';
 import { apiServiceSingleton, PORT } from '@/backend/api';
-import { ImageData, SelectionType } from './ImageBox';
-import ImageBox from './ImageBox.vue';
+import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
+import { Direction, ImageViewerTab, storeSingleton, transientStoreSingleton } from '@/store';
 import { Label } from '@/store/schema';
 import * as log from 'loglevel';
+import { computed, defineComponent, onBeforeUnmount, onMounted, ref, watch, watchEffect } from 'vue';
 import { dragHelperServiceSingleton } from '../lib/drag-helper-service';
-import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
+import { ImageData, SelectionType } from './ImageBox';
+import ImageBox from './ImageBox.vue';
 
 interface Row {
   key: string;
@@ -52,6 +52,15 @@ export default defineComponent({
     const dragIndicatorVisible = ref(false);
     const dragIndicatorIndex = ref(0);
     const maxSize = computed(() => store.state.thumbnailSettings.size);
+
+    const resizeObserver = new ResizeObserver(handleResize);
+    onMounted(() => {
+      // By this time element is created.
+      resizeObserver.observe(el.value!);
+    });
+    onBeforeUnmount(() => {
+      resizeObserver.disconnect();
+    });
 
     function handleResize() {
       if (!el.value) {

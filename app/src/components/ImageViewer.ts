@@ -26,15 +26,6 @@ export default defineComponent({
       }
     });
 
-    function handleResize() {
-      if (imageGridRef.value) {
-        (imageGridRef.value as any).handleResize();
-      }
-      if (singleImageRef.value) {
-        (singleImageRef.value as any).handleResize();
-      }
-    }
-
     return {
       imageGridRef,
       singleImageRef,
@@ -42,7 +33,6 @@ export default defineComponent({
       currentTab,
       ImageViewerTab,
       imageFile,
-      handleResize,
     };
   }
 });  
