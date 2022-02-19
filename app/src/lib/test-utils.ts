@@ -50,9 +50,6 @@ export function shallowMount(component: any, options?: any): Wrapper<any> {
   });
 }
 
-
-
-
 /**
  * Creates a component that builds a recursive JSON representation of a given reactive object
  * using Vue template engine.
@@ -72,6 +69,7 @@ export function shallowMount(component: any, options?: any): Wrapper<any> {
  */
 export function createJSONWrapper<T extends object>(observableValue: T): ObservableWrapper<T> {
   const recursiveComponent = defineComponent({
+    // eslint-disable-next-line vue/multi-word-component-names
     name: 'recursive',
     template:
       '<div>' +

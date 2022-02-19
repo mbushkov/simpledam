@@ -9,7 +9,7 @@ import { OpenWithEntries } from './api-model';
 
 const GLOBAL_URL_PARAMS = new URLSearchParams(window.location.search);
 export const PORT = Number(GLOBAL_URL_PARAMS.get('port'));
-export const SECRET = GLOBAL_URL_PARAMS.get('secret');
+export const SECRET = GLOBAL_URL_PARAMS.get('secret') ?? '';
 export const INITIAL_SCAL_PATH = GLOBAL_URL_PARAMS.get('scan-path');
 
 export interface ExportToPathOptions {
