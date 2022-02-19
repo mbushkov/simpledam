@@ -35,7 +35,7 @@
 // Import virtual scroller's styles.
 @import "~vue-virtual-scroller/dist/vue-virtual-scroller.css";
 
-// Import Bulma and Buefy styles
+// Import Bulma styles
 @import "~bulma";
 
 // Splitpanes styling.
