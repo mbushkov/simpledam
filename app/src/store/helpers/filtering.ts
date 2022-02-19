@@ -1,4 +1,3 @@
-import Vue from 'vue';
 import { FilterSettings, ImageFile, ImageList, ImageMetadata } from '../schema';
 import { dirName } from './filesystem';
 
@@ -54,7 +53,7 @@ export function listForFilterSettingsInvariant(lists: { [key: string]: ImageList
       presenceMap: {},
       items: [],
     };
-    Vue.set(lists, invariant, list);
+    lists[invariant] = list;
   }
   return list;
 }
@@ -62,13 +61,13 @@ export function listForFilterSettingsInvariant(lists: { [key: string]: ImageList
 export function updateItemInList(l: ImageList, fs: FilterSettings, image: ImageFile, mdata: ImageMetadata): boolean {
   if (isMatchingFilterSettings(fs, image, mdata)) {
     if (!l.presenceMap[image.uid]) {
-      Vue.set(l.presenceMap, image.uid, true);
+      l.presenceMap[image.uid] = true;
       l.items.push(image.uid);
     }
     return true;
   } else {
     if (l.presenceMap[image.uid]) {
-      Vue.delete(l.presenceMap, image.uid);
+      delete l.presenceMap[image.uid];
       l.items.splice(l.items.indexOf(image.uid), 1);
     }
     return false;
@@ -105,11 +104,11 @@ export function updateListsPresence(lists: { [key: string]: ImageList }, uid: st
     const l = lists[key];
     if (key === '' || key.includes(invariant)) {
       if (!l.presenceMap[uid]) {
-        Vue.set(l.presenceMap, uid, true);
+        l.presenceMap[uid] = true;
       }
     } else if (key.includes(invariantKey(invariant))) {  // This should only apply to lists in the same group (i.e. other labels, or other ratings, or other paths).        
       if (l.presenceMap[uid]) {
-        Vue.delete(l.presenceMap, uid);
+        delete l.presenceMap[uid];
       }
     }
   }

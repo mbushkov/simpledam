@@ -1,4 +1,4 @@
-import { defineComponent, computed, Ref, reactive, watchEffect } from '@vue/composition-api';
+import { defineComponent, computed, Ref, reactive, watchEffect } from 'vue';
 import { storeSingleton } from '@/store';
 import Pane from './Pane.vue';
 import Radio from '@/components/core/Radio.vue';

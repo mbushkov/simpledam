@@ -1,4 +1,4 @@
-import { defineComponent, } from '@vue/composition-api';
+import { defineComponent, } from 'vue';
 import Icon from '@/components/core/Icon.vue';
 import Collapse from '@/components/core/Collapse.vue';
 

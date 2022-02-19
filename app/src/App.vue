@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div>
     <div v-if="!loaded">Loading...</div>
 
     <div v-if="loaded">
@@ -153,128 +153,123 @@ $tool-bar-height: $status-bar-height * 2;
     right: 0;
     top: 0;
     height: $tool-bar-height;
+    position: absolute;
   }
 }
 </style>
 
 <script lang="ts">
-import Vue from "vue";
+import { apiServiceSingleton } from "@/backend/api";
+import { storeSingleton, transientStoreSingleton } from "@/store";
+import {
+  ComponentPublicInstance,
+  defineComponent,
+  nextTick,
+  onMounted,
+  ref,
+  watchEffect,
+} from "vue";
+import * as log from "loglevel";
+import { backendMirrorSingleton } from "./backend/backend-mirror";
+import ImageViewer from "./components/ImageViewer.vue";
 import SideBar from "./components/sidebar/SideBar.vue";
 import StatusBar from "./components/StatusBar.vue";
 import ToolBar from "./components/ToolBar.vue";
-import ImageViewer from "./components/ImageViewer.vue";
-import { storeSingleton, transientStoreSingleton } from "@/store";
-import { apiServiceSingleton } from "@/backend/api";
-import * as log from "loglevel";
-import { actionServiceSingleton } from "./actions";
-import { watchEffect } from "@vue/composition-api";
-import { backendMirrorSingleton } from "./backend/backend-mirror";
-import { electronHelperServiceSingleton } from "./lib/electron-helper-service";
-import { initialState } from "./store/store";
 
-export default Vue.extend({
-  name: "App",
+export default defineComponent({
   components: {
     SideBar,
     StatusBar,
     ToolBar,
     ImageViewer,
   },
-  data() {
-    return {
-      minSideBarSize: 20,
-      maxSideBarSize: 50,
-      sideBarSize: 20,
-      sideBarSizePx: 250,
-      loaded: false,
-    };
-  },
-  beforeCreate() {
-    apiServiceSingleton()
-      .fetchState()
-      .then((s) => {
-        if (s !== undefined) {
-          storeSingleton().replaceState(s);
-        }
+  setup() {
+    onMounted(() => {
+      apiServiceSingleton()
+        .fetchState()
+        .then((s) => {
+          if (s !== undefined) {
+            storeSingleton().replaceState(s);
+          }
 
-        (this as any)["loaded"] = true;
-      });
+          loaded.value = true;
+        });
+
+      window.addEventListener("resize", handleResize);
+    });
 
     watchEffect(() => {
       document.title =
         backendMirrorSingleton().state.catalogPath || "<unnamed>";
     });
-  },
-  methods: {
-    handleResize() {
-      const ref = this.$refs.leftPane as Vue | undefined;
-      if (ref) {
-        transientStoreSingleton().setLeftPaneWidth(ref.$el.clientWidth);
-      }
-      // this.minSideBarSize = 180 / this.$el.clientWidth * 100;
-      // this.maxSideBarSize = 50;
-      // this.sideBarSize = Math.max(this.minSideBarSize, Math.min(this.sideBarSizePx / this.$el.clientWidth * 100, this.maxSideBarSize));
-    },
 
-    splitpanesReady() {
+    const minSideBarSize = ref(20);
+    const maxSideBarSize = ref(50);
+    const sideBarSize = ref(20);
+    const sideBarSizePx = ref(250);
+    const loaded = ref(false);
+
+    const leftPane = ref<ComponentPublicInstance>();
+    const imageViewerRef = ref<InstanceType<typeof ImageViewer>>();
+
+    function handleResize() {
+      if (leftPane.value) {
+        transientStoreSingleton().setLeftPaneWidth(
+          leftPane.value.$el.clientWidth
+        );
+      }
+    }
+
+    function splitpanesReady() {
       // TODO: this is a horrible hack - rewrite vue inifinite scroller to make this unnecessary.
       for (let i = 0; i < 5000; i += 100) {
         setTimeout(() => {
           log.debug("[App] Handling initial split panes resize.");
-          (this.$refs["imageViewerRef"] as any).handleResize();
-          this.handleResize();
+          imageViewerRef.value?.handleResize();
+          handleResize();
         }, i);
       }
-    },
+    }
 
-    splitpanesResizing() {
-      this.handleResize();
+    function splitpanesResizing() {
+      handleResize();
 
       log.debug("[App] Split panes are currently resizing.");
-      Vue.nextTick((this.$refs["imageViewerRef"] as any).handleResize);
-    },
+      if (imageViewerRef.value) {
+        nextTick(imageViewerRef.value.handleResize);
+      }
+    }
 
-    splitpanesResized() {
-      this.handleResize();
+    function splitpanesResized() {
+      handleResize();
 
-      this.sideBarSizePx = (this.$refs.leftPane as Vue).$el.clientWidth;
+      if (!leftPane.value || !imageViewerRef.value) {
+        return;
+      }
+
+      sideBarSizePx.value = leftPane.value.$el.clientWidth;
       log.debug(
         "[App] Split panes done resizing. Sidebar size: ",
-        this.sideBarSizePx
+        sideBarSizePx.value
       );
-      Vue.nextTick((this.$refs["imageViewerRef"] as any).handleResize);
-    },
-  },
-  mounted() {
-    window.addEventListener("resize", this.handleResize);
-    this.handleResize();
-  },
-  beforeDestroy() {
-    window.removeEventListener("resize", this.handleResize);
-  },
-});
+      imageViewerRef.value.handleResize();
+    }
 
-(window as any).addEventListener(
-  "nm-action",
-  (event: CustomEvent<{ actionName: string; args: any[] }>) => {
-    actionServiceSingleton().performAction(
-      event.detail.actionName,
-      ...event.detail.args
-    );
-  }
-);
-(window as any).addEventListener("nm-check-for-unsaved-changes", async () => {
-  const currentState = storeSingleton().state;
-  const savedState =
-    (await apiServiceSingleton().fetchState()) || initialState();
-  const currentStateStr = JSON.stringify(currentState);
-  const savedStateStr = JSON.stringify(savedState);
+    return {
+      minSideBarSize,
+      maxSideBarSize,
+      sideBarSize,
+      sideBarSizePx,
+      loaded,
 
-  if (currentStateStr !== savedStateStr) {
-    electronHelperServiceSingleton().confirmClosingWindow();
-  } else {
-    electronHelperServiceSingleton().closeWindow();
-  }
+      leftPane,
+      imageViewerRef,
+
+      splitpanesReady,
+      splitpanesResizing,
+      splitpanesResized,
+    };
+  },
 });
 </script>
 

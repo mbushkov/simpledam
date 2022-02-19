@@ -1,4 +1,4 @@
-import { computed, defineComponent, ref, watchEffect } from "@vue/composition-api";
+import { computed, defineComponent, ref, watchEffect } from "vue";
 
 type ValueType = string | number | boolean | undefined;
 

@@ -1,7 +1,7 @@
 import { apiServiceSingleton } from '@/backend/api';
 import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
 import { storeSingleton } from '@/store';
-import { computed, defineComponent, ref } from '@vue/composition-api';
+import { computed, defineComponent, ref } from 'vue';
 import NmCheckbox from '@/components/core/Checkbox.vue';
 import NmProgress from '@/components/core/Progress.vue';
 

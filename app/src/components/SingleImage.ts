@@ -2,7 +2,7 @@ import { apiServiceSingleton } from '@/backend/api';
 import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
 import { Direction, ImageViewerTab, storeSingleton, transientStoreSingleton } from '@/store';
 import { Label, Rotation } from '@/store/schema';
-import { computed, defineComponent, onBeforeUnmount, onMounted, ref, watch } from '@vue/composition-api';
+import { computed, defineComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import * as log from 'loglevel';
 
 // TODO: implement in a generic way with a global shortcuts handler.
@@ -20,7 +20,7 @@ const LABELS_MAP: { [key: string]: Label } = {
 };
 
 export default defineComponent({
-  setup(props, context) {
+  setup() {
     const store = storeSingleton();
     const transientStore = transientStoreSingleton();
 
@@ -76,7 +76,7 @@ export default defineComponent({
         return;
       }
 
-      context.root.$nextTick(() => {
+      nextTick(() => {
         let clientWidth = el.value?.getBoundingClientRect().width ?? 1;
         let clientHeight = el.value?.getBoundingClientRect().height ?? 1;
         if (isRotated90.value || isRotated270.value) {

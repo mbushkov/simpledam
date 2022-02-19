@@ -1,4 +1,4 @@
-import { computed, defineComponent } from "@vue/composition-api";
+import { computed, defineComponent } from "vue";
 import Icon from "./Icon";
 
 export interface Props {

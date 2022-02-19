@@ -1,4 +1,4 @@
-import { defineComponent } from '@vue/composition-api';
+import { defineComponent } from 'vue';
 import LabelsPane from './LabelsPane.vue';
 import RatingsPane from './RatingsPane.vue';
 import PathsPane from './PathsPane.vue';

@@ -1,10 +1,9 @@
-import { Action, LongOperationStartAction, LongOperationStatusAction, LongOperationLogAction, LongOperationSuccessAction, LongOperationErrorAction } from '@/backend/actions';
+import { Action, LongOperationErrorAction, LongOperationLogAction, LongOperationStartAction, LongOperationStatusAction, LongOperationSuccessAction } from '@/backend/actions';
 import { Immutable } from '@/lib/type-utils';
-import { reactive } from '@vue/composition-api';
 import { Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
+import { reactive } from 'vue';
 
-import Vue from 'vue';
 
 export enum ImageViewerTab {
   THUMBNAILS = 0,
@@ -112,7 +111,7 @@ export class TransientStore {
 
         logs: [],
       };
-      Vue.set(this._state.longOperations, v.loid, newOp);
+      this._state.longOperations[v.loid] = newOp;
     });
 
   readonly longOperationStatus$ = this.actions$.pipe(
@@ -155,8 +154,8 @@ export class TransientStore {
   ).subscribe(v => {
     this._state.longOperations[v.loid].state = LongOperationState.SUCCESS;
 
-    Vue.set(this._state.longOperationsArchive, v.loid, this._state.longOperations[v.loid]);
-    Vue.delete(this._state.longOperations, v.loid);
+    this._state.longOperationsArchive[v.loid] = this._state.longOperations[v.loid];
+    delete this._state.longOperations[v.loid];
 
     // TODO: implement a routine to clean up the long operations archive if it gets too big.
     // Here and below.
@@ -170,7 +169,7 @@ export class TransientStore {
     this._state.longOperations[v.loid].state = LongOperationState.ERROR;
     this._state.longOperations[v.loid].status = v.message;
 
-    Vue.set(this._state.longOperationsArchive, v.loid, this._state.longOperations[v.loid]);
-    Vue.delete(this._state.longOperations, v.loid);
+    this._state.longOperationsArchive[v.loid] = this._state.longOperations[v.loid];
+    delete this._state.longOperations[v.loid];
   });
 }

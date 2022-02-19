@@ -1,10 +1,10 @@
-import { computed, defineComponent } from "@vue/composition-api";
+import { computed, defineComponent } from "vue";
 
 export interface Props {
   readonly size?: string;
   readonly max?: number;
-  readonly format?: 'raw' | 'percent';
-  readonly value: number;
+  readonly format?: string;
+  readonly value?: number;
 }
 
 export default defineComponent({
@@ -32,7 +32,7 @@ export default defineComponent({
   },
   setup(props: Props) {
     const label = computed(() => {
-      if (props.value === null || isNaN(props.value)) {
+      if (props.value === undefined || isNaN(props.value)) {
         return '';
       }
 

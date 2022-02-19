@@ -1,8 +1,7 @@
 import { BackendStateUpdateAction } from '@/backend/actions';
-import { reactive } from '@vue/composition-api';
 import * as log from 'loglevel';
 import { filter, map } from 'rxjs/operators';
-import Vue from 'vue';
+import { reactive } from 'vue';
 import { ApiService } from './api';
 
 export declare interface BackendState {
@@ -22,9 +21,7 @@ export class BackendMirror {
       log.debug('[BackendMirror] Got state update: ', v);
 
       const a = v as BackendStateUpdateAction;
-      for (const key in a.state) {
-        Vue.set(this.state, key, a.state[key]);
-      }
+      Object.assign(this.state, a.state);
     }),
   ).subscribe();
 

@@ -88,5 +88,5 @@ export declare interface State {
   images: { [key: string]: ImageFile };
   metadata: { [key: string]: ImageMetadata };
   lists: { [key: string]: ImageList };
-  paths: { [key: string]: string };
+  paths: { [key: string]: boolean };
 }

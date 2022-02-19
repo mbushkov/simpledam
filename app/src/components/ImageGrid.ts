@@ -1,4 +1,4 @@
-import { defineComponent, computed, onMounted, onBeforeUnmount, ref, watchEffect, watch } from '@vue/composition-api';
+import { defineComponent, computed, onMounted, onBeforeUnmount, ref, watchEffect, watch } from 'vue';
 import { storeSingleton, transientStoreSingleton, Direction, ImageViewerTab } from '@/store';
 import { apiServiceSingleton, PORT } from '@/backend/api';
 import { ImageData, SelectionType } from './ImageBox';

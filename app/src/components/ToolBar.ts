@@ -1,7 +1,7 @@
 import { RotateCCWAction, RotateCWAction, ExportToFolderAction, ShowMediaFileAction } from '@/actions/selection';
 import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
 import { ImageViewerTab, storeSingleton, transientStoreSingleton } from '@/store';
-import { computed, defineComponent } from '@vue/composition-api';
+import { computed, defineComponent } from 'vue';
 import Icon from '@/components/core/Icon.vue';
 
 export default defineComponent({

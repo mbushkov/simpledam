@@ -1,4 +1,4 @@
-import { defineComponent, computed, ref } from '@vue/composition-api';
+import { defineComponent, computed, ref } from 'vue';
 import ImageGrid from './ImageGrid.vue';
 import SingleImage from './SingleImage.vue';
 import { transientStoreSingleton, ImageViewerTab, storeSingleton } from '@/store';

@@ -1,4 +1,4 @@
-import { computed, defineComponent } from "@vue/composition-api";
+import { computed, defineComponent } from "vue";
 
 export interface Props {
   readonly type?: string;

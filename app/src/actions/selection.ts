@@ -2,7 +2,7 @@ import ExportToFolder from '@/components/modals/ExportToFolder.vue';
 import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
 import { storeSingleton } from '@/store';
 import { Label, Rating } from "@/store/schema";
-import { computed } from '@vue/composition-api';
+import { computed } from 'vue';
 // import { ModalProgrammatic } from 'buefy';
 import { Action } from './action';
 
