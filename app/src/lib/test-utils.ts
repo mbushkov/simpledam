@@ -8,7 +8,6 @@ import { Store } from '@/store/store';
 import { TransientStore } from '@/store/transient-store';
 import VueCompositionApi, { computed, defineComponent, reactive, UnwrapRef } from '@vue/composition-api';
 import { mount as originalMount, MountOptions, shallowMount as originalShallowMount, ShallowMountOptions, ThisTypedMountOptions, ThisTypedShallowMountOptions, VueClass, Wrapper } from '@vue/test-utils';
-import Buefy from 'buefy';
 import { Subject } from 'rxjs';
 import sinon from 'sinon';
 import Vue, { Component } from 'vue';
@@ -167,5 +166,4 @@ export function setupTestEnv() {
 
 export function setupComponentTestEnv() {
   setupTestEnv();
-  Vue.use(Buefy);
 }
