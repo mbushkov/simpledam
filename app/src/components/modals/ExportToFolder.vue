@@ -13,12 +13,12 @@
       <hr>
       
       <div>
-        <b-checkbox :disabled="inProgress" v-model="prefixWithIndex">Prefix filenames with index</b-checkbox>
+        <NmCheckbox :disabled="inProgress" v-model="prefixWithIndex">Prefix filenames with index</NmCheckbox>
       </div>
     </div>
 
     <div class="bottom">
-      <Progress v-if="inProgress" class="progress"></Progress>
+      <NmProgress v-if="inProgress" class="progress"></NmProgress>
       <button class="button is-light is-small" :disabled="inProgress" @click="$emit('close')">Close</button>
       <button class="button is-primary is-small" :disabled="inProgress || !destinationPath" @click="startExport">Export</button>
     </div>
