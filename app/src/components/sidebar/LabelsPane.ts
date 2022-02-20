@@ -1,6 +1,8 @@
-import { defineComponent, computed, Ref, reactive, watchEffect } from '@vue/composition-api';
+import { defineComponent, computed, Ref, reactive, watchEffect } from 'vue';
 import { storeSingleton } from '@/store';
 import Pane from './Pane.vue';
+import Icon from '@/components/core/Icon.vue';
+import Radio from '@/components/core/Radio.vue';
 import { Label } from '@/store/schema';
 
 declare interface LabelEntry {
@@ -23,6 +25,8 @@ export default defineComponent({
   // type inference enabled
   components: {
     Pane,
+    Icon,
+    Radio,
   },
   setup() {
     const store = storeSingleton();

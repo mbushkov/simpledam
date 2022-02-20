@@ -8,14 +8,14 @@
     <div class="long-operations">
       <div v-for="(item, key) in transientStoreState.longOperations" :key="key" class="operation">
         <div class="status">{{item.status}}</div>
-        <div class="progress"> <b-progress :value="item.progress" :max="100" format="percent" show-value size="is-small"></b-progress></div>
+        <div class="progress"> <Progress :value="item.progress" :max="100" format="percent" show-value size="is-small"></Progress></div>
       </div>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-@import '../styles/variables';
+@import "../styles/variables";
 .status-bar {
   background-color: $nm-background-color;
   color: $nm-text-color;
@@ -65,6 +65,6 @@
 </style>
 
 <script lang="ts">
-import StatusBar from './StatusBar';
+import StatusBar from "./StatusBar";
 export default StatusBar;
 </script>

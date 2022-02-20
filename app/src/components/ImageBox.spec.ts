@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { ImageData, Props } from './ImageBox';
 import ImageBox from './ImageBox.vue';
 import { setupComponentTestEnv, shallowMount } from '@/lib/test-utils';
-import { reactive } from '@vue/composition-api';
+import { reactive } from 'vue';
 
 setupComponentTestEnv();
 
@@ -78,7 +78,7 @@ describe('ImageBox', () => {
     expect(imageWrapper.clientWidth).to.be.closeTo(nested.clientWidth, 1);
     expect(imageWrapper.clientHeight).to.be.closeTo(nested.clientWidth * (imageHeight / imageWidth), 1);
 
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('fits 90 deg rotated 900x700 image correctly', async () => {
@@ -91,7 +91,7 @@ describe('ImageBox', () => {
     expect(imageWrapper.clientWidth).to.be.closeTo(nested.clientHeight / (imageWidth / imageHeight), 1);
     expect(imageWrapper.clientHeight).to.be.closeTo(nested.clientHeight, 1);
 
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('fits 180 deg rotated 900x700 image correctly', async () => {
@@ -104,7 +104,7 @@ describe('ImageBox', () => {
     expect(imageWrapper.clientWidth).to.be.closeTo(nested.clientWidth, 1);
     expect(imageWrapper.clientHeight).to.be.closeTo(nested.clientWidth * (imageHeight / imageWidth), 1);
 
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('fits 270 deg rotated 900x700 image correctly', async () => {
@@ -116,7 +116,7 @@ describe('ImageBox', () => {
     expect(imageWrapper.clientWidth).to.be.closeTo(nested.clientHeight / (imageWidth / imageHeight), 1);
     expect(imageWrapper.clientHeight).to.be.closeTo(nested.clientHeight, 1);
 
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('fits 700x900 image correctly', async () => {
@@ -129,7 +129,7 @@ describe('ImageBox', () => {
     expect(imageWrapper.clientWidth).to.be.closeTo(nested.clientHeight * (imageWidth / imageHeight), 1);
     expect(imageWrapper.clientHeight).to.be.closeTo(nested.clientHeight, 1);
 
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('fits 90 deg rotated 700x900 image correctly', async () => {
@@ -142,7 +142,7 @@ describe('ImageBox', () => {
     expect(imageWrapper.clientWidth).to.be.closeTo(nested.clientWidth, 1);
     expect(imageWrapper.clientHeight).to.be.closeTo(nested.clientWidth * (imageWidth / imageHeight), 1);
 
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('fits 180 deg rotated 700x900 image correctly', async () => {
@@ -155,7 +155,7 @@ describe('ImageBox', () => {
     expect(imageWrapper.clientWidth).to.be.closeTo(nested.clientHeight * (imageWidth / imageHeight), 1);
     expect(imageWrapper.clientHeight).to.be.closeTo(nested.clientHeight, 1);
 
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('fits 270 deg rotated 700x900 image correctly', async () => {
@@ -168,7 +168,7 @@ describe('ImageBox', () => {
     expect(imageWrapper.clientWidth).to.be.closeTo(nested.clientWidth, 1);
     expect(imageWrapper.clientHeight).to.be.closeTo(nested.clientWidth * (imageWidth / imageHeight), 1);
 
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('fits 900x900 image correctly', async () => {
@@ -181,7 +181,7 @@ describe('ImageBox', () => {
     expect(imageWrapper.clientWidth).to.be.closeTo(nested.clientHeight, 1);
     expect(imageWrapper.clientHeight).to.be.closeTo(nested.clientHeight, 1);
 
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('fits 90 deg rotated 900x900 image correctly', async () => {
@@ -194,7 +194,7 @@ describe('ImageBox', () => {
     expect(imageWrapper.clientWidth).to.be.closeTo(nested.clientHeight, 1);
     expect(imageWrapper.clientHeight).to.be.closeTo(nested.clientHeight, 1);
 
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('fits 180 deg rotated 900x900 image correctly', async () => {
@@ -207,7 +207,7 @@ describe('ImageBox', () => {
     expect(imageWrapper.clientWidth).to.be.closeTo(nested.clientHeight, 1);
     expect(imageWrapper.clientHeight).to.be.closeTo(nested.clientHeight, 1);
 
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('fits 270 deg rotated 900x900 image correctly', async () => {
@@ -220,7 +220,7 @@ describe('ImageBox', () => {
     expect(imageWrapper.clientWidth).to.be.closeTo(nested.clientHeight, 1);
     expect(imageWrapper.clientHeight).to.be.closeTo(nested.clientHeight, 1);
 
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('fits 80x40 image correctly', async () => {
@@ -230,7 +230,7 @@ describe('ImageBox', () => {
     expect(imageWrapper.clientWidth).to.equal(80);
     expect(imageWrapper.clientHeight).to.equal(40);
 
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('fits 90 deg rotated 80x40 image correctly', async () => {
@@ -240,7 +240,7 @@ describe('ImageBox', () => {
     expect(imageWrapper.clientWidth).to.equal(40);
     expect(imageWrapper.clientHeight).to.equal(80);
 
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('fits 180 deg rotated 80x40 image correctly', async () => {
@@ -250,7 +250,7 @@ describe('ImageBox', () => {
     expect(imageWrapper.clientWidth).to.equal(80);
     expect(imageWrapper.clientHeight).to.equal(40);
 
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('fits 270 deg rotated 80x40 image correctly', async () => {
@@ -260,7 +260,7 @@ describe('ImageBox', () => {
     expect(imageWrapper.clientWidth).to.equal(40);
     expect(imageWrapper.clientHeight).to.equal(80);
 
-    wrapper.destroy();
+    wrapper.unmount();
   });
 
   it('fits 285x285 image correctly', async () => {
@@ -270,6 +270,6 @@ describe('ImageBox', () => {
     expect(imageWrapper.clientWidth).to.be.closeTo(nested.clientHeight, 1);
     expect(imageWrapper.clientHeight).to.be.closeTo(nested.clientHeight, 1);
 
-    wrapper.destroy();
+    wrapper.unmount();
   });
 });

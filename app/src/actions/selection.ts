@@ -1,9 +1,10 @@
 import ExportToFolder from '@/components/modals/ExportToFolder.vue';
 import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
+import { modalHelperServiceSingleton } from '@/lib/modal-helper-service';
 import { storeSingleton } from '@/store';
 import { Label, Rating } from "@/store/schema";
-import { computed } from '@vue/composition-api';
-import { ModalProgrammatic } from 'buefy';
+import { computed } from 'vue';
+// import { ModalProgrammatic } from 'buefy';
 import { Action } from './action';
 
 function capitalize(s: string): string {
@@ -146,11 +147,13 @@ export class ExportToFolderAction implements Action {
   readonly enabled = computed(() => storeSingleton().state.selection.primary !== undefined);
 
   async perform(): Promise<void> {
-    ModalProgrammatic.open({
-      width: 500,
-      component: ExportToFolder,
-      trapFocus: true,
-      canCancel: false,
-    })
+    console.log(ExportToFolder);
+    modalHelperServiceSingleton().openModal(ExportToFolder);
+    // ModalProgrammatic.open({
+    //   width: 500,
+    //   component: ExportToFolder,
+    //   trapFocus: true,
+    //   canCancel: false,
+    // })
   }
 }

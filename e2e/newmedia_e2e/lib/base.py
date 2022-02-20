@@ -186,6 +186,20 @@ class TestBase(unittest.TestCase):
   def tearDownClass(cls):
     cls.webdriver_service.stop()
 
+  @property
+  def _chromedriver(self):
+    paths = [
+        os.path.join(os.path.dirname(__file__), "..", "..", "..",
+                     "app/dist_electron/mac-arm64/simpledam.app/Contents/MacOS/simpledam"),
+        os.path.join(os.path.dirname(__file__), "..", "..", "..",
+                     "app/dist_electron/mac/simpledam.app/Contents/MacOS/simpledam")
+    ]
+    for p in paths:
+      if os.path.exists(p):
+        return p
+
+    raise RuntimeError("chromedriver binary couldn't be found at following locations: " + ", ".join(paths))
+
   def CreateWindow(self,
                    scan_path: Optional[str] = None,
                    catalog_path: Optional[str] = None) -> BrowserWindow:
@@ -207,9 +221,8 @@ class TestBase(unittest.TestCase):
             "goog:chromeOptions": {
                 "args":
                     args,
-                "binary":
-                    os.path.join(os.path.dirname(__file__), "..", "..", "..",
-                                 "app/dist_electron/mac/simpledam.app/Contents/MacOS/simpledam"),
+                # Detect binary based on the platform.
+                "binary": self._chromedriver,
                 "extensions": [],
                 "windowTypes": ["webview"]
             },

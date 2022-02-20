@@ -1,6 +1,7 @@
 <template>
-  <div class="export-to-folder">
-    <div class="top">
+  <vue-final-modal :esc-to-close="true" :focus-trap="true" :lock-scroll="true" :fit-parent="true" v-slot="{ close }" classes="modal-container" content-class="export-to-folder">
+    <!-- TODO: dirty - this all should be encapsulated in an independent component. -->
+    <div class="top" :set="closeFn = close">
       Export Selection To Folder
     </div>
 
@@ -13,22 +14,31 @@
       <hr>
       
       <div>
-        <b-checkbox :disabled="inProgress" v-model="prefixWithIndex">Prefix filenames with index</b-checkbox>
+        <NmCheckbox :disabled="inProgress" v-model="prefixWithIndex">Prefix filenames with index</NmCheckbox>
       </div>
     </div>
 
     <div class="bottom">
-      <b-progress v-if="inProgress" class="progress"></b-progress>
-      <button class="button is-light is-small" :disabled="inProgress" @click="$emit('close')">Close</button>
+      <NmProgress v-if="inProgress" class="progress"></NmProgress>
+      <button class="button is-light is-small" :disabled="inProgress" @click="close()">Close</button>
       <button class="button is-primary is-small" :disabled="inProgress || !destinationPath" @click="startExport">Export</button>
     </div>
-</div>
+  </vue-final-modal>
 </template>
 
 <style lang="scss" scoped>
-@import '../../styles/variables';
+@import "../../styles/variables";
+:deep(.modal-container) {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-.export-to-folder {
+:deep(.export-to-folder) {
+  width: 80%;
+  max-width: 800px;
+  min-width: 500px;
+
   background-color: $nm-background-color-lighter;
   border: 1px solid $nm-primary-color;
   color: $nm-text-color;
@@ -40,8 +50,8 @@
     font-weight: 700;
     padding-left: 1em;
     padding-right: 1em;
-    padding-top: .25em;
-    padding-bottom: .25em;
+    padding-top: 0.25em;
+    padding-bottom: 0.25em;
   }
 
   .content {
@@ -95,6 +105,6 @@
 </style>
 
 <script lang="ts">
-import ExportToFolder from './ExportToFolder';
+import ExportToFolder from "./ExportToFolder";
 export default ExportToFolder;
 </script>

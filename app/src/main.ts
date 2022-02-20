@@ -1,38 +1,36 @@
-import Vue from 'vue';
-import VueRx from 'vue-rx';
-import VueCompositionApi from '@vue/composition-api';
-import Buefy from 'buefy';
-import VueVirtualScroller from 'vue-virtual-scroller';
-import VueObserveVisibility from 'vue-observe-visibility'; // required by the virual scroller
-import { Splitpanes, Pane } from 'splitpanes';
+import '@mdi/font/css/materialdesignicons.css';
 import * as log from 'loglevel';
-
-import '@mdi/font/css/materialdesignicons.css'
-import 'splitpanes/dist/splitpanes.css'
-
-import App from './App.vue'
-import { ElectronHelperService, setElectronHelperServiceSingleton } from './lib/electron-helper-service';
-import { ApiService, setApiServiceSingleton } from './backend/api';
-import { ActionService } from './actions/action-service';
+import { Pane, Splitpanes } from 'splitpanes';
+import 'splitpanes/dist/splitpanes.css';
+import { createApp } from 'vue';
+import VueFinalModal from 'vue-final-modal';
+import VueObserveVisibility from 'vue-observe-visibility'; // required by the virual scroller
+import VueVirtualScroller from 'vue-virtual-scroller';
 import { registerAllActions, setActionServiceSingleton } from './actions';
-import { TransientStore } from './store/transient-store';
-import { setStoreSingleton, setTransientStoreSingleton } from './store';
-import { Store } from './store/store';
+import { ActionService } from './actions/action-service';
+import App from './App.vue';
+import { ApiService, setApiServiceSingleton } from './backend/api';
 import { BackendMirror, setBackendMirrorSingleton } from './backend/backend-mirror';
 import { DragHelperService, setDragHelperServiceSingleton } from './lib/drag-helper-service';
+import { ElectronHelperService, setElectronHelperServiceSingleton } from './lib/electron-helper-service';
+import { ModalHelperService, setModalHelperServiceSingleton } from './lib/modal-helper-service';
+import { setStoreSingleton, setTransientStoreSingleton } from './store';
+import { Store } from './store/store';
+import { TransientStore } from './store/transient-store';
+
+
 
 log.setDefaultLevel(log.levels.INFO);
 
-Vue.use(VueRx);
-Vue.use(VueCompositionApi);
-Vue.use(Buefy)
-Vue.use(VueVirtualScroller);
-Vue.use(VueObserveVisibility); // required by the virual scroller
+const app = createApp(App);
 
-Vue.component('splitpane-container', Splitpanes);
-Vue.component('splitpane', Pane);
+app.use(VueVirtualScroller);
+app.use(VueObserveVisibility); // required by the virual scroller
+app.use(VueFinalModal);
 
-Vue.config.productionTip = false;
+app.component('splitpane-container', Splitpanes);
+// eslint-disable-next-line vue/multi-word-component-names
+app.component('splitpane', Pane);
 
 //
 // -> Initializing singletons.
@@ -58,12 +56,14 @@ setBackendMirrorSingleton(backendMirror);
 const dragHelperService = new DragHelperService(electronHelperService);
 setDragHelperServiceSingleton(dragHelperService);
 
+const modalHelperService = new ModalHelperService(app);
+setModalHelperServiceSingleton(modalHelperService);
+
 // This has to happen at the latest step, as some actions depend on existing singletons.
 registerAllActions(actionService);
 //
 // <- Initializing singletons.
 //
 
-new Vue({
-  render: h => h(App),
-}).$mount('#app')
+app.mount('#app');
+

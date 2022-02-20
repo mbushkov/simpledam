@@ -1,7 +1,6 @@
 import { ElectronHelperService } from '@/lib/electron-helper-service';
-import { reactive, watchEffect } from '@vue/composition-api';
 import log from 'loglevel';
-import Vue from 'vue';
+import { reactive, watchEffect } from 'vue';
 import { Action } from './action';
 
 export class ActionService {
@@ -14,7 +13,7 @@ export class ActionService {
 
   constructor(electronHelperService: ElectronHelperService) {
     watchEffect(() => {
-      electronHelperService.updateMenuActionStatus(this.statusMap);
+      electronHelperService.updateMenuActionStatus({ ...this.statusMap });
     });
   }
 
@@ -23,7 +22,7 @@ export class ActionService {
 
     watchEffect(() => {
       if (this._statusState.statusByAction[action.name] !== action.enabled.value) {
-        Vue.set(this._statusState.statusByAction, action.name, action.enabled.value);
+        this._statusState.statusByAction[action.name] = action.enabled.value;
       }
     });
   }

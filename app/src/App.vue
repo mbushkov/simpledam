@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div>
     <div v-if="!loaded">Loading...</div>
 
     <div v-if="loaded">
@@ -26,156 +26,19 @@
       </div>
       <StatusBar class="status-bar"></StatusBar>
     </div>
+    <!-- Used by the FinalVueModal. -->
+    <modals-container></modals-container>
   </div>
 </template>
 
 <style lang="scss">
-@import './styles/variables';
+@import "./styles/variables";
 
 // Import virtual scroller's styles.
-@import '~vue-virtual-scroller/dist/vue-virtual-scroller.css';
+@import "~vue-virtual-scroller/dist/vue-virtual-scroller.css";
 
-// Import Bulma's core
-@import '~bulma/sass/utilities/_all';
-
-// Set your colors
-$primary: $nm-primary-color;
-$primary-invert: $nm-background-color;
-$background: $nm-background-color;
-$text: $nm-text-color;
-$text-strong: $nm-text-color-light;
-
-// Forms
-$input-hover-color: $nm-text-color-light;
-
-// Tabs
-$tabs-toggle-link-border-color: $nm-text-color;
-$tabs-toggle-link-hover-border-color: $nm-primary-color;
-
-// Labels
-$label-none: #ffffff;
-$label-none-invert: findColorInvert($label-none);
-$label-red: #f00000;
-$label-red-invert: findColorInvert($label-red);
-$label-green: #008000;
-$label-green-invert: findColorInvert($label-green);
-$label-blue: #0000f0;
-$label-blue-invert: findColorInvert($label-blue);
-$label-brown: #804000;
-$label-brown-invert: findColorInvert($label-brown);
-$label-magenta: #f000f0;
-$label-magenta-invert: findColorInvert($label-magenta);
-$label-orange: #f08020;
-$label-orange-invert: findColorInvert($label-orange);
-$label-yellow: #f0f000;
-$label-yellow-invert: findColorInvert($label-yellow);
-$label-cyan: #00f0f0;
-$label-cyan-invert: findColorInvert($label-cyan);
-$label-gray: #808080;
-$label-gray-invert: findColorInvert($label-gray);
-
-$label-selected: #ff8a0d;
-$label-selected-invert: findColorInvert($label-selected);
-
-// Setup $colors to use as bulma classes (e.g. 'is-twitter')
-$colors: (
-  'white': (
-    $white,
-    $black
-  ),
-  'black': (
-    $black,
-    $white
-  ),
-  'light': (
-    $light,
-    $light-invert
-  ),
-  'dark': (
-    $dark,
-    $dark-invert
-  ),
-  'primary': (
-    $primary,
-    $primary-invert
-  ),
-  'info': (
-    $info,
-    $info-invert
-  ),
-  'success': (
-    $success,
-    $success-invert
-  ),
-  'warning': (
-    $warning,
-    $warning-invert
-  ),
-  'danger': (
-    $danger,
-    $danger-invert
-  ),
-  'label-none': (
-    $label-none,
-    $label-none-invert
-  ),
-  'label-red': (
-    $label-red,
-    $label-red-invert
-  ),
-  'label-green': (
-    $label-green,
-    $label-green-invert
-  ),
-  'label-blue': (
-    $label-blue,
-    $label-blue-invert
-  ),
-  'label-brown': (
-    $label-brown,
-    $label-brown-invert
-  ),
-  'label-magenta': (
-    $label-magenta,
-    $label-magenta-invert
-  ),
-  'label-orange': (
-    $label-orange,
-    $label-orange-invert
-  ),
-  'label-yellow': (
-    $label-yellow,
-    $label-yellow-invert
-  ),
-  'label-cyan': (
-    $label-cyan,
-    $label-cyan-invert
-  ),
-  'label-gray': (
-    $label-gray,
-    $label-gray-invert
-  ),
-  'label-selected': (
-    $label-selected,
-    $label-selected-invert
-  )
-);
-
-$form-colors: map-merge($colors, (
-  'primary': (
-    $primary,
-    $nm-text-color,
-  ),
-));
-
-// Links
-$link: $primary;
-$link-invert: $primary-invert;
-$link-focus-border: $primary;
-
-// Import Bulma and Buefy styles
-@import '~bulma';
-@import '~buefy/src/scss/buefy';
+// Import Bulma styles
+@import "~bulma";
 
 // Splitpanes styling.
 .splitpanes {
@@ -243,7 +106,7 @@ button.modal-close {
 </style>
 
 <style lang="scss" scoped>
-@import './styles/variables';
+@import "./styles/variables";
 
 $status-bar-height: 20px;
 $tool-bar-height: $status-bar-height * 2;
@@ -262,6 +125,7 @@ $tool-bar-height: $status-bar-height * 2;
 
     .left-pane {
       padding-left: $splitter-size;
+      min-width: 250px;
 
       .side-bar {
         width: 100%;
@@ -292,118 +156,161 @@ $tool-bar-height: $status-bar-height * 2;
     right: 0;
     top: 0;
     height: $tool-bar-height;
+    position: absolute;
   }
 }
 </style>
 
 <script lang="ts">
-import Vue from 'vue';
-import SideBar from './components/sidebar/SideBar.vue';
-import StatusBar from './components/StatusBar.vue';
-import ToolBar from './components/ToolBar.vue';
-import ImageViewer from './components/ImageViewer.vue';
-import { storeSingleton, transientStoreSingleton } from '@/store';
-import { apiServiceSingleton } from '@/backend/api';
-import * as log from 'loglevel';
-import { actionServiceSingleton } from './actions';
-import { watchEffect } from '@vue/composition-api';
-import { backendMirrorSingleton } from './backend/backend-mirror';
-import { electronHelperServiceSingleton,  } from './lib/electron-helper-service';
-import { initialState } from './store/store';
+import { apiServiceSingleton } from "@/backend/api";
+import { storeSingleton, transientStoreSingleton } from "@/store";
+import * as log from "loglevel";
+import {
+  ComponentPublicInstance,
+  defineComponent,
+  inject,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+  watchEffect,
+} from "vue";
+import { VueFinalModalProperty } from "vue-final-modal";
+import { actionServiceSingleton } from "./actions";
+import { backendMirrorSingleton } from "./backend/backend-mirror";
+import ImageViewer from "./components/ImageViewer.vue";
+import SideBar from "./components/sidebar/SideBar.vue";
+import StatusBar from "./components/StatusBar.vue";
+import ToolBar from "./components/ToolBar.vue";
+import { electronHelperServiceSingleton } from "./lib/electron-helper-service";
+import { modalHelperServiceSingleton } from "./lib/modal-helper-service";
+import { initialState } from "./store/store";
 
-
-export default Vue.extend({
-  name: 'App',
+export default defineComponent({
   components: {
     SideBar,
     StatusBar,
     ToolBar,
     ImageViewer,
   },
-  data() {
-    return {
-      minSideBarSize: 20,
-      maxSideBarSize: 50,
-      sideBarSize: 20,
-      sideBarSizePx: 250,
-      loaded: false,
-    };
-  },
-  beforeCreate() {
-    apiServiceSingleton().fetchState().then(s => {
-      if (s !== undefined) {
-        storeSingleton().replaceState(s);
-      }
+  setup() {
+    const $vfm = inject<VueFinalModalProperty>("$vfm");
+    modalHelperServiceSingleton().setVfm($vfm);
 
-      (this as any)['loaded'] = true;
+    onMounted(() => {
+      apiServiceSingleton()
+        .fetchState()
+        .then((s) => {
+          if (s !== undefined) {
+            storeSingleton().replaceState(s);
+          }
+
+          loaded.value = true;
+        });
+
+      window.addEventListener("resize", handleResize);
+
+      (window as any).addEventListener(
+        "nm-action",
+        (event: CustomEvent<{ actionName: string; args: any[] }>) => {
+          actionServiceSingleton().performAction(
+            event.detail.actionName,
+            ...event.detail.args
+          );
+        }
+      );
+      (window as any).addEventListener(
+        "nm-check-for-unsaved-changes",
+        async () => {
+          const currentState = storeSingleton().state;
+          const savedState =
+            (await apiServiceSingleton().fetchState()) || initialState();
+          const currentStateStr = JSON.stringify(currentState);
+          const savedStateStr = JSON.stringify(savedState);
+          if (currentStateStr !== savedStateStr) {
+            electronHelperServiceSingleton().confirmClosingWindow();
+          } else {
+            electronHelperServiceSingleton().closeWindow();
+          }
+        }
+      );
+    });
+
+    const resizeObserver = new ResizeObserver(handleResize);
+    onBeforeUnmount(() => {
+      resizeObserver.disconnect();
     });
 
     watchEffect(() => {
-      document.title = backendMirrorSingleton().state.catalogPath || '<unnamed>';
+      document.title =
+        backendMirrorSingleton().state.catalogPath || "<unnamed>";
     });
-  },
-  methods: {
-    handleResize() {
-      const ref = this.$refs.leftPane as Vue|undefined;
-      if (ref) {
-        transientStoreSingleton().setLeftPaneWidth(ref.$el.clientWidth);
+
+    const minSideBarSize = ref(20);
+    const maxSideBarSize = ref(50);
+    const sideBarSize = ref(20);
+    const sideBarSizePx = ref(250);
+    const loaded = ref(false);
+
+    const leftPane = ref<ComponentPublicInstance | undefined>();
+    const imageViewerRef = ref<InstanceType<typeof ImageViewer>>();
+
+    watch(leftPane, (r, oldR) => {
+      if (oldR) {
+        resizeObserver.unobserve(oldR.$el);
       }
-      // this.minSideBarSize = 180 / this.$el.clientWidth * 100;
-      // this.maxSideBarSize = 50;
-      // this.sideBarSize = Math.max(this.minSideBarSize, Math.min(this.sideBarSizePx / this.$el.clientWidth * 100, this.maxSideBarSize));
-    },
-
-    splitpanesReady() {
-      // TODO: this is a horrible hack - rewrite vue inifinite scroller to make this unnecessary.
-      for (let i = 0; i < 5000; i += 100) {
-        setTimeout(() => {
-          log.debug('[App] Handling initial split panes resize.');
-          (this.$refs['imageViewerRef'] as any).handleResize();
-          this.handleResize();
-        }, i);
+      if (r) {
+        resizeObserver.observe(r.$el);
       }
-    },
+    });
 
-    splitpanesResizing() {
-      this.handleResize();
+    function handleResize() {
+      if (leftPane.value) {
+        transientStoreSingleton().setLeftPaneWidth(
+          leftPane.value.$el.clientWidth
+        );
+      }
+    }
 
-      log.debug('[App] Split panes are currently resizing.');
-      Vue.nextTick((this.$refs['imageViewerRef'] as any).handleResize);
-    },
+    function splitpanesReady() {
+      handleResize();
+    }
 
-    splitpanesResized() {
-      this.handleResize();
+    function splitpanesResizing() {
+      handleResize();
+      log.debug("[App] Split panes are currently resizing.");
+    }
 
-      this.sideBarSizePx = (this.$refs.leftPane as Vue).$el.clientWidth;
-      log.debug('[App] Split panes done resizing. Sidebar size: ', this.sideBarSizePx);
-      Vue.nextTick((this.$refs['imageViewerRef'] as any).handleResize);
-    },
-  },
-  mounted() {
-    window.addEventListener('resize', this.handleResize);
-    this.handleResize();
-  },
-  beforeDestroy() {
-    window.removeEventListener('resize', this.handleResize);
+    function splitpanesResized() {
+      handleResize();
+
+      if (!leftPane.value || !imageViewerRef.value) {
+        return;
+      }
+
+      sideBarSizePx.value = leftPane.value.$el.clientWidth;
+      log.debug(
+        "[App] Split panes done resizing. Sidebar size: ",
+        sideBarSizePx.value
+      );
+    }
+
+    return {
+      minSideBarSize,
+      maxSideBarSize,
+      sideBarSize,
+      sideBarSizePx,
+      loaded,
+
+      leftPane,
+      imageViewerRef,
+
+      splitpanesReady,
+      splitpanesResizing,
+      splitpanesResized,
+    };
   },
 });
-
-(window as any).addEventListener('nm-action', (event: CustomEvent<{actionName: string, args: any[]}>) => {
-  actionServiceSingleton().performAction(event.detail.actionName, ...event.detail.args);
-});
-(window as any).addEventListener('nm-check-for-unsaved-changes', async () => {
-  const currentState = storeSingleton().state;
-  const savedState = (await apiServiceSingleton().fetchState()) || initialState();
-  const currentStateStr = JSON.stringify(currentState);
-  const savedStateStr = JSON.stringify(savedState);
-
-  if (currentStateStr !== savedStateStr) {
-    electronHelperServiceSingleton().confirmClosingWindow();
-  } else {
-    electronHelperServiceSingleton().closeWindow();
-  }
-});
-
 </script>
 
 <style>

@@ -1,10 +1,10 @@
-import Vue from 'vue';
-import { defineComponent, computed, reactive } from '@vue/composition-api';
-import { storeSingleton } from '@/store';
 import { apiServiceSingleton } from '@/backend/api';
-import Pane from './Pane.vue';
+import Radio from '@/components/core/Radio.vue';
 import { dragHelperServiceSingleton } from '@/lib/drag-helper-service';
+import { storeSingleton } from '@/store';
 import * as log from 'loglevel';
+import { computed, defineComponent, reactive } from 'vue';
+import Pane from './Pane.vue';
 
 declare interface PathEntry {
   path: string;
@@ -16,6 +16,7 @@ export default defineComponent({
   // type inference enabled
   components: {
     Pane,
+    Radio,
   },
   setup() {
     const store = storeSingleton();
@@ -47,18 +48,18 @@ export default defineComponent({
 
     function rowDraggedOver(path: string, event: DragEvent) {
       if (dragHelperServiceSingleton().eventHasFiles(event)) {
-        Vue.set(highlights, path, true);
+        highlights[path] = true;
       }
     }
 
     function rowDragLeft(path: string) {
-      Vue.set(highlights, path, false);
+      highlights[path] = false;
     }
 
     function rowDropped(path: string, event: DragEvent) {
       log.info('[PathsPane] Row dropped:', path, event.dataTransfer?.dropEffect);
 
-      Vue.set(highlights, path, false)
+      highlights[path] = false;
 
       const dragResult = dragHelperServiceSingleton().finishDrag(event);
       if (!dragResult) {

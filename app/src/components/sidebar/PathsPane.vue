@@ -16,13 +16,13 @@
         </div>
         <div class="path-count">
           <span class="count">{{ entry.count }}</span>
-          <b-radio
+          <Radio
             size="is-small"
             type="is-path-selected"
             native-value="true"
             v-model="entry.selected"
             v-on:click.native.prevent="pathClicked(entry, $event)"
-          ></b-radio>
+          ></Radio>
         </div>
       </div>
     </div>
@@ -30,7 +30,7 @@
 </template>
 
 <style lang="scss" scoped>
-@import '../../styles/variables';
+@import "../../styles/variables";
 
 .paths {
   display: flex;
@@ -83,6 +83,6 @@
 </style>
 
 <script lang="ts">
-import PathsPane from './PathsPane';
+import PathsPane from "./PathsPane";
 export default PathsPane;
 </script>

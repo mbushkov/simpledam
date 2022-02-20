@@ -22,11 +22,16 @@
 			"**/package-lock.json": true
 		},
 		"vetur.format.defaultFormatter.ts": "vscode-typescript",
+		"python.formatting.autopep8Args": [
+			"--max-line-length=120",
+			"--indent-size=2"
+		],
+		"python.formatting.provider": "autopep8",
 		"python.linting.mypyEnabled": true,
 		"python.linting.pylintEnabled": true,
 		"python.linting.pylintArgs": [
-				"--enable=W0614",
-				"--enable=W0611",
+			"--enable=W0614",
+			"--enable=W0611",
 		],
 		"files.exclude": {
 			"**/__pycache__": true,

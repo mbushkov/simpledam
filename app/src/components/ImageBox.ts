@@ -1,7 +1,8 @@
 import { ImageViewerTab, transientStoreSingleton } from '@/store';
-import { ImageAdjustments, Label, Rating, Rotation } from '@/store/schema';
-import { computed, defineComponent, onMounted, reactive, ref, SetupContext, watch, watchEffect } from '@vue/composition-api';
-
+import { ImageAdjustments, Label, Rating as RatingEnum, Rotation } from '@/store/schema';
+import { computed, defineComponent, nextTick, onMounted, reactive, ref, SetupContext, watch, watchEffect } from 'vue';
+import Icon from '@/components/core/Icon.vue';
+import Rating from '@/components/core/Rating.vue';
 
 export interface ImageSize {
   width: number;
@@ -14,7 +15,7 @@ export interface ImageData {
   readonly previewSize?: ImageSize;
   readonly previewUrl: string;
   readonly label: Label;
-  readonly rating: Rating;
+  readonly rating: RatingEnum;
   readonly selectionType: SelectionType;
   readonly adjustments: ImageAdjustments;
 }
@@ -26,15 +27,15 @@ export enum SelectionType {
 }
 
 export interface Props {
-  readonly imageData: ImageData;
-  readonly shortVersion: boolean;
-  readonly size: number;
+  readonly imageData?: ImageData;
+  readonly shortVersion?: boolean;
+  readonly size?: number;
 }
 
 export default defineComponent({
   props: {
     imageData: {
-      type: Object,
+      type: Object as () => ImageData,
       required: true,
     },
     shortVersion: {
@@ -45,6 +46,10 @@ export default defineComponent({
       type: Number,
       default: 0,
     }
+  },
+  components: {
+    Icon,
+    Rating,
   },
   setup(props: Props, context: SetupContext) {
     const nestedRef = ref<HTMLDivElement>();
@@ -67,15 +72,15 @@ export default defineComponent({
       height: 0,
     })
 
-    const isPrimarySelected = computed(() => props.imageData.selectionType === SelectionType.PRIMARY);
-    const isAdditionalSelected = computed(() => props.imageData.selectionType === SelectionType.ADDITIONAL);
-    const isRotated90 = computed(() => props.imageData.adjustments.rotation === Rotation.DEG_90);
-    const isRotated180 = computed(() => props.imageData.adjustments.rotation === Rotation.DEG_180);
-    const isRotated270 = computed(() => props.imageData.adjustments.rotation === Rotation.DEG_270);
+    const isPrimarySelected = computed(() => props.imageData?.selectionType === SelectionType.PRIMARY);
+    const isAdditionalSelected = computed(() => props.imageData?.selectionType === SelectionType.ADDITIONAL);
+    const isRotated90 = computed(() => props.imageData?.adjustments.rotation === Rotation.DEG_90);
+    const isRotated180 = computed(() => props.imageData?.adjustments.rotation === Rotation.DEG_180);
+    const isRotated270 = computed(() => props.imageData?.adjustments.rotation === Rotation.DEG_270);
     const isShortVersion = computed(() => props.shortVersion);
 
     const imageWrapperStyle = computed(() => {
-      if (!props.imageData.previewSize) {
+      if (!props.imageData?.previewSize) {
         return {};
       }
 
@@ -101,7 +106,7 @@ export default defineComponent({
     });
 
     const imageStyle = computed(() => {
-      if (!props.imageData.previewSize) {
+      if (!props.imageData?.previewSize) {
         return {};
       }
 
@@ -133,25 +138,25 @@ export default defineComponent({
 
       ++clickCount;
       if (clickCount === 1) {
-        context.emit('nm-click', props.imageData.uid, event);
+        context.emit('nm-click', props.imageData?.uid, event);
         clickTimer = setTimeout(() => {
           clickCount = 0;
         }, 250);
       } else {
         clearTimeout(clickTimer);
         clickCount = 0;
-        context.emit('nm-dblclick', props.imageData.uid, event);
+        context.emit('nm-dblclick', props.imageData?.uid, event);
       }
     }
 
     function contextClicked(event: MouseEvent) {
       event.preventDefault();
 
-      context.emit('nm-contextclick', props.imageData.uid, event);
+      context.emit('nm-contextclick', props.imageData?.uid, event);
     }
 
     function dragStarted(event: DragEvent) {
-      context.emit('nm-dragstart', props.imageData.uid, event);
+      context.emit('nm-dragstart', props.imageData?.uid, event);
     }
 
     function filename(value: string) {
@@ -160,11 +165,14 @@ export default defineComponent({
     }
 
     function resize() {
-      if (!nestedRef.value) {
-        return;
-      }
-      nestedSize.width = nestedRef.value.clientWidth;
-      nestedSize.height = nestedRef.value.clientHeight;
+      nextTick(() => {
+        if (!nestedRef.value) {
+          return;
+        }
+
+        nestedSize.width = nestedRef.value.clientWidth;
+        nestedSize.height = nestedRef.value.clientHeight;
+      })
     }
 
     // TODO: this breaks image box's encapsulation. There should be a proper way of alerting

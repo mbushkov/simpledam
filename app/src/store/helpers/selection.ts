@@ -1,4 +1,3 @@
-import Vue from 'vue';
 import { ImageList, Selection } from '@/store/schema';
 
 export enum Direction {
@@ -40,7 +39,7 @@ export function selectPrimaryPreservingAdditionalIfPossible(selection: Selection
     return;
   } else if (selection.primary !== undefined && selection.additional[uid]) {
     selection.additional[selection.primary] = true;
-    Vue.delete(selection.additional, uid);
+    delete selection.additional[uid];
 
     selection.primary = uid;
     selection.lastTouched = uid;
@@ -57,7 +56,7 @@ export function toggleAdditionalSelection(selection: Selection, uid: string) {
     const aKeys = Object.keys(selection.additional);
     if (aKeys.length > 0) {
       newPrimary = aKeys[0];
-      Vue.delete(selection.additional, newPrimary);
+      delete selection.additional[newPrimary];
     }
     selection.primary = newPrimary;
   } else {
@@ -67,9 +66,9 @@ export function toggleAdditionalSelection(selection: Selection, uid: string) {
     }
 
     if (selection.additional[uid]) {
-      Vue.delete(selection.additional, uid);
+      delete selection.additional[uid];
     } else {
-      Vue.set(selection.additional, uid, true);
+      selection.additional[uid] = true;
     }
   }
 }
@@ -105,18 +104,18 @@ export function moveAdditionalSelection(selection: Selection, currentList: Image
 
     if (nextIndex < primaryIndex) {
       if (i < nextIndex) {
-        Vue.delete(selection.additional, currentList.items[i]);
+        delete selection.additional[currentList.items[i]];
       } else {
-        Vue.set(selection.additional, currentList.items[i], true);
+        selection.additional[currentList.items[i]] = true;
       }
     } else if (nextIndex > primaryIndex) {
       if (i > nextIndex) {
-        Vue.delete(selection.additional, currentList.items[i]);
+        delete selection.additional[currentList.items[i]];
       } else {
-        Vue.set(selection.additional, currentList.items[i], true);
+        selection.additional[currentList.items[i]] = true;
       }
     } else {
-      Vue.delete(selection.additional, currentList.items[i]);
+      delete selection.additional[currentList.items[i]];
     }
   }
   selection.lastTouched = currentList.items[nextIndex];
@@ -141,7 +140,7 @@ export function selectRange(selection: Selection, currentList: ImageList, uid: s
     if (i === primaryIndex) {
       continue;
     }
-    Vue.set(selection.additional, currentList.items[i], true);
+    selection.additional[currentList.items[i]] = true;
   }
 
   selection.lastTouched = uid;
@@ -155,7 +154,7 @@ export function selectAll(selection: Selection, currentList: ImageList) {
 
   for (const uid of currentList.items) {
     if (uid !== selection.primary) {
-      Vue.set(selection.additional, uid, true);
+      selection.additional[uid] = true;
     }
   }
 }

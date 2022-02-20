@@ -6,19 +6,16 @@ import { Immutable } from '@/lib/type-utils';
 import { setStoreSingleton, setTransientStoreSingleton } from '@/store';
 import { Store } from '@/store/store';
 import { TransientStore } from '@/store/transient-store';
-import VueCompositionApi, { computed, defineComponent, reactive, UnwrapRef } from '@vue/composition-api';
-import { mount as originalMount, MountOptions, shallowMount as originalShallowMount, ShallowMountOptions, ThisTypedMountOptions, ThisTypedShallowMountOptions, VueClass, Wrapper } from '@vue/test-utils';
-import Buefy from 'buefy';
+import { mount as originalMount, shallowMount as originalShallowMount, VueWrapper } from '@vue/test-utils';
 import { Subject } from 'rxjs';
 import sinon from 'sinon';
-import Vue, { Component } from 'vue';
-import { ComponentOptions, DefaultProps, FunctionalComponentOptions, PropsDefinition } from 'vue/types/options';
+import { Component, computed, defineComponent, reactive, UnwrapNestedRefs } from 'vue';
 import { DragHelperService, setDragHelperServiceSingleton } from './drag-helper-service';
 import { ElectronHelperService, setElectronHelperServiceSingleton } from './electron-helper-service';
 
 export interface ObservableWrapper<T extends object> {
-  readonly value: UnwrapRef<T>;
-  readonly wrapper: Wrapper<Vue>;
+  readonly value: UnwrapNestedRefs<T>;
+  readonly wrapper: VueWrapper<any>;
   nextTick(): Promise<Immutable<T>>;
   snapshot(): Immutable<T>;
 }
@@ -31,28 +28,19 @@ export function testAppComponent(): Component {
   });
 }
 
-export function mount<V extends Vue>(component: VueClass<V>, options?: ThisTypedMountOptions<V>): Wrapper<V>
-export function mount<V extends Vue>(component: ComponentOptions<V>, options?: ThisTypedMountOptions<V>): Wrapper<V>
-export function mount<Props = DefaultProps, PropDefs = PropsDefinition<Props>>(component: FunctionalComponentOptions<Props, PropDefs>, options?: MountOptions<Vue>): Wrapper<Vue>;
-export function mount(component: any, options?: any): Wrapper<any> {
+export function mount(component: any, options?: any): VueWrapper<any> {
   return originalMount(component, {
     ...options,
     parentComponent: options?.parentComponent ?? testAppComponent(),
   });
 }
 
-export function shallowMount<V extends Vue>(component: VueClass<V>, options?: ThisTypedShallowMountOptions<V>): Wrapper<V>
-export function shallowMount<V extends Vue>(component: ComponentOptions<V>, options?: ThisTypedShallowMountOptions<V>): Wrapper<V>
-export function shallowMount<Props = DefaultProps, PropDefs = PropsDefinition<Props>>(component: FunctionalComponentOptions<Props, PropDefs>, options?: ShallowMountOptions<Vue>): Wrapper<Vue>;
-export function shallowMount(component: any, options?: any): Wrapper<any> {
+export function shallowMount(component: any, options?: any): VueWrapper<any> {
   return originalShallowMount(component, {
     ...options,
     parentComponent: options?.parentComponent ?? testAppComponent(),
   });
 }
-
-
-
 
 /**
  * Creates a component that builds a recursive JSON representation of a given reactive object
@@ -73,6 +61,7 @@ export function shallowMount(component: any, options?: any): Wrapper<any> {
  */
 export function createJSONWrapper<T extends object>(observableValue: T): ObservableWrapper<T> {
   const recursiveComponent = defineComponent({
+    // eslint-disable-next-line vue/multi-word-component-names
     name: 'recursive',
     template:
       '<div>' +
@@ -141,8 +130,6 @@ export function createJSONWrapper<T extends object>(observableValue: T): Observa
 
 
 export function setupTestEnv() {
-  Vue.use(VueCompositionApi);
-
   const electronHelperService = sinon.createStubInstance(ElectronHelperService);
   setElectronHelperServiceSingleton(electronHelperService);
 
@@ -167,5 +154,4 @@ export function setupTestEnv() {
 
 export function setupComponentTestEnv() {
   setupTestEnv();
-  Vue.use(Buefy);
 }

@@ -5,18 +5,18 @@
         <div class="rating-name">
           <span class="rating-title" v-if="entry.rating === 0">None</span>
           <span class="rating-icons" v-if="entry.rating > 0">
-            <b-rate :disabled="true" :max="entry.rating" size="is-small"></b-rate>
+            <Rating :max="entry.rating" size="is-small"></Rating>
           </span>
         </div>
         <div class="rating-count">
           <span class="count">{{ counts[entry.rating] }}</span>
-          <b-radio
+          <Radio
             size="is-small"
             type="is-rating-selected"
             native-value="true"
             v-model="entry.selected"
-            v-on:click.native.prevent="ratingClicked(entry, $event)"
-          ></b-radio>
+            v-on:click.prevent="ratingClicked(entry, $event)"
+          ></Radio>
         </div>
       </div>
     </div>
@@ -24,7 +24,7 @@
 </template>
 
 <style lang="scss" scoped>
-@import '../../styles/variables';
+@import "../../styles/variables";
 
 .ratings {
   display: flex;
@@ -70,6 +70,6 @@
 </style>
 
 <script lang="ts">
-import RatingsPane from './RatingsPane';
+import RatingsPane from "./RatingsPane";
 export default RatingsPane;
 </script>

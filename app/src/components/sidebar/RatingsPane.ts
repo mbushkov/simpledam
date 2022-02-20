@@ -1,14 +1,16 @@
-import { defineComponent, computed, Ref, reactive, watchEffect } from '@vue/composition-api';
+import { defineComponent, computed, Ref, reactive, watchEffect } from 'vue';
 import { storeSingleton } from '@/store';
 import Pane from './Pane.vue';
-import { Rating } from '@/store/schema';
+import Radio from '@/components/core/Radio.vue';
+import Rating from '@/components/core/Rating.vue';
+import { Rating as RatingEnum } from '@/store/schema';
 
 declare interface RatingEntry {
-  rating: Rating;
+  rating: RatingEnum;
   selected: boolean;
 }
 
-function ratingEntry(rating: Rating): RatingEntry {
+function ratingEntry(rating: RatingEnum): RatingEntry {
   return {
     rating,
     selected: false,
@@ -19,6 +21,8 @@ export default defineComponent({
   // type inference enabled
   components: {
     Pane,
+    Radio,
+    Rating,
   },
   setup() {
     const store = storeSingleton();

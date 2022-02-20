@@ -1,13 +1,12 @@
-import { ApiService } from '@/backend/api';
 import { Action, FileRegisteredAction } from '@/backend/actions';
-import { FilterSettings, ImageFile, ImageList, ImageMetadata, Label, Rating, Rotation, ReadonlyState, State, ThumbnailRatio } from '@/store/schema';
+import { ApiService } from '@/backend/api';
+import { FilterSettings, ImageFile, ImageList, ImageMetadata, Label, Rating, ReadonlyState, Rotation, State, ThumbnailRatio } from '@/store/schema';
 import { bufferTime, catchError, filter, map } from 'rxjs/operators';
-import Vue from 'vue';
-import { TransientStore } from './transient-store';
-import { Direction, selectRange, selectPrimary, movePrimarySelection, moveAdditionalSelection, toggleAdditionalSelection, selectPrimaryPreservingAdditionalIfPossible, selectAll } from './helpers/selection';
-import { reactive } from '@vue/composition-api';
-import { filterSettingsInvariant, listForFilterSettingsInvariant, updateItemInList, updateListsPresence, updateListsWithFilter } from './helpers/filtering';
+import { reactive } from 'vue';
 import { dirName } from './helpers/filesystem';
+import { filterSettingsInvariant, listForFilterSettingsInvariant, updateItemInList, updateListsPresence, updateListsWithFilter } from './helpers/filtering';
+import { Direction, moveAdditionalSelection, movePrimarySelection, selectAll, selectPrimary, selectPrimaryPreservingAdditionalIfPossible, selectRange, toggleAdditionalSelection } from './helpers/selection';
+import { TransientStore } from './transient-store';
 
 export { Direction } from './helpers/selection';
 
@@ -41,7 +40,7 @@ function _initialState(): State {
         items: [],
       }
     },
-    paths: {},  
+    paths: {},
   };
 }
 
@@ -155,7 +154,7 @@ export class Store {
 
     for (const sel of Object.keys(this._state.selection.additional).concat(this._state.selection.primary)) {
       const prevLabel = this._state.metadata[sel].label;
-      Vue.set(this._state.metadata[sel], 'label', label);
+      this._state.metadata[sel]['label'] = label;
 
       if (prevLabel !== label) {
         this.updateItemInCurrentList(sel);
@@ -215,7 +214,7 @@ export class Store {
 
     for (const sel of Object.keys(this._state.selection.additional).concat(this._state.selection.primary)) {
       const prevRating = this._state.metadata[sel].rating;
-      Vue.set(this._state.metadata[sel], 'rating', rating);
+      this._state.metadata[sel]['rating'] = rating;
 
       if (prevRating !== rating) {
         this.updateItemInCurrentList(sel);
@@ -227,7 +226,7 @@ export class Store {
       this.selectPrimary(undefined);
     } else {
       this.selectPrimary(currentList.items[Math.min(primaryIndex, currentList.items.length - 1)]);
-    }    
+    }
   }
 
   public changeRatingFilter(rating: Rating, state: boolean, allowMultiple: boolean) {
@@ -344,16 +343,16 @@ export class Store {
     if (!updateItemInList(l, this._state.filterSettings, image, mdata)) {
       if (this._state.selection.primary === uid) {
         this.selectPrimary(undefined);
-      }      
+      }
     }
   }
 
   private registerImage(imageFile: ImageFile) {
     const existed = this._state.images[imageFile.uid];
-    Vue.set(this._state.images, imageFile.uid, imageFile);
+    this._state.images[imageFile.uid] = imageFile;
 
     const dname = dirName(imageFile.path);
-    Vue.set(this.state.paths, dname, true);
+    this._state.paths[dname] = true;
 
     let invariant: string;
     if (!existed) {
@@ -366,7 +365,7 @@ export class Store {
           verticalFlip: false,
         },
       };
-      Vue.set(this._state.metadata, imageFile.uid, imageMetadata);
+      this._state.metadata[imageFile.uid] = imageMetadata;
       this.updateItemInCurrentList(imageFile.uid);
 
       invariant = filterSettingsInvariant({

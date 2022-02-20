@@ -2,7 +2,7 @@ import { apiServiceSingleton } from '@/backend/api';
 import { backendMirrorSingleton } from "@/backend/backend-mirror";
 import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
 import { storeSingleton } from '@/store';
-import { computed } from '@vue/composition-api';
+import { computed } from 'vue';
 import log from 'loglevel';
 import { Action } from './action';
 

@@ -1,4 +1,4 @@
-import { defineComponent, computed, ref } from '@vue/composition-api';
+import { defineComponent, computed, ref } from 'vue';
 import ImageGrid from './ImageGrid.vue';
 import SingleImage from './SingleImage.vue';
 import { transientStoreSingleton, ImageViewerTab, storeSingleton } from '@/store';
@@ -26,15 +26,6 @@ export default defineComponent({
       }
     });
 
-    function handleResize() {
-      if (imageGridRef.value) {
-        (imageGridRef.value as any).handleResize();
-      }
-      if (singleImageRef.value) {
-        (singleImageRef.value as any).handleResize();
-      }
-    }
-
     return {
       imageGridRef,
       singleImageRef,
@@ -42,7 +33,6 @@ export default defineComponent({
       currentTab,
       ImageViewerTab,
       imageFile,
-      handleResize,
     };
   }
 });  
