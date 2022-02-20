@@ -3,7 +3,6 @@
     class="b-checkbox checkbox"
     ref="label"
     :class="[size, { 'is-disabled': disabled }]"
-    :disabled="disabled"
     @click="focus"
     @keydown.prevent.enter="$refs.label.click()">
     <input
@@ -11,7 +10,7 @@
         type="checkbox"
         ref="input"
         @click.stop
-        :disabled="disabled"
+        :disabled="disabled === true"
         :required="required"
         :name="name"
         :value="nativeValue">
@@ -131,7 +130,7 @@ $checkbox-colors: $form-colors !default;
     &.button {
       display: flex;
     }
-    &[disabled] {
+    &.is-disabled {
       opacity: 0.5;
     }
     &:hover {
