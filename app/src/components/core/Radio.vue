@@ -10,7 +10,6 @@
         v-model="inputValue"
         type="radio"
         ref="input"
-        @click.stop
         :disabled="disabled"
         :required="required"
         :name="name"
@@ -30,6 +29,7 @@ $radio-colors: $form-colors !default;
 .b-radio {
   &.radio {
     @extend %unselectable;
+    cursor: default;
     outline: none;
     display: inline-flex;
     align-items: center;
@@ -61,6 +61,7 @@ $radio-colors: $form-colors !default;
         border: 2px solid $grey;
         &:before {
           content: "";
+          cursor: pointer;
           display: flex;
           position: absolute;
           left: 50%;
@@ -83,6 +84,7 @@ $radio-colors: $form-colors !default;
       }
       &:checked + .check {
         border-color: $radio-active-background-color;
+        cursor: pointer;
         @each $name, $pair in $radio-colors {
           $color: nth($pair, 1);
           &.is-#{$name} {
@@ -123,6 +125,7 @@ $radio-colors: $form-colors !default;
     }
     &:hover {
       input[type="radio"]:not(:disabled) + .check {
+        cursor: pointer;
         border-color: $radio-active-background-color;
         @each $name, $pair in $radio-colors {
           $color: nth($pair, 1);

@@ -14,7 +14,7 @@
     @contextmenu="contextClicked($event)"
   >
     <div class="nested" ref="nestedRef">
-      <div class="image-wrapper" :style="imageWrapperStyle" v-if="imageData.previewSize">
+      <div class="image-wrapper"  v-if="imageData.previewSize">
         <img :style="imageStyle" :src="imageData.previewUrl" />
       </div>
     </div>
@@ -56,6 +56,17 @@
     // This ensures that the image is right-aligned, so that transformations with origin "right-top" work as expected.
     // With "text-align: right" the image top right corner is bound to the image-wrapper's top right corner.
     text-align: right;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    right: 0;
   }
 
   .nested {

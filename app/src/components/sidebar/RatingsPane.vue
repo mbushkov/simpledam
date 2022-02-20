@@ -15,7 +15,7 @@
             type="is-rating-selected"
             native-value="true"
             v-model="entry.selected"
-            v-on:click.native.prevent="ratingClicked(entry, $event)"
+            v-on:click.prevent="ratingClicked(entry, $event)"
           ></Radio>
         </div>
       </div>

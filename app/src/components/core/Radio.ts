@@ -3,7 +3,7 @@ import { computed, defineComponent, ref, watchEffect } from "vue";
 type ValueType = string | number | boolean | undefined;
 
 export interface Props {
-  readonly value?: ValueType;
+  readonly modelValue?: ValueType;
   readonly nativeValue?: ValueType;
   readonly type?: string;
   readonly disabled?: boolean;
@@ -14,7 +14,7 @@ export interface Props {
 
 export default defineComponent({
   props: {
-    value: {
+    modelValue: {
       type: [String, Number, Boolean],
     },
     nativeValue: {
@@ -36,7 +36,7 @@ export default defineComponent({
       type: String,
     }
   },
-  emits: ['input'],
+  emits: ['update:modelValue'],
   setup(props: Props, { emit }) {
     const _inputValue = ref<ValueType>();
 
@@ -44,15 +44,14 @@ export default defineComponent({
       get: () => _inputValue.value,
       set: val => {
         _inputValue.value = val;
-        console.log('val', val);
-        emit('input', val);
+        emit('update:modelValue', val);
       }
     });
 
     const input = ref<HTMLInputElement>();
 
     watchEffect(() => {
-      _inputValue.value = props.value;
+      _inputValue.value = props.modelValue;
     });
 
     function focus() {

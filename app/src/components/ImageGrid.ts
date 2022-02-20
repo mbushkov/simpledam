@@ -68,7 +68,17 @@ export default defineComponent({
       }
       transientStore.setColumnCount(Math.max(1, Math.floor(el.value.clientWidth / maxSize.value)));
     }
-    watchEffect(handleResize);
+    watch(el, (r, oldR) => {
+      if (oldR) {
+        resizeObserver.unobserve(oldR);
+      }
+      if (r) {
+        resizeObserver.observe(r);
+      }
+    });
+    watch(maxSize, () => {
+      handleResize();
+    });
 
     onMounted(() => {
       window.addEventListener('resize', handleResize)

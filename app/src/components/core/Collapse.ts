@@ -1,8 +1,8 @@
-import { computed, defineComponent, ref } from "vue";
+import { computed, defineComponent, ref, watchEffect } from "vue";
 import Icon from '@/components/core/Icon.vue';
 
 export interface Props {
-  value?: boolean;
+  modelValue?: boolean;
   title?: string;
 }
 
@@ -11,14 +11,15 @@ export default defineComponent({
     Icon,
   },
   props: {
-    value: {
+    modelValue: {
       type: Boolean,
+      default: true,
     },
     title: {
       type: String,
     },
   },
-  emits: ['input'],
+  emits: ['update:modelValue'],
   setup(props: Props, { emit }) {
     const _inputValue = ref<Boolean>(true);
 
@@ -26,8 +27,12 @@ export default defineComponent({
       get: () => _inputValue.value,
       set: val => {
         _inputValue.value = val;
-        emit('input', val);
+        emit('update:modelValue', val);
       }
+    });
+
+    watchEffect(() => {
+      _inputValue.value = props.modelValue ?? true;
     });
 
     function toggle() {
