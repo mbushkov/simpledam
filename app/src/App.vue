@@ -26,6 +26,8 @@
       </div>
       <StatusBar class="status-bar"></StatusBar>
     </div>
+    <!-- Used by the FinalVueModal. -->
+    <modals-container></modals-container>
   </div>
 </template>
 
@@ -166,12 +168,14 @@ import * as log from "loglevel";
 import {
   ComponentPublicInstance,
   defineComponent,
+  inject,
   onBeforeUnmount,
   onMounted,
   ref,
   watch,
   watchEffect,
 } from "vue";
+import { VueFinalModalProperty } from "vue-final-modal";
 import { actionServiceSingleton } from "./actions";
 import { backendMirrorSingleton } from "./backend/backend-mirror";
 import ImageViewer from "./components/ImageViewer.vue";
@@ -179,6 +183,7 @@ import SideBar from "./components/sidebar/SideBar.vue";
 import StatusBar from "./components/StatusBar.vue";
 import ToolBar from "./components/ToolBar.vue";
 import { electronHelperServiceSingleton } from "./lib/electron-helper-service";
+import { modalHelperServiceSingleton } from "./lib/modal-helper-service";
 import { initialState } from "./store/store";
 
 export default defineComponent({
@@ -189,6 +194,9 @@ export default defineComponent({
     ImageViewer,
   },
   setup() {
+    const $vfm = inject<VueFinalModalProperty>("$vfm");
+    modalHelperServiceSingleton().setVfm($vfm);
+
     onMounted(() => {
       apiServiceSingleton()
         .fetchState()

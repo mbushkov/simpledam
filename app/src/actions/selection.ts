@@ -1,5 +1,6 @@
 import ExportToFolder from '@/components/modals/ExportToFolder.vue';
 import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
+import { modalHelperServiceSingleton } from '@/lib/modal-helper-service';
 import { storeSingleton } from '@/store';
 import { Label, Rating } from "@/store/schema";
 import { computed } from 'vue';
@@ -147,6 +148,7 @@ export class ExportToFolderAction implements Action {
 
   async perform(): Promise<void> {
     console.log(ExportToFolder);
+    modalHelperServiceSingleton().openModal(ExportToFolder);
     // ModalProgrammatic.open({
     //   width: 500,
     //   component: ExportToFolder,

@@ -1,5 +1,5 @@
 <template>
-  <div class="export-to-folder">
+  <vue-final-modal :esc-to-close="true" :focus-trap="true" :lock-scroll="true" :fit-parent="true" v-slot="{ close }" v-bind="$attrs" classes="modal-container" content-class="export-to-folder">
     <div class="top">
       Export Selection To Folder
     </div>
@@ -19,16 +19,25 @@
 
     <div class="bottom">
       <NmProgress v-if="inProgress" class="progress"></NmProgress>
-      <button class="button is-light is-small" :disabled="inProgress" @click="$emit('close')">Close</button>
+      <button class="button is-light is-small" :disabled="inProgress" @click="close()">Close</button>
       <button class="button is-primary is-small" :disabled="inProgress || !destinationPath" @click="startExport">Export</button>
     </div>
-</div>
+  </vue-final-modal>
 </template>
 
 <style lang="scss" scoped>
 @import "../../styles/variables";
+:deep(.modal-container) {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-.export-to-folder {
+:deep(.export-to-folder) {
+  width: 80%;
+  max-width: 800px;
+  min-width: 500px;
+
   background-color: $nm-background-color-lighter;
   border: 1px solid $nm-primary-color;
   color: $nm-text-color;
