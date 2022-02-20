@@ -123,6 +123,7 @@ $tool-bar-height: $status-bar-height * 2;
 
     .left-pane {
       padding-left: $splitter-size;
+      min-width: 250px;
 
       .side-bar {
         width: 100%;
