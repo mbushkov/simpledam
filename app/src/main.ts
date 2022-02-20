@@ -4,8 +4,8 @@ import VueObserveVisibility from 'vue-observe-visibility'; // required by the vi
 import { Splitpanes, Pane } from 'splitpanes';
 import * as log from 'loglevel';
 
-import '@mdi/font/css/materialdesignicons.css'
-import 'splitpanes/dist/splitpanes.css'
+import '@mdi/font/css/materialdesignicons.css';
+import 'splitpanes/dist/splitpanes.css';
 
 import App from './App.vue'
 import { ElectronHelperService, setElectronHelperServiceSingleton } from './lib/electron-helper-service';

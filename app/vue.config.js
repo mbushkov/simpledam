@@ -1,4 +1,17 @@
 module.exports = {
+  chainWebpack: config => {
+    // There's a bug when the fonts are not inlined.
+    config.module
+      .rule('fonts')
+      .test(/\.(woff2?|eot|ttf|otf)(\?.*)?$/i)
+      .set('type', 'asset/inline')
+      .set('generator', {
+        dataUrl: {
+          encoding: "base64",
+          mimetype: "application/font"
+        }
+      })
+  },
   pluginOptions: {
     electronBuilder: {
       nodeIntegration: false,
