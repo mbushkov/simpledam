@@ -1,3 +1,6 @@
+![CI status](https://github.com/mbushkov/simpledam/actions/workflows/build-mac.yaml/badge.svg?branch=master)
+
+
 Note: all instructions below are for MacOS 11 or later.
 
 # Setting up dev environment
