@@ -1,6 +1,6 @@
 import { ImageViewerTab, transientStoreSingleton } from '@/store';
 import { ImageAdjustments, Label, Rating as RatingEnum, Rotation } from '@/store/schema';
-import { computed, defineComponent, onMounted, reactive, ref, SetupContext, watch, watchEffect } from 'vue';
+import { computed, defineComponent, nextTick, onMounted, reactive, ref, SetupContext, watch, watchEffect } from 'vue';
 import Icon from '@/components/core/Icon.vue';
 import Rating from '@/components/core/Rating.vue';
 
@@ -165,11 +165,14 @@ export default defineComponent({
     }
 
     function resize() {
-      if (!nestedRef.value) {
-        return;
-      }
-      nestedSize.width = nestedRef.value.clientWidth;
-      nestedSize.height = nestedRef.value.clientHeight;
+      nextTick(() => {
+        if (!nestedRef.value) {
+          return;
+        }
+
+        nestedSize.width = nestedRef.value.clientWidth;
+        nestedSize.height = nestedRef.value.clientHeight;
+      })
     }
 
     // TODO: this breaks image box's encapsulation. There should be a proper way of alerting
