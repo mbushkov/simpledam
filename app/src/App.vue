@@ -172,11 +172,14 @@ import {
   watch,
   watchEffect,
 } from "vue";
+import { actionServiceSingleton } from "./actions";
 import { backendMirrorSingleton } from "./backend/backend-mirror";
 import ImageViewer from "./components/ImageViewer.vue";
 import SideBar from "./components/sidebar/SideBar.vue";
 import StatusBar from "./components/StatusBar.vue";
 import ToolBar from "./components/ToolBar.vue";
+import { electronHelperServiceSingleton } from "./lib/electron-helper-service";
+import { initialState } from "./store/store";
 
 export default defineComponent({
   components: {
@@ -198,6 +201,31 @@ export default defineComponent({
         });
 
       window.addEventListener("resize", handleResize);
+
+      (window as any).addEventListener(
+        "nm-action",
+        (event: CustomEvent<{ actionName: string; args: any[] }>) => {
+          actionServiceSingleton().performAction(
+            event.detail.actionName,
+            ...event.detail.args
+          );
+        }
+      );
+      (window as any).addEventListener(
+        "nm-check-for-unsaved-changes",
+        async () => {
+          const currentState = storeSingleton().state;
+          const savedState =
+            (await apiServiceSingleton().fetchState()) || initialState();
+          const currentStateStr = JSON.stringify(currentState);
+          const savedStateStr = JSON.stringify(savedState);
+          if (currentStateStr !== savedStateStr) {
+            electronHelperServiceSingleton().confirmClosingWindow();
+          } else {
+            electronHelperServiceSingleton().closeWindow();
+          }
+        }
+      );
     });
 
     const resizeObserver = new ResizeObserver(handleResize);

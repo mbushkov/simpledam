@@ -67,6 +67,7 @@ contextBridge.exposeInMainWorld(
 // Forwarding to window.dispatchEvent seems to be the easiest approach when subscribing
 // to events sent to the renderer process.
 ipcRenderer.on('action', (_, actionName, ...args) => {
+  console.log('[RENDERER] action event', actionName, args);
   window.dispatchEvent(new CustomEvent('nm-action', {
     detail: {
       actionName,
