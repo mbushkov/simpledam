@@ -1,9 +1,9 @@
 import { apiServiceSingleton } from '@/backend/api';
+import NmCheckbox from '@/components/core/Checkbox.vue';
+import NmProgress from '@/components/core/Progress.vue';
 import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
 import { storeSingleton } from '@/store';
 import { computed, defineComponent, ref } from 'vue';
-import NmCheckbox from '@/components/core/Checkbox.vue';
-import NmProgress from '@/components/core/Progress.vue';
 
 export default defineComponent({
   components: {
@@ -11,7 +11,9 @@ export default defineComponent({
     NmProgress,
   },
 
-  setup(_, { emit }) {
+  setup() {
+    const closeFn = ref<Function>();
+
     const prefixWithIndex = ref<boolean>(true);
     const destinationPath = ref<string | undefined>();
     const inProgress = ref<boolean>(false);
@@ -28,7 +30,7 @@ export default defineComponent({
     async function startExport() {
       const primary = storeSingleton().state.selection.primary;
       if (!primary) {
-        emit('close');
+        closeFn.value!();
         return;
       }
 
@@ -47,7 +49,7 @@ export default defineComponent({
         {
           prefix_with_index: prefixWithIndex.value,
         });
-      emit('close');
+      closeFn.value!();
     }
 
     return {
@@ -55,6 +57,8 @@ export default defineComponent({
       destinationPath,
       inProgress,
       noneConstant,
+
+      closeFn,
 
       openFolderDialog,
       startExport,

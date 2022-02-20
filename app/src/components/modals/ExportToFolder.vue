@@ -1,6 +1,7 @@
 <template>
-  <vue-final-modal :esc-to-close="true" :focus-trap="true" :lock-scroll="true" :fit-parent="true" v-slot="{ close }" v-bind="$attrs" classes="modal-container" content-class="export-to-folder">
-    <div class="top">
+  <vue-final-modal :esc-to-close="true" :focus-trap="true" :lock-scroll="true" :fit-parent="true" v-slot="{ close }" classes="modal-container" content-class="export-to-folder">
+    <!-- TODO: dirty - this all should be encapsulated in an independent component. -->
+    <div class="top" :set="closeFn = close">
       Export Selection To Folder
     </div>
 
