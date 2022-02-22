@@ -10,17 +10,20 @@ import uuid
 from typing import Awaitable, Callable, Dict, Iterable, List, Union, cast
 
 import aiojobs.aiohttp
+from aiohttp import web
+from aiojobs.aiohttp import spawn
+from multidict import istr
+
+from newmedia import backend_state
+from newmedia import image_processor
+from newmedia import store
 from newmedia.communicator import Communicator
 from newmedia.long_operation_runner import LongOperationRunner
 from newmedia.long_operations.export import ExportToPathOperation
 from newmedia.long_operations.save import SaveOperation
 from newmedia.long_operations.scan import ScanPathsOperation
 from newmedia.utils import macos
-from aiohttp import web
-from aiojobs.aiohttp import spawn
-from multidict import istr
 
-from newmedia import backend_state, store
 
 PARSER = argparse.ArgumentParser(description='Newmedia backend server.')
 PARSER.add_argument("--port", type=int, default=0)
@@ -197,6 +200,7 @@ def main():
   if args.dev:
     CORS_HEADERS["Access-Control-Allow-Origin"] = "http://localhost:8080"
 
+  image_processor.InitImageProcessor()
   store.InitDataStore(args.db_file)
 
   communicator = Communicator()

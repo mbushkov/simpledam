@@ -2,6 +2,7 @@ from typing import Dict
 
 from newmedia.communicator import Communicator
 from newmedia.long_operation import Status
+from newmedia.utils.json_type import JSON
 
 
 class BackendState:
@@ -12,8 +13,8 @@ class BackendState:
         "state": self._ToJSON(),
     })
 
-  def _ToJSON(self):
-    long_operations = {}
+  def _ToJSON(self) -> JSON:
+    long_operations: Dict[str, JSON] = {}
     for k, v in self._long_operations.items():
       long_operations[k] = v.ToJSON()
 

@@ -6,6 +6,7 @@ import unittest
 from typing import Any, Callable, List, Optional, TypeVar, Union
 
 from selenium import webdriver
+from selenium.webdriver import remote
 from selenium.common import exceptions as selenium_exceptions
 from selenium.webdriver.chrome import service as chrome_service
 from selenium.webdriver.remote import webelement
@@ -214,7 +215,7 @@ class TestBase(unittest.TestCase):
       args.append("--catalog=%s" % catalog_path)
 
     print("Launching with args: ", args)
-    wd = webdriver.remote.webdriver.WebDriver(
+    wd = webdriver.Remote(
         command_executor=self.__class__.webdriver_service.service_url,
         desired_capabilities={
             "browserName": "chrome",

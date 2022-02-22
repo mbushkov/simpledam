@@ -1,7 +1,6 @@
 import asyncio
 import logging
 
-from typing import AsyncIterator
 from newmedia import store
 from newmedia.long_operation import LogCallback, LongOperation, Status, StatusCallback
 from newmedia.utils.json_type import JSON
@@ -17,7 +16,7 @@ class SaveOperation(LongOperation):
   async def Run(self, status_callback: StatusCallback, log_callback: LogCallback) -> None:
     logging.info("Saving to: %s", self.path)
 
-    q: asyncio.Queue = asyncio.Queue()
+    q = asyncio.Queue()
 
     async def Progress(p: float):
       await q.put(p)

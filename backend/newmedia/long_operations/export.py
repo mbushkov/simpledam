@@ -2,7 +2,7 @@ import logging
 import pathlib
 import shutil
 
-from typing import AsyncIterator, Collection
+from typing import Collection
 from newmedia.long_operation import LogCallback, LongOperation, Status, StatusCallback
 
 

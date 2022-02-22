@@ -43,6 +43,7 @@ def SelectedImageBox(title: Optional[str] = None,
 
 
 def ImageViewerFilename(contains: Optional[str] = None):
+  contains_str = ""
   if contains is not None:
     contains_str = f":contains('{contains}')"
   return f".mode-panel .filename{contains_str}"
