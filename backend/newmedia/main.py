@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import pathlib
+import socket
 import sys
 import uuid
 from typing import Awaitable, Callable, Dict, Iterable, List, Union, cast
@@ -15,7 +16,6 @@ from newmedia.long_operations.export import ExportToPathOperation
 from newmedia.long_operations.save import SaveOperation
 from newmedia.long_operations.scan import ScanPathsOperation
 from newmedia.utils import macos
-import portpicker
 from aiohttp import web
 from aiojobs.aiohttp import spawn
 from multidict import istr
@@ -234,7 +234,13 @@ def main():
 
   backend_state.BACKEND_STATE = backend_state.BackendState(communicator)
 
-  port = args.port or portpicker.pick_unused_port()
+  port = args.port
+  # If port is not explicitly specified, open a socket on the first
+  # available one and then immediately close it.
+  if not args.port:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+      sock.bind(('127.0.0.1', 0))
+      _, port = sock.getsockname()
   secret = uuid.uuid4().hex
   app["secret"] = secret
 
