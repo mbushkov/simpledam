@@ -1,24 +1,17 @@
 import asyncio
-import concurrent.futures
-import dataclasses
 import io
 import logging
 import os
 import pathlib
-import time
-import uuid
-from typing import Any, Callable, Dict, List, Optional, Tuple, cast
+from typing import Any, Callable, Dict, List, Optional, cast
 
 import aiosqlite
 import bson
-from PIL import Image, ImageMath
-import numpy
-import rawpy
-import tifffile  # allows low-level TIFF manipulation. Needed for formats not yet handled by PIL (16-bit color TIFFS)
 
 from newmedia import backend_state
 from newmedia import image_processor
 from newmedia import store_schema
+from newmedia.migrations import migration_001
 
 
 class Error(Exception):
@@ -56,24 +49,8 @@ class DataStore:
     self._conn = None
 
   @staticmethod
-  async def _InitSchema(conn: aiosqlite.Connection):
-    await conn.executescript("""
-  CREATE TABLE IF NOT EXISTS RendererState (
-    id TEXT PRIMARY KEY,
-    blob BLOB
-  );
-
-  CREATE TABLE IF NOT EXISTS ImageData (
-      uid TEXT PRIMARY KEY,
-      path TEXT,
-      info BLOB NOT NULL,
-      blob BLOB
-  );
-
-  CREATE UNIQUE INDEX IF NOT EXISTS ImageData_path_index
-  ON ImageData(path);
-  """)
-    await conn.commit()
+  async def _ApplyMigrations(conn: aiosqlite.Connection):
+    await migration_001.Migrate(conn)
 
   async def _GetConn(self):
     if self._conn is not None:
@@ -102,7 +79,7 @@ class DataStore:
 
       self._conn = copy_conn
 
-    await self._InitSchema(self._conn)
+    await self._ApplyMigrations(self._conn)
 
     return self._conn
 
