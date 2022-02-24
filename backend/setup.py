@@ -19,6 +19,7 @@ setup_args = dict(
         "pyobjc==7.1",
         "rawpy==0.16.0",
         "tifffile==2021.3.17",
+        "watchdog==2.1.6",
     ],
     extras_require={
         "dev": ["pyinstaller==4.2"],
