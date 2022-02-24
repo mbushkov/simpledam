@@ -1,28 +1,27 @@
 import aiosqlite
 
+from newmedia.store_migration import Migration
 
-async def Migrate(conn: aiosqlite.Connection) -> bool:
-  user_version = await conn.execute("PRAGMA user_version")
-  async for row in user_version:
-    if row[0] > 0:
-      return False
 
-  await conn.executescript("""
-  CREATE TABLE IF NOT EXISTS RendererState (
-    id TEXT PRIMARY KEY,
-    blob BLOB
-  );
+class Migration001(Migration):
+  @property
+  def version(self) -> int:
+    return 1
 
-  CREATE TABLE IF NOT EXISTS ImageData (
-      uid TEXT PRIMARY KEY,
-      path TEXT,
-      info BLOB NOT NULL,
+  async def Migrate(self, conn: aiosqlite.Connection) -> None:
+    await conn.executescript("""
+    CREATE TABLE IF NOT EXISTS RendererState (
+      id TEXT PRIMARY KEY,
       blob BLOB
-  );
+    );
 
-  CREATE UNIQUE INDEX IF NOT EXISTS ImageData_path_index
-  ON ImageData(path);
-  """)
-  await conn.commit()
+    CREATE TABLE IF NOT EXISTS ImageData (
+        uid TEXT PRIMARY KEY,
+        path TEXT,
+        info BLOB NOT NULL,
+        blob BLOB
+    );
 
-  return True
+    CREATE UNIQUE INDEX IF NOT EXISTS ImageData_path_index
+    ON ImageData(path);
+    """)

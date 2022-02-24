@@ -10,6 +10,7 @@ import bson
 
 from newmedia import backend_state
 from newmedia import image_processor
+from newmedia import store_migration
 from newmedia import store_schema
 from newmedia.migrations import migration_001
 
@@ -48,10 +49,6 @@ class DataStore:
     self._db_path = db_path and str(db_path) or ""
     self._conn = None
 
-  @staticmethod
-  async def _ApplyMigrations(conn: aiosqlite.Connection):
-    await migration_001.Migrate(conn)
-
   async def _GetConn(self):
     if self._conn is not None:
       return self._conn
@@ -79,7 +76,9 @@ class DataStore:
 
       self._conn = copy_conn
 
-    await self._ApplyMigrations(self._conn)
+    await store_migration.RunMigrations(self._conn, [
+        migration_001.Migration001(),
+    ])
 
     return self._conn
 
