@@ -65,6 +65,8 @@ class ImageFileV2:
   uid: str
   size: Size
   previews: List[ImageFilePreviewV2]
+  creation_timestamp: int
+  modification_timestamp: int
 
   @classmethod
   def FromV1(cls, v1: ImageFileV1):
@@ -72,19 +74,28 @@ class ImageFileV2:
     if v1.preview_size and v1.preview_timestamp:
       previews.append(ImageFilePreviewV2(v1.preview_size, v1.preview_timestamp))
 
-    return ImageFileV2(v1.path, v1.uid, v1.size, previews)
+    return ImageFileV2(
+        path=v1.path,
+        uid=v1.uid,
+        size=v1.size,
+        previews=previews,
+        creation_timestamp=0,
+        modification_timestamp=0)
 
   @classmethod
   def FromJSON(cls, data):
     return ImageFileV2(
-        data["path"],
-        data["uid"],
-        Size.FromJSON(data["size"]) or Size(0, 0),
-        [ImageFilePreviewV2.FromJSON(v) for v in data["previews"]],
+        path=data["path"],
+        uid=data["uid"],
+        size=Size.FromJSON(data["size"]) or Size(0, 0),
+        previews=[ImageFilePreviewV2.FromJSON(v) for v in data["previews"]],
+        creation_timestamp=data["creation_timestamp"],
+        modification_timestamp=data["modification_timestamp"],
     )
 
   def ToJSON(self):
     return dataclasses.asdict(self)
 
 
-ImageFile = ImageFileV1
+ImageFile = ImageFileV2
+ImageFilePreview = ImageFilePreviewV2

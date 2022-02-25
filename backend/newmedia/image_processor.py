@@ -72,18 +72,18 @@ def _GetPillowFileInfo(path: pathlib.Path,
     raise ImageProcessingError(e)
 
   uid = prev_info and prev_info.uid or uuid.uuid4().hex
-  if prev_info and prev_info.preview_timestamp and (stat.st_mtime * 1000 >
-                                                    prev_info.preview_timestamp):
+  if prev_info and prev_info.previews and max(p.preview_timestamp for p in prev_info.previews) < stat.st_mtime * 1000:
     prev_info = None
 
   try:
     width, height = im.size
     return store_schema.ImageFile(
-        str(path),
-        uid,
-        store_schema.Size(width, height),
-        prev_info and prev_info.preview_size or None,
-        prev_info and prev_info.preview_timestamp or None,
+        path=str(path),
+        uid=uid,
+        size=store_schema.Size(width, height),
+        previews=[],
+        creation_timestamp=int(stat.st_ctime * 1000),
+        modification_timestamp=int(stat.st_mtime * 1000),
     ), b""
   finally:
     im.close()
@@ -127,20 +127,26 @@ def _GetRawPyFileInfo(path: pathlib.Path,
                  preview_size.height, sizes.width, sizes.height)
 
   uid = prev_info and prev_info.uid or uuid.uuid4().hex
-  if prev_info and prev_info.preview_timestamp and (stat.st_mtime * 1000 >
-                                                    prev_info.preview_timestamp):
+  if prev_info and prev_info.previews and max(p.preview_timestamp for p in prev_info.previews) < stat.st_mtime * 1000:
     prev_info = None
 
+  previews = []
+  if preview_bytes and preview_size:
+    previews.append(store_schema.ImageFilePreview(
+        preview_size=preview_size,
+        preview_timestamp=int(time.time() * 1000)
+    ))
   return store_schema.ImageFile(
       str(path),
       uid,
       store_schema.Size(sizes.width, sizes.height),
-      preview_size or (prev_info and prev_info.preview_size) or None,
-      preview_timestamp or (prev_info and prev_info.preview_timestamp) or None,
+      previews=previews,
+      creation_timestamp=int(stat.st_ctime * 1000),
+      modification_timestamp=int(stat.st_mtime * 1000),
   ), preview_bytes
 
 
-def _ThumbnailFile(image_file: store_schema.ImageFile) -> Tuple[store_schema.ImageFile, bytes]:
+def _ThumbnailFile(image_file: store_schema.ImageFile) -> Tuple[store_schema.ImageFile, Tuple[bytes]]:
   logging.info("Thumbnailing file: %s", image_file.path)
 
   _, ext = os.path.splitext(image_file.path)
@@ -159,7 +165,7 @@ def _ThumbnailFile(image_file: store_schema.ImageFile) -> Tuple[store_schema.Ima
     logging.info("ThumbnailFile %s took %.2fs", image_file.path, end_time - start_time)
 
 
-def _ThumbnailPillowFile(image_file: store_schema.ImageFile) -> Tuple[store_schema.ImageFile, bytes]:
+def _ThumbnailPillowFile(image_file: store_schema.ImageFile) -> Tuple[store_schema.ImageFile, Tuple[bytes]]:
   try:
     im = Image.open(image_file.path)
     # Grayscale tiffs first have to be normalized to have values ranging from 0 to 255 (IIUC, floating point values are ok).
@@ -200,19 +206,24 @@ def _ThumbnailPillowFile(image_file: store_schema.ImageFile) -> Tuple[store_sche
 
     return (
         store_schema.ImageFile(
-            image_file.path,
-            image_file.uid,
-            store_schema.Size(width, height),
-            store_schema.Size(target_width, target_height),
-            int(time.time() * 1000),
+            path=image_file.path,
+            uid=image_file.uid,
+            size=store_schema.Size(width, height),
+            previews=[
+                store_schema.ImageFilePreview(
+                    preview_size=store_schema.Size(target_width, target_height),
+                    preview_timestamp=int(time.time() * 1000))
+            ],
+            creation_timestamp=image_file.creation_timestamp,
+            modification_timestamp=image_file.modification_timestamp,
         ),
-        out.getvalue(),
+        (out.getvalue(),),
     )
   finally:
     im.close()
 
 
-def _ThumbnailRawPyFile(image_file: store_schema.ImageFile) -> Tuple[store_schema.ImageFile, bytes]:
+def _ThumbnailRawPyFile(image_file: store_schema.ImageFile) -> Tuple[store_schema.ImageFile, Tuple[bytes]]:
   try:
     with rawpy.imread(image_file.path) as raw:
       rgb = raw.postprocess(
@@ -235,13 +246,18 @@ def _ThumbnailRawPyFile(image_file: store_schema.ImageFile) -> Tuple[store_schem
 
     return (
         store_schema.ImageFile(
-            image_file.path,
-            image_file.uid,
-            store_schema.Size(width, height),
-            store_schema.Size(target_width, target_height),
-            int(time.time() * 1000),
+            path=image_file.path,
+            uid=image_file.uid,
+            size=store_schema.Size(width, height),
+            previews=[
+                store_schema.ImageFilePreview(
+                    preview_size=store_schema.Size(target_width, target_height),
+                    preview_timestamp=int(time.time() * 1000))
+            ],
+            creation_timestamp=image_file.creation_timestamp,
+            modification_timestamp=image_file.modification_timestamp,
         ),
-        out.getvalue(),
+        (out.getvalue(),),
     )
   finally:
     im.close()
@@ -257,7 +273,7 @@ class ImageProcessor:
     return await loop.run_in_executor(self._info_thread_pool, _GetFileInfo, path,
                                       prev_info)
 
-  async def ThumbnailFile(self, image_file: store_schema.ImageFile) -> Tuple[store_schema.ImageFile, bytes]:
+  async def ThumbnailFile(self, image_file: store_schema.ImageFile) -> Tuple[store_schema.ImageFile, Tuple[bytes]]:
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(self._thumbnail_thread_pool,
                                       _ThumbnailFile, image_file)

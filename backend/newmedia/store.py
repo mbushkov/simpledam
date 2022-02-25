@@ -12,7 +12,8 @@ from newmedia import backend_state
 from newmedia import image_processor
 from newmedia import store_migration
 from newmedia import store_schema
-from newmedia.migrations import migration_001
+from newmedia.migrations import migration_0001
+from newmedia.migrations import migration_0002
 
 
 class Error(Exception):
@@ -77,7 +78,8 @@ class DataStore:
       self._conn = copy_conn
 
     await store_migration.RunMigrations(self._conn, [
-        migration_001.Migration001(),
+        migration_0001.Migration0001(),
+        migration_0002.Migration0002(),
     ])
 
     return self._conn
@@ -130,7 +132,7 @@ VALUES ('state', ?)
     prev_info = None
     prev_blob = None
     conn = await self._GetConn()
-    async with conn.execute("SELECT info, blob FROM ImageData WHERE path = ?",
+    async with conn.execute("SELECT info FROM ImageData WHERE path = ?",
                             (str(path),)) as cursor:
       async for row in cursor:
         prev_info = store_schema.ImageFile.FromJSON(bson.loads(row[0]))
@@ -141,9 +143,15 @@ VALUES ('state', ?)
 
     await conn.execute_insert(
         """
-INSERT OR REPLACE INTO ImageData(uid, path, info, blob)
-VALUES (?, ?, ?, ?)
-      """, (result.uid, str(result.path), serialized, preview_bytes or prev_blob))
+INSERT OR REPLACE INTO ImageData(uid, path, info)
+VALUES (?, ?, ?)
+      """, (result.uid, str(result.path), serialized))
+    if result.previews:
+      await conn.execute_insert(
+          """
+  INSERT OR REPLACE INTO ImagePreview(uid, width, height, blob)
+  VALUES (?, ?, ?, ?)
+        """, (result.uid, result.previews[0].preview_size.width, result.previews[0].preview_size.height, preview_bytes))
     await conn.commit()
 
     return result
@@ -187,19 +195,27 @@ VALUES (?, ?, ?, ?)
       return image_file
 
   async def UpdateFileThumbnail(self, uid: str):
-    loop = asyncio.get_running_loop()
     image_file = await self.ReadFileInfo(uid)
 
-    updated_image_file, blob = await image_processor.IMAGE_PROCESSOR.ThumbnailFile(image_file)
+    updated_image_file, preview_blobs = await image_processor.IMAGE_PROCESSOR.ThumbnailFile(image_file)
     serialized = bson.dumps(updated_image_file.ToJSON())
 
     conn = await self._GetConn()
     await conn.execute_insert("""
 UPDATE ImageData
-SET info=?,
-    blob=?
+SET info=?
 WHERE uid=?
-      """, (serialized, blob, uid))
+      """, (serialized, uid))
+
+    await conn.execute("""
+    DELETE FROM ImagePreview WHERE uid = ?
+    """, (uid,))
+    for p, p_blob in zip(updated_image_file.previews, preview_blobs):
+      await conn.execute_insert("""
+      INSERT INTO ImagePreview(uid, width, height, blob)
+      VALUES (?, ?, ?, ?)
+        """, (uid, p.preview_size.width, p.preview_size.height, p_blob))
+
     await conn.commit()
 
     return updated_image_file
@@ -215,7 +231,7 @@ WHERE uid=?
 
   async def ReadFileBlob(self, uid: str):
     conn = await self._GetConn()
-    async with conn.execute("SELECT blob FROM ImageData WHERE uid = ?", (uid,)) as cursor:
+    async with conn.execute("SELECT blob FROM ImagePreview WHERE uid = ? LIMIT 1", (uid,)) as cursor:
       async for row in cursor:
         return io.BytesIO(row[0])
 

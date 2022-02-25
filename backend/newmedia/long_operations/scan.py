@@ -17,7 +17,7 @@ from newmedia import store_schema
 async def ThumbnailFile(image_file: store_schema.ImageFile, communicator: Communicator):
   # TODO: improve the logic to correctly process RAW files with existing thumbnails.
   # We might want to rerender them sometimes.
-  if image_file.preview_timestamp:
+  if image_file.previews:
     return
 
   await backend_state.BACKEND_STATE.ChangePreviewQueueSize(1)

@@ -1,9 +1,9 @@
 import aiosqlite
 
-from newmedia.store_migration import Migration
+from newmedia import store_migration
 
 
-class Migration001(Migration):
+class Migration0001(store_migration.Migration):
   @property
   def version(self) -> int:
     return 1
