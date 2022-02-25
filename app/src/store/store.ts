@@ -12,7 +12,7 @@ export { Direction } from './helpers/selection';
 
 function _initialState(): State {
   return {
-    version: 1,
+    version: 2,
 
     filterSettings: {
       selectedLabels: [],
@@ -27,7 +27,9 @@ function _initialState(): State {
     },
     selection: {
       primary: undefined,
+      lastPrimaryIndex: 0,
       lastTouched: undefined,
+      lastTouchedIndex: 0,
       additional: {},
     },
 

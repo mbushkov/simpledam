@@ -72,9 +72,11 @@ export default defineComponent({
       }
 
       const im = store.state.images[store.state.selection.primary];
-      if (!im || !im.preview_size) {
+      if (!im || im.previews.length === 0) {
         return;
       }
+
+      const previewSize = im.previews[0].preview_size;
 
       nextTick(() => {
         let clientWidth = el.value?.getBoundingClientRect().width ?? 1;
@@ -85,8 +87,8 @@ export default defineComponent({
           clientHeight = temp;
         }
 
-        scale.value = Math.min(clientWidth / im.preview_size.width * 100,
-          clientHeight / im.preview_size.height * 100);
+        scale.value = Math.min(clientWidth / previewSize.width * 100,
+          clientHeight / previewSize.height * 100);
       });
     }, {
       immediate: true,
@@ -224,18 +226,19 @@ export default defineComponent({
       const oldValue = Number(_oldValue);
 
       const im = store.state.images[store.state.selection.primary ?? ''];
-      if (!im || !im.preview_size) {
+      if (!im || im.previews.length === 0) {
         return;
       }
+      const previewSize = im.previews[0].preview_size;
 
       if ((img.value?.width ?? 0) > 0 && (img.value?.height ?? 0) > 0) {
         const scrollOffsetX = el.value!.scrollLeft ?? 0;//+ el.value!.clientWidth / 2;
         const scrollOffsetY = el.value!.scrollTop ?? 0;//+ el.value!.clientHeight / 2;
 
-        const oldWidth = im.preview_size.width * (oldValue / 100);
-        const oldHeight = im.preview_size.height * (oldValue / 100);
-        const newWidth = im.preview_size.width * (newValue / 100);
-        const newHeight = im.preview_size.height * (newValue / 100);
+        const oldWidth = previewSize.width * (oldValue / 100);
+        const oldHeight = previewSize.height * (oldValue / 100);
+        const newWidth = previewSize.width * (newValue / 100);
+        const newHeight = previewSize.height * (newValue / 100);
         img.value!.style.width = `${newWidth}px`;
         img.value!.style.height = `${newHeight}px`;
 

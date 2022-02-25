@@ -202,10 +202,14 @@ export default defineComponent({
           selectionType = SelectionType.ADDITIONAL;
         }
 
+        let previewSize = undefined;
+        if (im.previews.length > 0) {
+          previewSize = im.previews[0].preview_size;
+        }
         return {
           uid,
           filePath: im.path,
-          previewSize: im.preview_timestamp ? im.preview_size : undefined,
+          previewSize,
           previewUrl: 'http://localhost:' + PORT + '/images/' + uid,
           label: mdata.label,
           rating: mdata.rating,

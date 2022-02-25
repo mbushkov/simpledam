@@ -10,10 +10,23 @@ describe('Store selection helpers', () => {
   function createSelectionWrapper(selection: Partial<Selection> = {}): ObservableWrapper<Selection> {
     return createJSONWrapper({
       primary: undefined,
+      lastPrimaryIndex: 0,
       lastTouched: undefined,
+      lastTouchedIndex: 0,
       additional: {},
       ...selection,
     });
+  }
+
+  function expectedSelection(selection: Partial<Selection> = {}): Selection {
+    return {
+      primary: undefined,
+      lastPrimaryIndex: 0,
+      lastTouched: undefined,
+      lastTouchedIndex: 0,
+      additional: {},
+      ...selection,
+    }
   }
 
   function createImageList(imageList: Partial<ImageList> = {}): ImageList {
@@ -31,7 +44,7 @@ describe('Store selection helpers', () => {
         lastTouched: 'a',
         additional: { b: true, }
       });
-      
+
       const selectionSnapshot = selection.snapshot();
       selectPrimary(selection.value, 'a');
       expect(await selection.nextTick()).to.eql(selectionSnapshot);
@@ -46,11 +59,11 @@ describe('Store selection helpers', () => {
 
       selectPrimary(selection.value, 'c');
 
-      expect(await selection.nextTick()).to.eql({
+      expect(await selection.nextTick()).to.eql(expectedSelection({
         primary: 'c',
         lastTouched: 'c',
         additional: {},
-      } as Selection);
+      }));
     });
 
     it('erases selection if undefined is passed', async () => {
@@ -62,11 +75,11 @@ describe('Store selection helpers', () => {
 
       selectPrimary(selection.value, undefined);
 
-      expect(await selection.nextTick()).to.eql({
+      expect(await selection.nextTick()).to.eql(expectedSelection({
         primary: undefined,
         lastTouched: undefined,
         additional: {},
-      } as Selection);
+      }));
     });
   });
 
@@ -80,11 +93,11 @@ describe('Store selection helpers', () => {
 
       selectPrimaryPreservingAdditionalIfPossible(selection.value, 'a');
 
-      expect(await selection.nextTick()).to.eql({
+      expect(await selection.nextTick()).to.eql(expectedSelection({
         primary: 'a',
         lastTouched: 'a',
         additional: { b: true, }
-      } as Selection);
+      }));
     });
 
     it('moves selection within additional selection', async () => {
@@ -96,11 +109,11 @@ describe('Store selection helpers', () => {
 
       selectPrimaryPreservingAdditionalIfPossible(selection.value, 'b');
 
-      expect(await selection.nextTick()).to.eql({
+      expect(await selection.nextTick()).to.eql(expectedSelection({
         primary: 'b',
         lastTouched: 'b',
         additional: { a: true, c: true, }
-      } as Selection);
+      }));
     });
 
     it('resets the selection if outside of the primary and additional', async () => {
@@ -112,11 +125,11 @@ describe('Store selection helpers', () => {
 
       selectPrimaryPreservingAdditionalIfPossible(selection.value, 'd');
 
-      expect(await selection.nextTick()).to.eql({
+      expect(await selection.nextTick()).to.eql(expectedSelection({
         primary: 'd',
         lastTouched: 'd',
         additional: {}
-      } as Selection);
+      }));
     });
   });
 
@@ -142,11 +155,11 @@ describe('Store selection helpers', () => {
 
       toggleAdditionalSelection(selection.value, 'a');
 
-      expect(await selection.nextTick()).to.eql({
+      expect(await selection.nextTick()).to.eql(expectedSelection({
         primary: 'a',
         lastTouched: 'a',
         additional: {},
-      });
+      }));
     });
 
     it('unsets primary if uid matches and additional selection is empty', async () => {
@@ -158,11 +171,11 @@ describe('Store selection helpers', () => {
 
       toggleAdditionalSelection(selection.value, 'a');
 
-      expect(await selection.nextTick()).to.eql({
+      expect(await selection.nextTick()).to.eql(expectedSelection({
         primary: undefined,
         lastTouched: 'a',
         additional: {},
-      });
+      }));
     });
 
     it('moves primary to the next additional selection if uid matches current primary', async () => {
@@ -174,11 +187,11 @@ describe('Store selection helpers', () => {
 
       toggleAdditionalSelection(selection.value, 'a');
 
-      expect(await selection.nextTick()).to.eql({
+      expect(await selection.nextTick()).to.eql(expectedSelection({
         primary: 'b',
         lastTouched: 'a',
         additional: { c: true },
-      });
+      }));
     });
 
     it('marks additional selection if previously unset', async () => {
@@ -190,11 +203,11 @@ describe('Store selection helpers', () => {
 
       toggleAdditionalSelection(selection.value, 'b');
 
-      expect(await selection.nextTick()).to.eql({
+      expect(await selection.nextTick()).to.eql(expectedSelection({
         primary: 'a',
         lastTouched: 'b',
         additional: { b: true },
-      });
+      }));
     });
 
     it('unmarks additional selection if previously set', async () => {
@@ -206,11 +219,11 @@ describe('Store selection helpers', () => {
 
       toggleAdditionalSelection(selection.value, 'b');
 
-      expect(await selection.nextTick()).to.eql({
+      expect(await selection.nextTick()).to.eql(expectedSelection({
         primary: 'a',
         lastTouched: 'b',
         additional: {},
-      });
+      }));
     });
   });
 
@@ -322,11 +335,11 @@ describe('Store selection helpers', () => {
         moveAdditionalSelection(selection.value, imageList, 3, direction);
       }
 
-      expect(await selection.nextTick()).to.eql({
+      expect(await selection.nextTick()).to.eql(expectedSelection({
         primary: 'e',
         lastTouched: expectedLastTouched,
         additional: expectedAdditional,
-      });
+      }));
     }
 
     it('expands selection from primary left', async () => {
@@ -359,7 +372,7 @@ describe('Store selection helpers', () => {
 
     it('expands selection from primary down then up', async () => {
       await testExpandsFromCenter([Direction.DOWN, Direction.UP], 'e', {});
-    });    
+    });
   });
 
   describe('selectRange()', () => {
@@ -399,11 +412,11 @@ describe('Store selection helpers', () => {
 
       selectRange(selection.value, imageList, 'a');
 
-      expect(await selection.nextTick()).to.eql({
+      expect(await selection.nextTick()).to.eql(expectedSelection({
         primary: 'a',
         lastTouched: 'a',
         additional: {},
-      });
+      }));
     });
 
     it('selects the range when target before primary', async () => {
@@ -415,11 +428,11 @@ describe('Store selection helpers', () => {
 
       selectRange(selection.value, imageList, 'a');
 
-      expect(await selection.nextTick()).to.eql({
+      expect(await selection.nextTick()).to.eql(expectedSelection({
         primary: 'c',
         lastTouched: 'a',
         additional: { a: true, b: true },
-      });
+      }));
     });
 
     it('selects the range when target after primary', async () => {
@@ -431,11 +444,11 @@ describe('Store selection helpers', () => {
 
       selectRange(selection.value, imageList, 'e');
 
-      expect(await selection.nextTick()).to.eql({
+      expect(await selection.nextTick()).to.eql(expectedSelection({
         primary: 'c',
         lastTouched: 'e',
         additional: { d: true, e: true },
-      });
+      }));
     });
   });
 })

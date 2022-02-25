@@ -8,8 +8,9 @@ setupTestEnv();
 function imageFile(f: Partial<ImageFile> = {}): ImageFile {
   return {
     path: '/foo/bar',
-    preview_size: { width: 0, height: 0 },
-    preview_timestamp: 0,
+    previews: [],
+    creation_timestamp: 0,
+    modification_timestamp: 0,
     size: { width: 0, height: 0 },
     uid: 'a',
     ...f
