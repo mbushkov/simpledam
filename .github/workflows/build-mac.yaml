@@ -31,7 +31,7 @@ jobs:
       - name: Build Electron app
         run: |
           cd ${{ github.workspace }}/app
-          npm install
+          npm ci
           npm run electron:package
       - name: Archive the built app
         uses: actions/upload-artifact@v2
