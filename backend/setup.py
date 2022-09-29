@@ -14,13 +14,13 @@ setup_args = dict(
         "aiojobs==1.0.0",
         "aiosqlite==0.17.0",
         "bson==0.5.10",
-        "imagecodecs==2021.6.8",  # implicit dependency of tifffile
+        "imagecodecs==2022.9.26",  # implicit dependency of tifffile
         "pillow==9.2.0",
         "pyobjc-core==8.5.1",
         "pyobjc-framework-Cocoa==8.5.1",
         "pyobjc-framework-LaunchServices==8.5.1",
-        "rawpy==0.16.0",
-        "tifffile==2021.3.17",
+        "rawpy==0.17.2",
+        "tifffile==2022.8.12",
         "watchdog==2.1.9",
     ],
     extras_require={
