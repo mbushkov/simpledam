@@ -24,7 +24,7 @@ setup_args = dict(
         "watchdog==2.1.9",
     ],
     extras_require={
-        "dev": ["pyinstaller==4.2"],
+        "dev": ["pyinstaller==5.4.1"],
     },
     data_files=[],
 )
