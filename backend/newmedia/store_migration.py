@@ -1,3 +1,4 @@
+import logging
 from typing import Iterable, Optional
 import aiosqlite
 
@@ -24,6 +25,7 @@ async def RunMigrations(conn: aiosqlite.Connection, migrations: Iterable[Migrati
   for m in migrations:
     if version >= m.version:
       continue
+    logging.info("Running migration (version=%d)", m.version)
     await m.Migrate(conn)
     await conn.executescript(f"PRAGMA user_version = {m.version}")
     await conn.commit()

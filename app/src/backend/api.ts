@@ -1,3 +1,4 @@
+import { Migrate } from '@/store/migration';
 import { ReadonlyState, State } from '@/store/schema';
 import axios from 'axios';
 import * as log from 'loglevel';
@@ -92,8 +93,13 @@ export class ApiService {
 
   async fetchState(): Promise<State | undefined> {
     const response = await axios.get(this.ROOT + '/saved-state', { responseType: 'text', headers: this.HEADERS });
-    log.info('[API] Fetch state response: ', response);
-    return this.replaceNullWithUndefined(response.data['state'] || undefined);
+    log.info('[API] Fetch state response status: ', response.status);
+    if (response.data['state'] == null) {
+      return undefined;
+    } else {
+      const state = Migrate(response.data['state']);
+      return this.replaceNullWithUndefined(state);
+    }
   }
 
   async fetchOpenWith(path: string): Promise<OpenWithEntries | undefined> {
