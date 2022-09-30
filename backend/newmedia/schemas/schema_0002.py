@@ -32,44 +32,44 @@ class ExifData:
   # See https://www.media.mit.edu/pia/Research/deepview/exif.html
 
   # Tags used by IFD0 (main image)
-  make: Optional[str]
-  model: Optional[str]
-  orientation: Optional[int]
-  x_resolution: Optional[float]
-  y_resolution: Optional[float]
-  resolution_unit: Optional[int]
-  software: Optional[str]
-  datetime: Optional[str]
-  exposure_time: Optional[float]
-  f_number: Optional[float]
+  make: Optional[str] = None
+  model: Optional[str] = None
+  orientation: Optional[int] = None
+  x_resolution: Optional[float] = None
+  y_resolution: Optional[float] = None
+  resolution_unit: Optional[int] = None
+  software: Optional[str] = None
+  datetime: Optional[str] = None
+  exposure_time: Optional[float] = None
+  f_number: Optional[float] = None
 
   # Tags used by Exif SubIFD
-  exposure_program: Optional[int]
-  iso_speed_ratings: Optional[int]
-  exif_version: Optional[str]
-  datetime_original: Optional[str]
-  datetime_digitized: Optional[str]
-  shutter_speed_value: Optional[float]
-  aperture_value: Optional[float]
-  brightness_value: Optional[float]
-  exposure_bias_value: Optional[float]
-  max_aperture_value: Optional[float]
-  subject_distance: Optional[float]
-  metering_mode: Optional[int]
-  light_source: Optional[int]
-  flash: Optional[int]
-  focal_length: Optional[int]
-  exif_image_width: Optional[int]
-  exif_image_height: Optional[int]
-  focal_plane_x_resolution: Optional[float]
-  focal_plane_y_resolution: Optional[float]
+  exposure_program: Optional[int] = None
+  iso_speed_ratings: Optional[int] = None
+  exif_version: Optional[str] = None
+  datetime_original: Optional[str] = None
+  datetime_digitized: Optional[str] = None
+  shutter_speed_value: Optional[float] = None
+  aperture_value: Optional[float] = None
+  brightness_value: Optional[float] = None
+  exposure_bias_value: Optional[float] = None
+  max_aperture_value: Optional[float] = None
+  subject_distance: Optional[float] = None
+  metering_mode: Optional[int] = None
+  light_source: Optional[int] = None
+  flash: Optional[int] = None
+  focal_length: Optional[int] = None
+  exif_image_width: Optional[int] = None
+  exif_image_height: Optional[int] = None
+  focal_plane_x_resolution: Optional[float] = None
+  focal_plane_y_resolution: Optional[float] = None
 
   # Tags used by IFD1 (thumbnail image)
-  image_width: Optional[int]
-  image_height: Optional[int]
-  bits_per_sample: Optional[int]
-  compression: Optional[int]
-  photometric_interpretation: Optional[int]
+  image_width: Optional[int] = None
+  image_height: Optional[int] = None
+  bits_per_sample: Optional[int] = None
+  compression: Optional[int] = None
+  photometric_interpretation: Optional[int] = None
 
   @classmethod
   def FromJSON(cls, data):

@@ -9,11 +9,13 @@ import time
 import uuid
 from typing import Any, Dict, List, Optional, Tuple, cast
 
+import exifread
+import exifread.utils
 import numpy
 import rawpy
 import tifffile  # allows low-level TIFF manipulation. Needed for formats not yet handled by PIL (16-bit color TIFFS)
 import xattr
-from PIL import Image, ImageMath, ExifTags
+from PIL import Image, ImageMath, ExifTags, TiffImagePlugin
 
 from newmedia import store_schema
 
@@ -67,49 +69,52 @@ _EXIF_TAGS = dict((v, k) for k, v in ExifTags.TAGS.items())
 
 def _PillowExifToExifData(tags: Image.Exif) -> store_schema.ExifData:
   result = store_schema.ExifData(
-      make=tags.get(_EXIF_TAGS["Make"], ""),
-      model=tags.get(_EXIF_TAGS["Model"], ""),
-      orientation=tags.get(_EXIF_TAGS["Orientation"], 0),
-      x_resolution=tags.get(_EXIF_TAGS["XResolution"], 0),
-      y_resolution=tags.get(_EXIF_TAGS["YResolution"], 0),
-      resolution_unit=tags.get(_EXIF_TAGS["ResolutionUnit"], 0),
-      software=tags.get(_EXIF_TAGS["Software"], ""),
-      datetime=tags.get(_EXIF_TAGS["DateTime"], ""),
-      exposure_time=tags.get(_EXIF_TAGS["ExposureTime"], 0),
-      f_number=tags.get(_EXIF_TAGS["FNumber"], 0),
+      make=tags.get(_EXIF_TAGS["Make"]),
+      model=tags.get(_EXIF_TAGS["Model"]),
+      orientation=tags.get(_EXIF_TAGS["Orientation"]),
+      x_resolution=tags.get(_EXIF_TAGS["XResolution"]),
+      y_resolution=tags.get(_EXIF_TAGS["YResolution"]),
+      resolution_unit=tags.get(_EXIF_TAGS["ResolutionUnit"]),
+      software=tags.get(_EXIF_TAGS["Software"]),
+      datetime=tags.get(_EXIF_TAGS["DateTime"]),
+      exposure_time=tags.get(_EXIF_TAGS["ExposureTime"]),
+      f_number=tags.get(_EXIF_TAGS["FNumber"]),
+      image_width=tags.get(_EXIF_TAGS["ImageWidth"]),
+      image_height=tags.get(_EXIF_TAGS["ImageHeight"]),
+      compression=tags.get(_EXIF_TAGS["Compression"]),
+      photometric_interpretation=tags.get(_EXIF_TAGS["PhotometricInterpretation"]),
 
       # Tags used by Exif SubIFD
-      exposure_program=tags.get(_EXIF_TAGS["ExposureProgram"], 0),
-      iso_speed_ratings=tags.get(_EXIF_TAGS["ISOSpeedRatings"], 0),
-      exif_version=tags.get(_EXIF_TAGS["ExifVersion"], ""),
-      datetime_original=tags.get(_EXIF_TAGS["DateTimeOriginal"], ""),
-      datetime_digitized=tags.get(_EXIF_TAGS["DateTimeDigitized"], ""),
-      shutter_speed_value=tags.get(_EXIF_TAGS["ShutterSpeedValue"], 0),
-      aperture_value=tags.get(_EXIF_TAGS["ApertureValue"], 0),
-      brightness_value=tags.get(_EXIF_TAGS["BrightnessValue"], 0),
-      exposure_bias_value=tags.get(_EXIF_TAGS["ExposureBiasValue"], 0),
-      max_aperture_value=tags.get(_EXIF_TAGS["MaxApertureValue"], 0),
-      subject_distance=tags.get(_EXIF_TAGS["SubjectDistance"], 0),
-      metering_mode=tags.get(_EXIF_TAGS["MeteringMode"], 0),
-      light_source=tags.get(_EXIF_TAGS["LightSource"], 0),
-      flash=tags.get(_EXIF_TAGS["Flash"], 0),
-      focal_length=tags.get(_EXIF_TAGS["FocalLength"], 0),
-      exif_image_width=tags.get(_EXIF_TAGS["ExifImageWidth"], 0),
-      exif_image_height=tags.get(_EXIF_TAGS["ExifImageHeight"], 0),
-      focal_plane_x_resolution=tags.get(_EXIF_TAGS["FocalPlaneXResolution"], 0),
-      focal_plane_y_resolution=tags.get(_EXIF_TAGS["FocalPlaneYResolution"], 0),
+      exposure_program=tags.get(_EXIF_TAGS["ExposureProgram"]),
+      iso_speed_ratings=tags.get(_EXIF_TAGS["ISOSpeedRatings"]),
+      exif_version=tags.get(_EXIF_TAGS["ExifVersion"]),
+      datetime_original=tags.get(_EXIF_TAGS["DateTimeOriginal"]),
+      datetime_digitized=tags.get(_EXIF_TAGS["DateTimeDigitized"]),
+      shutter_speed_value=tags.get(_EXIF_TAGS["ShutterSpeedValue"]),
+      aperture_value=tags.get(_EXIF_TAGS["ApertureValue"]),
+      brightness_value=tags.get(_EXIF_TAGS["BrightnessValue"]),
+      exposure_bias_value=tags.get(_EXIF_TAGS["ExposureBiasValue"]),
+      max_aperture_value=tags.get(_EXIF_TAGS["MaxApertureValue"]),
+      subject_distance=tags.get(_EXIF_TAGS["SubjectDistance"]),
+      metering_mode=tags.get(_EXIF_TAGS["MeteringMode"]),
+      light_source=tags.get(_EXIF_TAGS["LightSource"]),
+      flash=tags.get(_EXIF_TAGS["Flash"]),
+      focal_length=tags.get(_EXIF_TAGS["FocalLength"]),
+      exif_image_width=tags.get(_EXIF_TAGS["ExifImageWidth"]),
+      exif_image_height=tags.get(_EXIF_TAGS["ExifImageHeight"]),
+      focal_plane_x_resolution=tags.get(_EXIF_TAGS["FocalPlaneXResolution"]),
+      focal_plane_y_resolution=tags.get(_EXIF_TAGS["FocalPlaneYResolution"]),
 
       # Tags used by IFD1 (thumbnail image)
-      image_width=tags.get(_EXIF_TAGS["ExifImageWidth"], 0),
-      image_height=tags.get(_EXIF_TAGS["ExifImageHeight"], 0),
-      bits_per_sample=tags.get(_EXIF_TAGS["BitsPerSample"], 0),
-      compression=tags.get(_EXIF_TAGS["Compression"], 0),
-      photometric_interpretation=tags.get(_EXIF_TAGS["PhotometricInterpretation"], 0),
+      # Temporary don't set this - we have to deal with tuples.
+      # bits_per_sample=tags.get(_EXIF_TAGS["BitsPerSample"]),
   )
 
   # Ensure that no wrapper classes are used (critical for JSON serialization).
   for f in dataclasses.fields(result):
-    setattr(result, f.name, f.type(getattr(result, f.name)))
+    val = getattr(result, f.name)
+    if isinstance(val, TiffImagePlugin.IFDRational):
+      setattr(result, f.name, float(val))
   return result
 
 
@@ -148,6 +153,63 @@ def _GetPillowFileInfo(path: pathlib.Path,
     im.close()
 
 
+def _ExifReadToExifData(tags: Dict[str, Any]) -> store_schema.ExifData:
+
+  def _Get(key: str) -> Any:
+    ret = tags.get(key)
+    if ret is None:
+      return None
+
+    if isinstance(ret.values, list):
+      result = ret.values[0]
+    else:
+      result = ret.values
+
+    if isinstance(result, exifread.utils.Ratio):
+      result = float(result)
+
+    return result
+
+  return store_schema.ExifData(
+      make=_Get("Image Make"),
+      model=_Get("Image Model"),
+      orientation=_Get("Image Orientation"),
+      x_resolution=_Get("Image XResolution"),
+      y_resolution=_Get("Image YResolution"),
+      resolution_unit=_Get("Image ResolutionUnit"),
+      software=_Get("Image Software"),
+      datetime=_Get("Image DateTime"),
+      exposure_time=_Get("Image ExposureTime"),
+      f_number=_Get("Image FNumber"),
+      image_width=_Get("Image ImageWidth"),
+      image_height=_Get("Image ImageHeight"),
+      bits_per_sample=_Get("Image BitsPerSample"),
+      compression=_Get("Image Compression"),
+      photometric_interpretation=_Get("Image PhotometricInterpretation"),
+
+      # Tags used by Exif SubIFD
+      exposure_program=_Get("EXIF ExposureProgram"),
+      iso_speed_ratings=_Get("EXIF ISOSpeedRatings"),
+      exif_version=_Get("EXIF ExifVersion"),
+      datetime_original=_Get("EXIF DateTimeOriginal"),
+      datetime_digitized=_Get("EXIF DateTimeDigitized"),
+      shutter_speed_value=_Get("EXIF ShutterSpeedValue"),
+      aperture_value=_Get("EXIF ApertureValue"),
+      brightness_value=_Get("EXIF BrightnessValue"),
+      exposure_bias_value=_Get("EXIF ExposureBiasValue"),
+      max_aperture_value=_Get("EXIF MaxApertureValue"),
+      subject_distance=_Get("EXIF SubjectDistance"),
+      metering_mode=_Get("EXIF MeteringMode"),
+      light_source=_Get("EXIF LightSource"),
+      flash=_Get("EXIF Flash"),
+      focal_length=_Get("EXIF FocalLength"),
+      exif_image_width=_Get("EXIF ExifImageWidth"),
+      exif_image_height=_Get("EXIF ExifImageHeight"),
+      focal_plane_x_resolution=_Get("EXIF FocalPlaneXResolution"),
+      focal_plane_y_resolution=_Get("EXIF FocalPlaneYResolution"),
+  )
+
+
 def _GetRawPyFileInfo(path: pathlib.Path,
                       prev_info: Optional[store_schema.ImageFile]) -> Tuple[store_schema.ImageFile, bytes]:
   try:
@@ -176,6 +238,10 @@ def _GetRawPyFileInfo(path: pathlib.Path,
     file_color_tag = store_schema.FileColorTag(finder_attrs[9] >> 1 & 7)
   except KeyError:
     file_color_tag = store_schema.FileColorTag.NONE
+
+  with open(path, "rb") as fd:
+    exif_tags = exifread.process_file(fd, details=False)
+  exif_data = _ExifReadToExifData(exif_tags)
 
   preview_size = None
   preview_timestamp = None
@@ -210,7 +276,7 @@ def _GetRawPyFileInfo(path: pathlib.Path,
       file_ctime=int(stat.st_ctime * 1000),
       file_mtime=int(stat.st_mtime * 1000),
       file_color_tag=store_schema.FileColorTag(file_color_tag),
-      exif_data=None,
+      exif_data=exif_data,
   ), preview_bytes
 
 
