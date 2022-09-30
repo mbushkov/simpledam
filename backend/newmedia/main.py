@@ -17,7 +17,7 @@ from multidict import istr
 from newmedia import backend_state
 from newmedia import image_processor
 from newmedia import store
-from newmedia.communicator import Communicator
+from newmedia.communicator import Communicator, WebSocketCommunicator
 from newmedia.long_operation_runner import LongOperationRunner
 from newmedia.long_operations.export import ExportToPathOperation
 from newmedia.long_operations.save import SaveOperation
@@ -203,7 +203,7 @@ def main():
   image_processor.InitImageProcessor()
   store.InitDataStore(args.db_file)
 
-  communicator = Communicator()
+  communicator = WebSocketCommunicator()
   long_operation_runner = LongOperationRunner(communicator)
 
   # TODO: max request size is 1 Gb. This creates a natural

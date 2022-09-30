@@ -7,14 +7,13 @@ import os
 import pathlib
 import time
 import uuid
-from typing import Any, Callable, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, Tuple, cast
 
-import aiosqlite
-import bson
-from PIL import Image, ImageMath
 import numpy
 import rawpy
 import tifffile  # allows low-level TIFF manipulation. Needed for formats not yet handled by PIL (16-bit color TIFFS)
+import xattr
+from PIL import Image, ImageMath, ExifTags
 
 from newmedia import store_schema
 
@@ -63,6 +62,57 @@ def _GetFileInfo(path: pathlib.Path, prev_info: Optional[store_schema.ImageFile]
     logging.info("GetFileInfo %s took %.2fs", path, end_time - start_time)
 
 
+_EXIF_TAGS = dict((v, k) for k, v in ExifTags.TAGS.items())
+
+
+def _PillowExifToExifData(tags: Image.Exif) -> store_schema.ExifData:
+  result = store_schema.ExifData(
+      make=tags.get(_EXIF_TAGS["Make"], ""),
+      model=tags.get(_EXIF_TAGS["Model"], ""),
+      orientation=tags.get(_EXIF_TAGS["Orientation"], 0),
+      x_resolution=tags.get(_EXIF_TAGS["XResolution"], 0),
+      y_resolution=tags.get(_EXIF_TAGS["YResolution"], 0),
+      resolution_unit=tags.get(_EXIF_TAGS["ResolutionUnit"], 0),
+      software=tags.get(_EXIF_TAGS["Software"], ""),
+      datetime=tags.get(_EXIF_TAGS["DateTime"], ""),
+      exposure_time=tags.get(_EXIF_TAGS["ExposureTime"], 0),
+      f_number=tags.get(_EXIF_TAGS["FNumber"], 0),
+
+      # Tags used by Exif SubIFD
+      exposure_program=tags.get(_EXIF_TAGS["ExposureProgram"], 0),
+      iso_speed_ratings=tags.get(_EXIF_TAGS["ISOSpeedRatings"], 0),
+      exif_version=tags.get(_EXIF_TAGS["ExifVersion"], ""),
+      datetime_original=tags.get(_EXIF_TAGS["DateTimeOriginal"], ""),
+      datetime_digitized=tags.get(_EXIF_TAGS["DateTimeDigitized"], ""),
+      shutter_speed_value=tags.get(_EXIF_TAGS["ShutterSpeedValue"], 0),
+      aperture_value=tags.get(_EXIF_TAGS["ApertureValue"], 0),
+      brightness_value=tags.get(_EXIF_TAGS["BrightnessValue"], 0),
+      exposure_bias_value=tags.get(_EXIF_TAGS["ExposureBiasValue"], 0),
+      max_aperture_value=tags.get(_EXIF_TAGS["MaxApertureValue"], 0),
+      subject_distance=tags.get(_EXIF_TAGS["SubjectDistance"], 0),
+      metering_mode=tags.get(_EXIF_TAGS["MeteringMode"], 0),
+      light_source=tags.get(_EXIF_TAGS["LightSource"], 0),
+      flash=tags.get(_EXIF_TAGS["Flash"], 0),
+      focal_length=tags.get(_EXIF_TAGS["FocalLength"], 0),
+      exif_image_width=tags.get(_EXIF_TAGS["ExifImageWidth"], 0),
+      exif_image_height=tags.get(_EXIF_TAGS["ExifImageHeight"], 0),
+      focal_plane_x_resolution=tags.get(_EXIF_TAGS["FocalPlaneXResolution"], 0),
+      focal_plane_y_resolution=tags.get(_EXIF_TAGS["FocalPlaneYResolution"], 0),
+
+      # Tags used by IFD1 (thumbnail image)
+      image_width=tags.get(_EXIF_TAGS["ExifImageWidth"], 0),
+      image_height=tags.get(_EXIF_TAGS["ExifImageHeight"], 0),
+      bits_per_sample=tags.get(_EXIF_TAGS["BitsPerSample"], 0),
+      compression=tags.get(_EXIF_TAGS["Compression"], 0),
+      photometric_interpretation=tags.get(_EXIF_TAGS["PhotometricInterpretation"], 0),
+  )
+
+  # Ensure that no wrapper classes are used (critical for JSON serialization).
+  for f in dataclasses.fields(result):
+    setattr(result, f.name, f.type(getattr(result, f.name)))
+  return result
+
+
 def _GetPillowFileInfo(path: pathlib.Path,
                        prev_info: Optional[store_schema.ImageFile]) -> Tuple[store_schema.ImageFile, bytes]:
   try:
@@ -75,6 +125,13 @@ def _GetPillowFileInfo(path: pathlib.Path,
   if prev_info and prev_info.previews and max(p.preview_timestamp for p in prev_info.previews) < stat.st_mtime * 1000:
     prev_info = None
 
+  attrs = xattr.xattr(path)
+  try:
+    finder_attrs = attrs['com.apple.FinderInfo']
+    file_color_tag = store_schema.FileColorTag(finder_attrs[9] >> 1 & 7)
+  except KeyError:
+    file_color_tag = store_schema.FileColorTag.NONE
+
   try:
     width, height = im.size
     return store_schema.ImageFile(
@@ -82,8 +139,10 @@ def _GetPillowFileInfo(path: pathlib.Path,
         uid=uid,
         size=store_schema.Size(width, height),
         previews=[],
-        creation_timestamp=int(stat.st_ctime * 1000),
-        modification_timestamp=int(stat.st_mtime * 1000),
+        file_ctime=int(stat.st_ctime * 1000),
+        file_mtime=int(stat.st_mtime * 1000),
+        file_color_tag=store_schema.FileColorTag(file_color_tag),
+        exif_data=_PillowExifToExifData(im.getexif())
     ), b""
   finally:
     im.close()
@@ -110,6 +169,13 @@ def _GetRawPyFileInfo(path: pathlib.Path,
           logging.info("Ignoring non-JPEG RAW thumbnail: %s", path)
   except (IOError, rawpy.LibRawError) as e:  # type: ignore
     raise ImageProcessingError(e)
+
+  attrs = xattr.xattr(path)
+  try:
+    finder_attrs = attrs['com.apple.FinderInfo']
+    file_color_tag = store_schema.FileColorTag(finder_attrs[9] >> 1 & 7)
+  except KeyError:
+    file_color_tag = store_schema.FileColorTag.NONE
 
   preview_size = None
   preview_timestamp = None
@@ -141,8 +207,10 @@ def _GetRawPyFileInfo(path: pathlib.Path,
       uid,
       store_schema.Size(sizes.width, sizes.height),
       previews=previews,
-      creation_timestamp=int(stat.st_ctime * 1000),
-      modification_timestamp=int(stat.st_mtime * 1000),
+      file_ctime=int(stat.st_ctime * 1000),
+      file_mtime=int(stat.st_mtime * 1000),
+      file_color_tag=store_schema.FileColorTag(file_color_tag),
+      exif_data=None,
   ), preview_bytes
 
 
@@ -214,8 +282,10 @@ def _ThumbnailPillowFile(image_file: store_schema.ImageFile) -> Tuple[store_sche
                     preview_size=store_schema.Size(target_width, target_height),
                     preview_timestamp=int(time.time() * 1000))
             ],
-            creation_timestamp=image_file.creation_timestamp,
-            modification_timestamp=image_file.modification_timestamp,
+            file_color_tag=image_file.file_color_tag,
+            file_ctime=image_file.file_ctime,
+            file_mtime=image_file.file_mtime,
+            exif_data=image_file.exif_data,
         ),
         (out.getvalue(),),
     )
@@ -254,8 +324,10 @@ def _ThumbnailRawPyFile(image_file: store_schema.ImageFile) -> Tuple[store_schem
                     preview_size=store_schema.Size(target_width, target_height),
                     preview_timestamp=int(time.time() * 1000))
             ],
-            creation_timestamp=image_file.creation_timestamp,
-            modification_timestamp=image_file.modification_timestamp,
+            file_color_tag=image_file.file_color_tag,
+            file_ctime=image_file.file_ctime,
+            file_mtime=image_file.file_mtime,
+            exif_data=image_file.exif_data,
         ),
         (out.getvalue(),),
     )

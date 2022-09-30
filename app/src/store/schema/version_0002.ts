@@ -10,6 +10,51 @@ export declare interface ImageFilePreview {
   preview_timestamp: number;
 }
 
+export declare interface ExifData {
+  // See https://www.media.mit.edu/pia/Research/deepview/exif.html
+
+  // Tags used by IFD0 (main image)
+  make?: string;
+  model?: string;
+  orientation?: number;
+  x_resolution?: number;
+  y_resolution?: number;
+  resolution_unit?: number;
+  software?: string;
+  datetime?: string;
+  exposure_time?: number;
+  f_number?: number;
+
+  // Tags used by Exif SubIFD
+  exposure_program?: number;
+  iso_speed_ratings?: number;
+  exif_version?: string;
+  datetime_original?: string;
+  datetime_digitized?: string;
+  shutter_speed_value?: number;
+  aperture_value?: number;
+  brightness_value?: number;
+  exposure_bias_value?: number;
+  max_aperture_value?: number;
+  subject_distance?: number;
+  metering_mode?: number;
+  light_source?: number;
+  flash?: number;
+  focal_length?: number;
+  exif_image_width?: number;
+  exif_image_height?: number;
+  focal_plane_x_resolution?: number;
+  focal_plane_y_resolution?: number;
+
+  // Tags used by IFD1 (thumbnail image)
+  image_width?: number;
+  image_height?: number;
+  bits_per_sample?: number;
+  compression?: number;
+  photometric_numbererpretation?: number;
+}
+
+
 export declare interface ImageFile {
   path: string;
   creation_timestamp: number;

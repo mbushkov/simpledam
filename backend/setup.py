@@ -22,9 +22,15 @@ setup_args = dict(
         "rawpy==0.17.2",
         "tifffile==2022.8.12",
         "watchdog==2.1.9",
+        "xattr==0.9.9",
     ],
     extras_require={
-        "dev": ["pyinstaller==5.4.1"],
+        "dev": [
+            "pyinstaller==5.4.1",
+            "ipython==8.5.0",
+            "pytest==7.1.3",
+            "pytest-asyncio==0.19.0",
+        ],
     },
     data_files=[],
 )
