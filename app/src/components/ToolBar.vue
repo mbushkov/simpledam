@@ -38,6 +38,7 @@
     .top-tabs {
       margin-bottom: 0;
       margin-right: 3em;
+      font-size: 0.9rem;
 
       :deep(.tabs li) {
         width: 80px;
