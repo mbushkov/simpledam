@@ -1,3 +1,4 @@
+import abc
 import asyncio
 import logging
 from typing import Set, Union
@@ -7,8 +8,17 @@ from aiohttp.web_ws import WebSocketResponse
 from newmedia.utils.json_type import JSON, ToJSONProtocol
 
 
-class Communicator:
+class Communicator(abc.ABC):
+  @abc.abstractmethod
+  async def ListenToWebSocket(self, ws: WebSocketResponse):
+    raise NotImplemented()
 
+  @abc.abstractmethod
+  async def SendWebSocketData(self, data: Union[JSON, ToJSONProtocol]):
+    raise NotImplemented()
+
+
+class WebSocketCommunicator(Communicator):
   def __init__(self):
     self._websockets: Set[web.WebSocketResponse] = set()
 
@@ -50,3 +60,11 @@ class Communicator:
 
     coros = [asyncio.shield(ws.send_json(json_data)) for ws in self._websockets]
     asyncio.gather(*coros)
+
+
+class CommunicatorStub(Communicator):
+  async def ListenToWebSocket(self, ws: WebSocketResponse):
+    pass
+
+  async def SendWebSocketData(self, data: Union[JSON, ToJSONProtocol]):
+    pass

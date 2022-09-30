@@ -117,6 +117,16 @@ VALUES ('state', ?)
     await copy_conn.close()
     await backend_state.BACKEND_STATE.ChangeCatalogPath(path)
 
+  async def GetSchema(self) -> str:
+    conn = await self._GetConn()
+    result = []
+    async with conn.execute("SELECT sql FROM sqlite_schema", []) as cursor:
+      async for row in cursor:
+        if row[0] is not None:
+          result.append(row[0])
+
+    return "\n".join(result)
+
   async def GetSavedState(self) -> Optional[Dict[Any, Any]]:
     conn = await self._GetConn()
     cur_state = None
