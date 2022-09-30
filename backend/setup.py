@@ -14,6 +14,7 @@ setup_args = dict(
         "aiojobs==1.0.0",
         "aiosqlite==0.17.0",
         "bson==0.5.10",
+        "ExifRead==3.0.0",
         "imagecodecs==2022.9.26",  # implicit dependency of tifffile
         "pillow==9.2.0",
         "pyobjc-core==8.5.1",
