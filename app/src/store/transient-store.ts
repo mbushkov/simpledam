@@ -43,8 +43,9 @@ export interface LongOperation {
 
 export interface TransientState {
   imageViewerTab: ImageViewerTab;
-  columnCount: number,
+  columnCount: number;
   leftPaneWidth: number;
+  infoPaneShown: boolean;
 
   singleImageViewerOptions: SingleImageViewerOptions;
 
@@ -59,6 +60,7 @@ export class TransientStore {
     imageViewerTab: ImageViewerTab.THUMBNAILS,
     columnCount: 1,
     leftPaneWidth: 1,
+    infoPaneShown: false,
 
     singleImageViewerOptions: {
       scale: 100,
@@ -85,6 +87,10 @@ export class TransientStore {
 
   setLeftPaneWidth(n: number) {
     this._state.leftPaneWidth = n;
+  }
+
+  toggleInfoPaneShown() {
+    this._state.infoPaneShown = !this._state.infoPaneShown;
   }
 
   setSingleImageViewerOptions(options: Partial<SingleImageViewerOptions>) {

@@ -1,5 +1,5 @@
 import { State as OldState, ImageFile as OldImageFile } from '@/store/schema/version_0001';
-import { State as NewState, ImageFile as NewImageFile } from '@/store/schema/version_0002';
+import { State as NewState, ImageFile as NewImageFile, FileColorTag } from '@/store/schema/version_0002';
 
 function convertImages(oldImages: { [key: string]: OldImageFile }): { [key: string]: NewImageFile } {
   const result: { [key: string]: NewImageFile } = {};
@@ -8,8 +8,10 @@ function convertImages(oldImages: { [key: string]: OldImageFile }): { [key: stri
     const o = oldImages[key];
     result[key] = {
       path: o.path,
-      creation_timestamp: 0,
-      modification_timestamp: 0,
+      file_ctime: 0,
+      file_mtime: 0,
+      file_size: 0,
+      file_color_tag: FileColorTag.NONE,
       previews: [{
         preview_size: o.preview_size,
         preview_timestamp: o.preview_timestamp,

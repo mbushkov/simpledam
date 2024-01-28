@@ -144,6 +144,7 @@ def _GetPillowFileInfo(path: pathlib.Path,
         uid=uid,
         size=store_schema.Size(width, height),
         previews=[],
+        file_size=stat.st_size,
         file_ctime=int(stat.st_ctime * 1000),
         file_mtime=int(stat.st_mtime * 1000),
         file_color_tag=store_schema.FileColorTag(file_color_tag),
@@ -273,6 +274,7 @@ def _GetRawPyFileInfo(path: pathlib.Path,
       uid,
       store_schema.Size(sizes.width, sizes.height),
       previews=previews,
+      file_size=stat.st_size,
       file_ctime=int(stat.st_ctime * 1000),
       file_mtime=int(stat.st_mtime * 1000),
       file_color_tag=store_schema.FileColorTag(file_color_tag),
@@ -300,6 +302,11 @@ def _ThumbnailFile(image_file: store_schema.ImageFile) -> Tuple[store_schema.Ima
 
 
 def _ThumbnailPillowFile(image_file: store_schema.ImageFile) -> Tuple[store_schema.ImageFile, Tuple[bytes]]:
+  try:
+    stat = os.stat(image_file.path)
+  except IOError as e:
+    raise ImageProcessingError(e)
+
   try:
     im = Image.open(image_file.path)
     # Grayscale tiffs first have to be normalized to have values ranging from 0 to 255 (IIUC, floating point values are ok).
@@ -349,6 +356,7 @@ def _ThumbnailPillowFile(image_file: store_schema.ImageFile) -> Tuple[store_sche
                     preview_timestamp=int(time.time() * 1000))
             ],
             file_color_tag=image_file.file_color_tag,
+            file_size=stat.st_size,
             file_ctime=image_file.file_ctime,
             file_mtime=image_file.file_mtime,
             exif_data=image_file.exif_data,
@@ -360,6 +368,11 @@ def _ThumbnailPillowFile(image_file: store_schema.ImageFile) -> Tuple[store_sche
 
 
 def _ThumbnailRawPyFile(image_file: store_schema.ImageFile) -> Tuple[store_schema.ImageFile, Tuple[bytes]]:
+  try:
+    stat = os.stat(image_file.path)
+  except IOError as e:
+    raise ImageProcessingError(e)
+
   try:
     with rawpy.imread(image_file.path) as raw:
       rgb = raw.postprocess(
@@ -391,6 +404,7 @@ def _ThumbnailRawPyFile(image_file: store_schema.ImageFile) -> Tuple[store_schem
                     preview_timestamp=int(time.time() * 1000))
             ],
             file_color_tag=image_file.file_color_tag,
+            file_size=stat.st_size,
             file_ctime=image_file.file_ctime,
             file_mtime=image_file.file_mtime,
             exif_data=image_file.exif_data,

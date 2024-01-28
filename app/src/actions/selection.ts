@@ -4,7 +4,6 @@ import { modalHelperServiceSingleton } from '@/lib/modal-helper-service';
 import { storeSingleton } from '@/store';
 import { Label, Rating } from "@/store/schema";
 import { computed } from 'vue';
-// import { ModalProgrammatic } from 'buefy';
 import { Action } from './action';
 
 function capitalize(s: string): string {

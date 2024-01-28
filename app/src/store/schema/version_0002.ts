@@ -55,13 +55,31 @@ export declare interface ExifData {
 }
 
 
+export enum FileColorTag {
+  NONE,
+  GRAY,
+  GREEN,
+  PURPLE,
+  BLUE,
+  YELLOW,
+  RED,
+  ORANGE,
+}
+
+
 export declare interface ImageFile {
   path: string;
-  creation_timestamp: number;
-  modification_timestamp: number;
-  previews: ImageFilePreview[];
-  size: Size;
   uid: ImageUid;
+
+  size: Size;
+  previews: ImageFilePreview[];
+
+  file_size: number;
+  file_ctime: number;
+  file_mtime: number;
+  file_color_tag: FileColorTag;
+
+  exif_data?: ExifData;
 }
 
 export enum Label {

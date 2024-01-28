@@ -98,6 +98,7 @@ class ImageFile:
   size: Size
   previews: List[ImageFilePreview]
 
+  file_size: int = 0
   file_ctime: int = 0
   file_mtime: int = 0
   file_color_tag: FileColorTag = FileColorTag.NONE
