@@ -34,6 +34,8 @@ async def test_TIFFExifDataIsCorrectlyRead():
       datetime="2009:09:26 01:11:52",
       compression=5,
       photometric_interpretation=2,
+      image_width=196,
+      image_height=257,
   )
 
 

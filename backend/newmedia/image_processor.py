@@ -80,7 +80,7 @@ def _PillowExifToExifData(tags: Image.Exif) -> store_schema.ExifData:
       exposure_time=tags.get(_EXIF_TAGS["ExposureTime"]),
       f_number=tags.get(_EXIF_TAGS["FNumber"]),
       image_width=tags.get(_EXIF_TAGS["ImageWidth"]),
-      image_height=tags.get(_EXIF_TAGS["ImageHeight"]),
+      image_height=tags.get(_EXIF_TAGS["ImageLength"]),
       compression=tags.get(_EXIF_TAGS["Compression"]),
       photometric_interpretation=tags.get(_EXIF_TAGS["PhotometricInterpretation"]),
 
