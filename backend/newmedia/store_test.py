@@ -20,9 +20,12 @@ async def test_SchemaIsUpToDate():
     expected_schema = fd.read()
 
   db = store.DataStore()
-  schema = await db.GetSchema()
   try:
-    assert schema == expected_schema
-  except AssertionError:
-    print(schema)
-    raise
+    schema = await db.GetSchema()
+    try:
+      assert schema == expected_schema
+    except AssertionError:
+      print(schema)
+  finally:
+    # TODO: use better resource celanup strategy in tests.
+    await db.Close()

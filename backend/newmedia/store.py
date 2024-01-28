@@ -84,6 +84,10 @@ class DataStore:
 
     return self._conn
 
+  async def Close(self) -> None:
+    assert self._conn is not None
+    await self._conn.close()
+
   # TODO: hold a global lock of some kind while saving the store.
   # At least make sure no new pictures are registered during the save.
   async def SaveStore(self,
