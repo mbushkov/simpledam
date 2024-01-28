@@ -52,7 +52,11 @@ async function startBackendProcess(catalogPath?: string): Promise<{ backend: Chi
     }
     const binaryArgs = [];
     if (process.env.WEBPACK_DEV_SERVER_URL) {
-      binaryArgs.push('--dev');
+      let url: string = process.env.WEBPACK_DEV_SERVER_URL;
+      if (url.endsWith('/')) {
+        url = url.substring(0, url.length - 1)
+      }
+      binaryArgs.push("--cors-allow-origin=" + url)
     }
     if (catalogPath) {
       binaryArgs.push('--db-file');

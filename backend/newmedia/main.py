@@ -27,8 +27,9 @@ from newmedia.utils import macos
 
 PARSER = argparse.ArgumentParser(description='Newmedia backend server.')
 PARSER.add_argument("--port", type=int, default=0)
+PARSER.add_argument("--cors-allow-origin", type=str, default="app://.")
 PARSER.add_argument("--db-file", type=pathlib.Path, default=None)
-PARSER.add_argument("--dev", default=False, action='store_true')
+
 
 CORS_HEADERS: Dict[Union[str, istr], str] = {
     "Access-Control-Allow-Origin":
@@ -194,11 +195,11 @@ def SecretCheckWrapper(
 
 def main():
   logging.basicConfig(level=logging.INFO)
-
   args = PARSER.parse_args()
 
-  if args.dev:
-    CORS_HEADERS["Access-Control-Allow-Origin"] = "http://localhost:8080"
+  # Adjust the CORS policy based on headers.
+  CORS_HEADERS["Access-Control-Allow-Origin"] = args.cors_allow_origin
+  logging.info("Allowing requests from: %s", args.cors_allow_origin)
 
   image_processor.InitImageProcessor()
   store.InitDataStore(args.db_file)
