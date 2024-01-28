@@ -251,7 +251,7 @@ def main():
   sys.stdout.write(json.dumps(dict(port=port, secret=secret)) + "\n")
   sys.stdout.flush()
 
-  web.run_app(app, host="127.0.0.1", port=port, handle_signals=True)
+  web.run_app(app, host="127.0.0.1", port=port, handle_signals=True, loop=asyncio.get_event_loop())
 
 
 if __name__ == '__main__':
