@@ -51,7 +51,7 @@ export declare interface ExifData {
   image_height?: number;
   bits_per_sample?: number;
   compression?: number;
-  photometric_numbererpretation?: number;
+  photometric_interprretation?: number;
 }
 
 
