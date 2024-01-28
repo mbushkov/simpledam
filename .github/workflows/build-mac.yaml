@@ -17,7 +17,7 @@ jobs:
       - name: Init venv
         run: |
           python -m venv ${{ github.workspace }}/.venv3
-          ${{ github.workspace }}/.venv3/bin/python -m pip install --upgrade pip wheel setuptools pt
+          ${{ github.workspace }}/.venv3/bin/python -m pip install --upgrade pip wheel setuptools
       - name: Install the backend Python package
         run: |
           ${{ github.workspace }}/.venv3/bin/python -m pip install ${{ github.workspace }}/backend[dev]
