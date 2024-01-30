@@ -41,7 +41,7 @@ jobs:
       - name: Setup the chromedriver
         uses: nanasess/setup-chromedriver@v2
         with:
-          chromedriver-version: '120.0.6099.227'
+          chromedriver-version: '120'
       - name: Run the e2e tests
         run: |
           ${{ github.workspace }}/.venv3/bin/python -m pip install -e ${{ github.workspace }}/e2e
