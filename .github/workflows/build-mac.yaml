@@ -45,7 +45,7 @@ jobs:
       - name: Run the e2e tests
         run: |
           ${{ github.workspace }}/.venv3/bin/python -m pip install -e ${{ github.workspace }}/e2e
-          env E2E_HEADLESS=1 ${{ github.workspace }}/.venv3/bin/pytest ${{ github.workspace }}/e2e
+          ${{ github.workspace }}/.venv3/bin/pytest ${{ github.workspace }}/e2e
       - name: Archive the built app
         uses: actions/upload-artifact@v2
         with:

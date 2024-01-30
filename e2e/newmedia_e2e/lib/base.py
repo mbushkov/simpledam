@@ -176,8 +176,6 @@ class TestBase(unittest.TestCase):
     os.environ["IS_NM_E2E_TEST"] = "1"
 
     args = []
-    if os.environ.get("E2E_HEADLESS", False):
-      args.append("headless")
     cls.webdriver_service = chrome_service.Service("chromedriver", service_args=args)
     cls.webdriver_service.start()
 
