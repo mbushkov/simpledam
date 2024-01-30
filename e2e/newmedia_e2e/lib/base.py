@@ -191,9 +191,9 @@ class TestBase(unittest.TestCase):
   def _chromedriver(self):
     paths = [
         os.path.join(os.path.dirname(__file__), "..", "..", "..",
-                     "app/dist_electron/mac-arm64/simpledam.app/Contents/MacOS/simpledam"),
+                     "app/dist-electron/mac-arm64/simpledam.app/Contents/MacOS/simpledam"),
         os.path.join(os.path.dirname(__file__), "..", "..", "..",
-                     "app/dist_electron/mac/simpledam.app/Contents/MacOS/simpledam")
+                     "app/dist-electron/mac/simpledam.app/Contents/MacOS/simpledam")
     ]
     for p in paths:
       if os.path.exists(p):
