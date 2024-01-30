@@ -175,7 +175,10 @@ class TestBase(unittest.TestCase):
   def setUpClass(cls):
     os.environ["IS_NM_E2E_TEST"] = "1"
 
-    cls.webdriver_service = chrome_service.Service("chromedriver")
+    args = []
+    if os.environ.get("E2E_HEADLESS", False):
+      args.append("headless")
+    cls.webdriver_service = chrome_service.Service("chromedriver", service_args=args)
     cls.webdriver_service.start()
 
     requirement = pkg_resources.Requirement.parse("newmedia_e2e")
@@ -220,8 +223,7 @@ class TestBase(unittest.TestCase):
         desired_capabilities={
             "browserName": "chrome",
             "goog:chromeOptions": {
-                "args":
-                    args,
+                "args": args,
                 # Detect binary based on the platform.
                 "binary": self._chromedriver,
                 "extensions": [],
