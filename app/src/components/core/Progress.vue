@@ -13,7 +13,7 @@
 <style lang="scss" scoped>
 @import "../../styles/variables";
 // Import Bulma's core
-@import "~bulma/sass/utilities/_all";
+@import "../../styles/bulma/sass/utilities/_all";
 
 @mixin progress-size() {
   &.is-small {

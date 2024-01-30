@@ -35,10 +35,10 @@
 @import "./styles/variables";
 
 // Import virtual scroller's styles.
-@import "~vue-virtual-scroller/dist/vue-virtual-scroller.css";
+@import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
 
 // Import Bulma styles
-@import "~bulma";
+@import "./styles/bulma/bulma.sass";
 
 // Splitpanes styling.
 .splitpanes {

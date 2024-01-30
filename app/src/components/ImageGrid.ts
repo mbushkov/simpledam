@@ -157,6 +157,7 @@ export default defineComponent({
       } else {
         apiService.scanPaths(result.contents.paths);
       }
+      event.preventDefault();
     }
 
     function containerDraggedOver(event: DragEvent) {
