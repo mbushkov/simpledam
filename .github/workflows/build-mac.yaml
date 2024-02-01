@@ -1,7 +1,7 @@
-name: Building Intel MacOS package
+name: Build DMG package
 on: [push]
 jobs:
-  Build-Package:
+  Build-Intel-Package:
     runs-on: macos-12
     steps:
       - name: Check out repository code
@@ -54,10 +54,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-name: Building ARM MacOS package
-on: [push]
-jobs:
-  Build-Package:
+  Build-Arm-Package:
     runs-on: macos-14
     steps:
       - name: Check out repository code
