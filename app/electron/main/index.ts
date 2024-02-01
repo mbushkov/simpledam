@@ -174,6 +174,11 @@ async function createWindow(options: CreateWindowOptions = {}) {
   const { backend, port, secret } = await startBackendProcess(options.catalogPath);
   console.log(`[BACKEND] Process started (pid=${backend.pid}, port=${port}, secret=${secret}, path=${options.catalogPath})`);
 
+  const additionalArguments: string[] = [];
+  if (process.env.INSIDE_E2E_TEST) {
+    additionalArguments.push('--inside-e2e-test')
+  }
+
   // Create the browser window.
   const win = new BrowserWindow({
     title: 'simpledam (pre-alpha)' + (options.catalogPath ? ` - ${options.catalogPath}` : ''),
@@ -185,8 +190,10 @@ async function createWindow(options: CreateWindowOptions = {}) {
     icon: path.join(process.env.VITE_PUBLIC, 'favicon.ico'),
     webPreferences: {
       preload,
+      additionalArguments,
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: true,
     }
   });
 

@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer, webFrame } from 'electron';
 
-if (process.env.IS_NM_E2E_TEST) {
+if (process.argv.indexOf('--inside-e2e-test') !== -1) {
   contextBridge.exposeInMainWorld('rawElectron', {
     openDevTools() {
       ipcRenderer.send('raw:open-dev-tools')

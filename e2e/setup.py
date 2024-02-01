@@ -9,8 +9,8 @@ setup_args = dict(
     maintainer_email="realbushman@gmail.com",
     packages=find_namespace_packages(),
     install_requires=[
-        "selenium==3.141.0",
-        "pytest==6.2.5",
+        "selenium==4.17.2",
+        "pytest==8.0.0",
     ],
     data_files=[(
         "newmedia_e2e/assets",

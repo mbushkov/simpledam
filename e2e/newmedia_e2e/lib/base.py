@@ -1,12 +1,13 @@
 import os
 import pdb
 import pkg_resources
+import subprocess
 import time
 import unittest
 from typing import Any, Callable, List, Optional, TypeVar, Union
 
 from selenium import webdriver
-from selenium.webdriver import remote
+from selenium.webdriver.chromium.options import ChromiumOptions
 from selenium.common import exceptions as selenium_exceptions
 from selenium.webdriver.chrome import service as chrome_service
 from selenium.webdriver.remote import webelement
@@ -173,10 +174,8 @@ class TestBase(unittest.TestCase):
 
   @classmethod
   def setUpClass(cls):
-    os.environ["IS_NM_E2E_TEST"] = "1"
-
-    args = []
-    cls.webdriver_service = chrome_service.Service("chromedriver", service_args=args)
+    os.environ["INSIDE_E2E_TEST"] = "1"
+    cls.webdriver_service = chrome_service.Service("chromedriver", service_args=[], log_output=subprocess.STDOUT)
     cls.webdriver_service.start()
 
     requirement = pkg_resources.Requirement.parse("newmedia_e2e")
@@ -189,7 +188,7 @@ class TestBase(unittest.TestCase):
     cls.webdriver_service.stop()
 
   @property
-  def _chromedriver(self):
+  def _browser(self):
     paths = [
         os.path.join(os.path.dirname(__file__), "..", "..", "..",
                      "app/dist-electron/mac-arm64/simpledam.app/Contents/MacOS/simpledam"),
@@ -200,7 +199,7 @@ class TestBase(unittest.TestCase):
       if os.path.exists(p):
         return p
 
-    raise RuntimeError("chromedriver binary couldn't be found at following locations: " + ", ".join(paths))
+    raise RuntimeError("browser binary couldn't be found at following locations: " + ", ".join(paths))
 
   def CreateWindow(self,
                    scan_path: Optional[str] = None,
@@ -209,30 +208,27 @@ class TestBase(unittest.TestCase):
 
     args = []
 
+    class ElectronOptions(ChromiumOptions):
+      def to_capabilities(self) -> dict:
+        result = super().to_capabilities()
+        result["browserName"] = "chrome"
+        result[self.KEY]["windowTypes"] = ["webview"]
+        return result
+
+    options = ElectronOptions()
+    options.binary_location = self._browser
+
     if scan_path is not None:
-      args.append("--scan=%s" % scan_path)
+      options.add_argument("--scan=%s" % scan_path)
 
     if catalog_path is not None:
-      args.append("--catalog=%s" % catalog_path)
+      options.add_argument("--catalog=%s" % catalog_path)
 
-    print("Launching with args: ", args)
     wd = webdriver.Remote(
         command_executor=self.__class__.webdriver_service.service_url,
-        desired_capabilities={
-            "browserName": "chrome",
-            "goog:chromeOptions": {
-                "args": args,
-                # Detect binary based on the platform.
-                "binary": self._chromedriver,
-                "extensions": [],
-                "windowTypes": ["webview"]
-            },
-            "platform": "ANY",
-            "version": ""
-        },
-        browser_profile=None,
-        proxy=None,
-        keep_alive=False)
+        options=options,
+        keep_alive=False,
+      )
     win = BrowserWindow(wd)
 
     jquery_present = wd.execute_script("return window.$ !== undefined;")

@@ -29,7 +29,7 @@ setup_args = dict(
         "dev": [
             "pyinstaller==5.4.1",
             "ipython==8.5.0",
-            "pytest==7.1.3",
+            "pytest==8.0.0",
             "pytest-asyncio==0.19.0",
         ],
     },
