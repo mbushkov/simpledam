@@ -48,9 +48,10 @@ class DataStore:
 
   def __init__(self, db_path: Optional[pathlib.Path] = None):
     self._db_path = db_path and str(db_path) or ""
-    self._conn = None
+    self._conn: Optional[aiosqlite.Connection] = None
+    self._conn_lock = asyncio.Lock()
 
-  async def _GetConn(self):
+  async def _GetConnImpl(self) -> aiosqlite.Connection:
     if self._conn is not None:
       return self._conn
 
@@ -83,6 +84,10 @@ class DataStore:
     ])
 
     return self._conn
+  
+  async def _GetConn(self) -> aiosqlite.Connection:
+    async with self._conn_lock:
+      return await self._GetConnImpl()
 
   async def Close(self) -> None:
     assert self._conn is not None
