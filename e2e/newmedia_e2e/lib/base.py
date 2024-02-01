@@ -6,6 +6,8 @@ import time
 import unittest
 from typing import Any, Callable, List, Optional, TypeVar, Union
 
+from retry import retry
+
 from selenium import webdriver
 from selenium.webdriver.chromium.options import ChromiumOptions
 from selenium.common import exceptions as selenium_exceptions
@@ -147,12 +149,14 @@ class BrowserWindow:
   def GetDisplayedElement(self, query: str) -> webelement.WebElement:
     return self.WaitUntil(self._FindElement, query)
 
+  @retry(selenium_exceptions.ElementNotInteractableException, tries=10, delay=1)
   def Click(self, query_or_elem: Union[str, webelement.WebElement]) -> None:
     if isinstance(query_or_elem, webelement.WebElement):
       query_or_elem.click()
     else:
       self.GetDisplayedElement(query_or_elem).click()
 
+  @retry(selenium_exceptions.ElementNotInteractableException, tries=10, delay=1)
   def DoubleClick(self, query_or_elem: Union[str, webelement.WebElement]) -> None:
     if isinstance(query_or_elem, webelement.WebElement):
       elem = query_or_elem
@@ -162,6 +166,7 @@ class BrowserWindow:
     action = webdriver.ActionChains(self.wd)
     action.double_click(elem).perform()
 
+  @retry(selenium_exceptions.ElementNotInteractableException, tries=10, delay=1)
   def SendKeys(self, keys: str):
     body = self.GetDisplayedElement('body')
     body.send_keys(keys)
