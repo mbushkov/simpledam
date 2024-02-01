@@ -73,6 +73,7 @@ jobs:
           ${{ github.workspace }}/.venv3/bin/python -m pip install --upgrade pip wheel setuptools
       - name: Custom-build rawpy (it has no arm64 distribution)
         run: |
+          ${{ github.workspace }}/.venv3/bin/python -m pip install Cython==3.0.8 numpy==1.26.3
           git clone --branch v0.19.0 "https://github.com/letmaik/rawpy" ${{ github.workspace }}/rawpy
           cd ${{ github.workspace }}/rawpy
           RAWPY_BUILD_GPL_CODE=1 python setup.py install
