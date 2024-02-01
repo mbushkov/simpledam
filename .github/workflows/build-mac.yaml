@@ -46,7 +46,7 @@ jobs:
         run: |
           ${{ github.workspace }}/.venv3/bin/python -m pip install -e ${{ github.workspace }}/e2e
           mkdir ${{ github.workspace }}/screenshots
-          E2E_SCREENSHOT_PATH=${{ github.workspace }}/screenshots ${{ github.workspace }}/.venv3/bin/pytest ${{ github.workspace }}/e2e
+          E2E_SCREENSHOTS_PATH=${{ github.workspace }}/screenshots ${{ github.workspace }}/.venv3/bin/pytest ${{ github.workspace }}/e2e
       - name: Save screenshots on failure
         uses: actions/upload-artifact@v2
         if: failure()
@@ -117,7 +117,7 @@ jobs:
         run: |
           ${{ github.workspace }}/.venv3/bin/python -m pip install -e ${{ github.workspace }}/e2e
           mkdir ${{ github.workspace }}/screenshots
-          E2E_SCREENSHOT_PATH=${{ github.workspace }}/screenshots ${{ github.workspace }}/.venv3/bin/pytest ${{ github.workspace }}/e2e
+          E2E_SCREENSHOTS_PATH=${{ github.workspace }}/screenshots ${{ github.workspace }}/.venv3/bin/pytest ${{ github.workspace }}/e2e
       - name: Save screenshots on failure
         uses: actions/upload-artifact@v2
         if: failure()
