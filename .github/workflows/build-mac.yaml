@@ -97,7 +97,17 @@ jobs:
           cd ${{ github.workspace }}/backend
           ${{ github.workspace }}/.venv3/bin/pyinstaller ./backend.spec
       - name: Build Electron app
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
         run: |
+          # Make sure that the self-signed signing certificate is trusted.
+          cd ${{ github.workspace }}
+          cat ${{ secrets.CSC_LINK }} | base64 --decode > ${{ github.workspace }}/simpledam-self-signed.p12
+          openssl pkcs12 -in simpledam-self-signed.p12 -clcerts -nokeys -password pass:$CSC_KEY_PASSWORD -out simpledam-self-signed.cert
+          security import simpledam-self-signed.p12 -P $CSC_KEY_PASSWORD
+          security add-trusted-cert -p codeSign ./simpledam-self-signed.cert
+          # Build the app.
           cd ${{ github.workspace }}/app
           npm ci
           npx vite build

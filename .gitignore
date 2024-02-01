@@ -10,3 +10,4 @@ backend/dist
 dist
 .lsp
 vendor
+.secret
