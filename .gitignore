@@ -9,3 +9,4 @@ backend/build
 backend/dist
 dist
 .lsp
+vendor
