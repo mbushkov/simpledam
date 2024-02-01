@@ -249,7 +249,7 @@ class TestBase(unittest.TestCase):
 
     def WindowCleanup():
       try:
-        with tempfile.NamedTemporaryFile() as fd:
+        with tempfile.NamedTemporaryFile(suffix=".png") as fd:
           wd.save_screenshot(fd.name)
           fd.seek(0)
           self.last_screenshot_bytes = fd.read()
