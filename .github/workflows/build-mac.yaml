@@ -5,13 +5,13 @@ jobs:
     runs-on: macos-12
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - name: Setup Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
       - name: Init venv
@@ -48,14 +48,14 @@ jobs:
           mkdir ${{ github.workspace }}/screenshots
           E2E_SCREENSHOTS_PATH=${{ github.workspace }}/screenshots ${{ github.workspace }}/.venv3/bin/pytest ${{ github.workspace }}/e2e
       - name: Save screenshots on failure
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: screenshots
           path: ${{ github.workspace }}/screenshots
           retention-days: 7
       - name: Archive the built app
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: simpledam_x86_64_dmg_package
           path: ${{ github.workspace }}/app/dist-electron/*.dmg
@@ -66,13 +66,13 @@ jobs:
     runs-on: macos-14
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - name: Setup Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
       - name: Init venv
@@ -119,14 +119,14 @@ jobs:
           mkdir ${{ github.workspace }}/screenshots
           E2E_SCREENSHOTS_PATH=${{ github.workspace }}/screenshots ${{ github.workspace }}/.venv3/bin/pytest ${{ github.workspace }}/e2e
       - name: Save screenshots on failure
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: screenshots
           path: ${{ github.workspace }}/screenshots
           retention-days: 7
       - name: Archive the built app
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: simpledam_arm64_dmg_package
           path: ${{ github.workspace }}/app/dist-electron/*.dmg
