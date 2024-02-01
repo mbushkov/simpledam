@@ -1,6 +1,7 @@
 import { ActionService } from './action-service';
 import { SaveAction, SaveAndCloseAction, SaveAsAction, ScanPathsAction } from './file';
 import { DefaultOrientationAction, DeselectAllAction, ExportToFolderAction, FlipHorizontalAction, FlipVerticalAction, labelActions, rateActions, RotateCCWAction, RotateCWAction, SelectAllAction, ShowMediaFileAction } from './selection';
+import { SortByFileCreationTimeAscAction, SortByFileCreationTimeDescAction, SortByFileNameAscAction, SortByFileNameDescAction, SortByOriginTimeAscAction, SortByOriginTimeDescAction } from './sort';
 
 let _actionServiceSingleton: ActionService | undefined;
 
@@ -40,4 +41,11 @@ export function registerAllActions(actionService: ActionService) {
   for (const action of rateActions()) {
     actionService.registerAction(action);
   }  
+
+  actionService.registerAction(new SortByFileNameAscAction());
+  actionService.registerAction(new SortByFileNameDescAction());
+  actionService.registerAction(new SortByOriginTimeAscAction());
+  actionService.registerAction(new SortByOriginTimeDescAction());
+  actionService.registerAction(new SortByFileCreationTimeAscAction());
+  actionService.registerAction(new SortByFileCreationTimeDescAction());
 }

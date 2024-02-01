@@ -7,8 +7,20 @@ import { dirName } from './helpers/filesystem';
 import { filterSettingsInvariant, listForFilterSettingsInvariant, updateItemInList, updateListsPresence, updateListsWithFilter } from './helpers/filtering';
 import { Direction, moveAdditionalSelection, movePrimarySelection, selectAll, selectPrimary, selectPrimaryPreservingAdditionalIfPossible, selectRange, toggleAdditionalSelection } from './helpers/selection';
 import { TransientStore } from './transient-store';
+import moment from 'moment';
 
 export { Direction } from './helpers/selection';
+
+export enum SortAttribute {
+  FILE_NAME,
+  ORIGIN_TIME,
+  FILE_CREATION_TIME,
+};
+
+export enum SortOrder {
+  ASC,
+  DESC,
+};
 
 function _initialState(): State {
   return {
@@ -325,6 +337,58 @@ export class Store {
     for (const mdata of this.allSelectedMetadata()) {
       mdata.adjustments.verticalFlip = !mdata.adjustments.verticalFlip;
     }
+  }
+
+  public sort(attr: SortAttribute, order: SortOrder) {
+    const l = this.currentList();
+    let comparator: (a: ImageFile, b: ImageFile) => number;
+    switch (attr) {
+      case SortAttribute.FILE_NAME:
+        comparator = (a, b) => {
+          return a.path.localeCompare(b.path);
+        };
+        break;
+      case SortAttribute.ORIGIN_TIME:
+        comparator = (a, b) => {
+          let am: moment.Moment;
+          let bm: moment.Moment;
+          if (a.exif_data?.datetime_original) {
+            am = moment(a.exif_data?.datetime_original, 'YYYY:MM:DD HH:mm:ss')
+            if (!am.isValid()) {
+              am = moment(a.file_ctime);
+            }
+          } else {
+            am = moment(a.file_ctime);
+          }
+          if (b.exif_data?.datetime_original) {
+            bm = moment(b.exif_data?.datetime_original, 'YYYY:MM:DD HH:mm:ss')
+            if (!bm.isValid()) {
+              bm = moment(b.file_ctime);
+            }
+          } else {
+            bm = moment(b.file_ctime);
+          }
+
+          return am.diff(bm, 'millisecond');
+        };
+        break;
+      case SortAttribute.FILE_CREATION_TIME:
+        comparator = (a, b) => {
+          return a.file_ctime - b.file_ctime;
+        };
+        break;
+      default:
+        throw new Error('Unknown sort attribute');
+    }
+
+    if (order === SortOrder.DESC) {
+      const ascComparator = comparator;
+      comparator = (a, b) => -ascComparator(a, b);
+    }
+
+    l.items.sort((a, b) => {
+      return comparator(this._state.images[a], this._state.images[b]);
+    });
   }
 
   private * allSelectedMetadata(): IterableIterator<ImageMetadata> {

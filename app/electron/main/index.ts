@@ -428,6 +428,19 @@ app.on('ready', async () => {
       ],
     },
     {
+      label: 'Sort',
+      submenu: [
+        menuItem('SortByFileNameAsc', 'File Name (A→Z)'),
+        menuItem('SortByFileNameDesc', 'File Name (Z→A)'),
+        { type: 'separator' },
+        menuItem('SortByOriginTimeAsc', 'Origin Time (Past→Future)'),
+        menuItem('SortByOriginTimeDesc', 'Origin Time (Furtue→Past)'),
+        { type: 'separator' },
+        menuItem('SortByFileCreationTimeAsc', 'File Creation Time (Past→Future)'),
+        menuItem('SortByFileCreationTimeDesc', 'File Creation Time (Furtue→Past)'),
+      ],
+    },
+    {
       role: 'window',
       submenu: [
         {
