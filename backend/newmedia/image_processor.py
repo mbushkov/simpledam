@@ -245,7 +245,6 @@ def _GetRawPyFileInfo(path: pathlib.Path,
   exif_data = _ExifReadToExifData(exif_tags)
 
   preview_size = None
-  preview_timestamp = None
   if preview_bytes:
     preview_bytes_io = io.BytesIO(preview_bytes)
     with Image.open(preview_bytes_io) as preview_img:
@@ -255,7 +254,6 @@ def _GetRawPyFileInfo(path: pathlib.Path,
       preview_img.save(out, format='JPEG')
       preview_bytes = out.getvalue()
 
-    preview_timestamp = int(time.time() * 1000)
     logging.info("Found existing RAW preview, %dx%d (original %dx%d)", preview_size.width,
                  preview_size.height, sizes.width, sizes.height)
 

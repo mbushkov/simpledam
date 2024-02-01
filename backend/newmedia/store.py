@@ -149,13 +149,11 @@ VALUES ('state', ?)
     loop = asyncio.get_running_loop()
 
     prev_info = None
-    prev_blob = None
     conn = await self._GetConn()
     async with conn.execute("SELECT info FROM ImageData WHERE path = ?",
                             (str(path),)) as cursor:
       async for row in cursor:
         prev_info = store_schema.ImageFile.FromJSON(bson.loads(row[0]))
-        prev_blob = row[1]
 
     result, preview_bytes = await image_processor.IMAGE_PROCESSOR.GetFileInfo(path, prev_info)
     serialized = bson.dumps(result.ToJSON())
