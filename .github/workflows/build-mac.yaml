@@ -76,7 +76,10 @@ jobs:
           ${{ github.workspace }}/.venv3/bin/python -m pip install Cython==3.0.8 numpy==1.26.3
           git clone --branch v0.19.0 "https://github.com/letmaik/rawpy" ${{ github.workspace }}/rawpy
           cd ${{ github.workspace }}/rawpy
-          RAWPY_BUILD_GPL_CODE=1 ${{ github.workspace }}/.venv3/bin/python setup.py install
+          # Force the libRaw compilation.
+          sed -i '' 's/needsCompile = any.*/needsCompile = True/g' setup.py
+          RAWPY_BUILD_GPL_CODE=1 ${{ github.workspace }}/.venv3/bin/python setup.py bdist_wheel
+          ${{ github.workspace }}/.venv3/bin/python -m pip install ${{ github.workspace }}/rawpy/dist/*.whl
           cd -
       - name: Install the backend Python package
         run: |
