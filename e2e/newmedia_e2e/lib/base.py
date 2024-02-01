@@ -2,12 +2,12 @@ import os
 import pdb
 import pkg_resources
 import subprocess
+import tempfile
 import time
 import unittest
 from typing import Any, Callable, List, Optional, TypeVar, Union
 
 from retry import retry
-
 from selenium import webdriver
 from selenium.webdriver.chromium.options import ChromiumOptions
 from selenium.common import exceptions as selenium_exceptions
@@ -171,11 +171,18 @@ class BrowserWindow:
     body = self.GetDisplayedElement('body')
     body.send_keys(keys)
 
+  def Screenshot(self, path:str) -> None:
+    self.wd.save_screenshot(path)
+
 
 class TestBase(unittest.TestCase):
 
   webdriver_service: chrome_service.Service
   jquery_source: str = ""
+
+  def __init__(self, methodName: str = "runTest") -> None:
+    super().__init__(methodName)
+    self.last_screenshot_bytes: Optional[bytes] = None
 
   @classmethod
   def setUpClass(cls):
@@ -241,6 +248,14 @@ class TestBase(unittest.TestCase):
       wd.execute_script(self.__class__.jquery_source)
 
     def WindowCleanup():
+      try:
+        with tempfile.NamedTemporaryFile() as fd:
+          wd.save_screenshot(fd.name)
+          fd.seek(0)
+          self.last_screenshot_bytes = fd.read()
+      except selenium_exceptions.WebDriverException:
+        pass
+      
       try:
         win.Close()
       except selenium_exceptions.InvalidSessionIdException:

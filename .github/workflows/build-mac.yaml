@@ -45,7 +45,15 @@ jobs:
       - name: Run the e2e tests
         run: |
           ${{ github.workspace }}/.venv3/bin/python -m pip install -e ${{ github.workspace }}/e2e
-          ${{ github.workspace }}/.venv3/bin/pytest ${{ github.workspace }}/e2e
+          mkdir ${{ github.workspace }}/screenshots
+          E2E_SCREENSHOT_PATH=${{ github.workspace }}/screenshots ${{ github.workspace }}/.venv3/bin/pytest ${{ github.workspace }}/e2e
+      - name: Save screenshots on failure
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: screenshots
+          path: ${{ github.workspace }}/screenshots
+          retention-days: 7
       - name: Archive the built app
         uses: actions/upload-artifact@v2
         with:
@@ -108,7 +116,15 @@ jobs:
       - name: Run the e2e tests
         run: |
           ${{ github.workspace }}/.venv3/bin/python -m pip install -e ${{ github.workspace }}/e2e
-          ${{ github.workspace }}/.venv3/bin/pytest ${{ github.workspace }}/e2e
+          mkdir ${{ github.workspace }}/screenshots
+          E2E_SCREENSHOT_PATH=${{ github.workspace }}/screenshots ${{ github.workspace }}/.venv3/bin/pytest ${{ github.workspace }}/e2e
+      - name: Save screenshots on failure
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: screenshots
+          path: ${{ github.workspace }}/screenshots
+          retention-days: 7
       - name: Archive the built app
         uses: actions/upload-artifact@v2
         with:
