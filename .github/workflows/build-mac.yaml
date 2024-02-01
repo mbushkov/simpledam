@@ -1,8 +1,8 @@
-name: Building MacOS package
+name: Building Intel MacOS package
 on: [push]
 jobs:
   Build-Package:
-    runs-on: macos-latest
+    runs-on: macos-12
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
@@ -51,5 +51,61 @@ jobs:
         with:
           name: simpledam_dmg_package
           path: ${{ github.workspace }}/app/dist_electron/*.dmg
+          if-no-files-found: error
+          retention-days: 7
+
+name: Building Intel MacOS package
+on: [push]
+jobs:
+  Build-Package:
+    runs-on: macos-12
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'
+      - name: Init venv
+        run: |
+          python -m venv ${{ github.workspace }}/.venv3
+          ${{ github.workspace }}/.venv3/bin/python -m pip install --upgrade pip wheel setuptools
+      - name: Install the backend Python package
+        run: |
+          ${{ github.workspace }}/.venv3/bin/python -m pip install ${{ github.workspace }}/backend[dev]
+      - name: Build PyInstaller-based binary
+        run: |
+          cd ${{ github.workspace }}/backend
+          ${{ github.workspace }}/.venv3/bin/pyinstaller ./backend.spec
+      - name: Build Electron app
+        run: |
+          cd ${{ github.workspace }}/app
+          npm ci
+          npx vite build
+          npx electron-builder
+      - name: Run the backend unit tests
+        run: |
+          ${{ github.workspace }}/.venv3/bin/pytest ${{ github.workspace }}/backend
+      - name: Run the frontend unit tests
+        run: |
+          cd ${{ github.workspace }}/app
+          npx vitest --browser.name=chrome --browser.headless
+      - name: Setup the chromedriver
+        uses: nanasess/setup-chromedriver@v2
+        with:
+          chromedriver-version: '120'
+      - name: Run the e2e tests
+        run: |
+          ${{ github.workspace }}/.venv3/bin/python -m pip install -e ${{ github.workspace }}/e2e
+          ${{ github.workspace }}/.venv3/bin/pytest ${{ github.workspace }}/e2e
+      - name: Archive the built app
+        uses: actions/upload-artifact@v2
+        with:
+          name: simpledam_dmg_package
+          path: ${{ github.workspace }}/app/dist-electron/*.dmg
           if-no-files-found: error
           retention-days: 7
