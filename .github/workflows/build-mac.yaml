@@ -101,6 +101,8 @@ jobs:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
         run: |
+          # Make sure that `security add-trusted-cert` won't ask for the password.
+          sudo security authorizationdb write com.apple.trust-settings.user allow
           # Make sure that the self-signed signing certificate is trusted.
           cd ${{ github.workspace }}
           echo "${{ secrets.CSC_LINK }}" | base64 --decode > ${{ github.workspace }}/simpledam-self-signed.p12
