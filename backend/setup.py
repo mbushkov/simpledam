@@ -15,19 +15,19 @@ setup_args = dict(
         "aiosqlite==0.17.0",
         "bson==0.5.10",
         "ExifRead==3.0.0",
-        "imagecodecs==2022.9.26",  # implicit dependency of tifffile
+        "imagecodecs==2024.1.1",  # implicit dependency of tifffile
         "pillow==9.2.0",
         "pyobjc-core==8.5.1",
         "pyobjc-framework-Cocoa==8.5.1",
         "pyobjc-framework-LaunchServices==8.5.1",
-        "rawpy==0.17.2",
-        "tifffile==2022.8.12",
+        "rawpy==0.19.0",
+        "tifffile==2024.1.30",
         "watchdog==2.1.9",
         "xattr==0.9.9",
     ],
     extras_require={
         "dev": [
-            "pyinstaller==5.4.1",
+            "pyinstaller==6.3.0",
             "ipython==8.5.0",
             "pytest==8.0.0",
             "pytest-asyncio==0.19.0",
