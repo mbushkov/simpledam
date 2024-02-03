@@ -14,8 +14,8 @@
       </splitpane>
       <splitpane class="right-pane"
         v-if="infoPaneShown"
-        :size="20"
-        :min-size="10"
+        :size="30"
+        :min-size="20"
         :max-size="80">
         <InfoPane></InfoPane>
       </splitpane>

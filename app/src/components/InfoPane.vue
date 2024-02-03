@@ -12,7 +12,7 @@
       </tr>
       <tr>
         <td>File Size</td>
-        <td>{{  selectedImageData.file_size }}</td>
+        <td>{{ selectedImageData.file_size }}</td>
       </tr>
       <tr>
         <td>Created</td>
@@ -23,8 +23,43 @@
         <td>{{ formatDate(selectedImageData.file_mtime) }}</td>
       </tr>
       <tr>
+        <td>Mime Type</td>
+        <td>{{ selectedImageData.mime_type }}</td>
+      </tr>
+      <tr>
         <td>Image Size</td>
         <td>{{ selectedImageData.size.width }}x{{ selectedImageData.size.height }}px</td>
+      </tr>
+      <tr>
+        <td>ICC Color Profile</td>
+        <td>{{ selectedImageData.icc_profile_description || '-' }}</td>
+      </tr>
+      <tr class="section" v-if="selectedExifData.length > 0">
+        <td colspan="2">
+          EXIF
+        </td>
+      </tr>
+      <tr v-for="[key, value] in selectedExifData" :key="key">
+        <td>{{ key }}</td>
+        <td>{{ value }}</td>
+      </tr>
+      <tr class="section" v-if="selectedXmpData.length > 0">
+        <td colspan="2">
+          XMP
+        </td>
+      </tr>
+      <tr v-for="[key, value] in selectedXmpData" :key="key">
+        <td>{{ key }}</td>
+        <td>{{ value }}</td>
+      </tr>
+      <tr class="section" v-if="selectedIptcData.length > 0">
+        <td colspan="2">
+          IPTC
+        </td>
+      </tr>
+      <tr v-for="[key, value] in selectedIptcData" :key="key">
+        <td>{{ key }}</td>
+        <td>{{ value }}</td>
       </tr>
     </table>
 
@@ -36,6 +71,7 @@
 
 <style lang="scss" scoped>
 @import "../styles/variables";
+
 .info-pane {
   background-color: black;
   width: 100%;
@@ -45,32 +81,52 @@
   font-size: 13px;
 
   text-align: left;
-  
+  overflow-x: hidden;
+  overflow-y: scroll;
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  right: 0;
+
   table {
     :nth-child(n+1) {
       margin-top: 1em;
     }
 
     width: 100%;
+
     tr {
       border: 1px solid $nm-text-color-light;
-      border: 1px solid $nm-text-color-light;
       background-color: $nm-background-color;
+
       &.section {
         background-color: $nm-dark-color;
         font-weight: bold;
+        border-top: none;
+        border-left: none;
+        border-right: none;
       }
-    }
-    td:nth-child(1) {
-      border-right: 1px solid $nm-text-color-light;
-      white-space: nowrap;
-    }
-    td:nth-child(2) {
-      border-right: 1px solid $nm-text-color-light;
-      width: 100%;
-    }
-    td {
-      padding: 4px;
+
+      &.section:nth-child(n+2) td {
+        padding-top: 1em;
+      }
+
+      td:nth-child(1) {
+        border-right: none;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      td:nth-child(2) {
+        border-right: 1px solid $nm-text-color-light;
+        width: 100%;
+      }
+
+      td {
+        padding: 4px;
+        overflow-wrap: anywhere;
+      }
     }
   }
 }

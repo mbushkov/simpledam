@@ -8,16 +8,24 @@ function convertImages(oldImages: { [key: string]: OldImageFile }): { [key: stri
     const o = oldImages[key];
     result[key] = {
       path: o.path,
-      file_ctime: 0,
-      file_mtime: 0,
-      file_size: 0,
-      file_color_tag: FileColorTag.NONE,
+      uid: o.uid,
+      
+      size: o.size,
       previews: [{
         preview_size: o.preview_size,
         preview_timestamp: o.preview_timestamp,
       }],
-      size: o.size,
-      uid: o.uid,
+
+      file_ctime: 0,
+      file_mtime: 0,
+      file_size: 0,
+      file_color_tag: FileColorTag.NONE,
+
+      icc_profile_description: '',
+      mime_type: '',
+      exif_data: {},
+      xmp_data: {},
+      iptc_data: {},
     }
   }
 

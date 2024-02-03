@@ -16,9 +16,32 @@ export default defineComponent({
       }
 
       const imageData = store.state.images[primaryId];
-      console.log(imageData);
       return imageData;
     });
+
+    const selectedExifData = computed(() => {
+      if (selectedImageData.value === undefined) {
+        return [];
+      }
+
+      return Object.entries(selectedImageData.value.exif_data).map(([k, v]) => [k, v.value]);
+    });
+
+    const selectedXmpData = computed(() => {
+      if (selectedImageData.value === undefined) {
+        return [];
+      }
+
+      return Object.entries(selectedImageData.value.xmp_data).map(([k, v]) => [k, v.value]);
+    });
+
+    const selectedIptcData = computed(() => {
+      if (selectedImageData.value === undefined) {
+        return [];
+      }
+
+      return Object.entries(selectedImageData.value.iptc_data).map(([k, v]) => [k, v.value]);
+    });    
 
     const formatDate = (utcMilliseconds:number):string => {
       const d = new Date(utcMilliseconds);
@@ -27,6 +50,9 @@ export default defineComponent({
 
     return {
       selectedImageData,
+      selectedExifData,
+      selectedXmpData,
+      selectedIptcData,
       formatDate,
     }
   }

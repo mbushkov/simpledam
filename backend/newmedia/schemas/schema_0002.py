@@ -1,4 +1,5 @@
 import dataclasses
+import datetime as datetime_lib
 import enum
 from typing import List, Optional
 
@@ -28,57 +29,32 @@ class ImageFilePreview:
 
 
 @dataclasses.dataclass
-class ExifData:
-  # See https://www.media.mit.edu/pia/Research/deepview/exif.html
-
-  # Tags used by IFD0 (main image)
-  make: Optional[str] = None
-  model: Optional[str] = None
-  orientation: Optional[int] = None
-  x_resolution: Optional[float] = None
-  y_resolution: Optional[float] = None
-  resolution_unit: Optional[int] = None
-  software: Optional[str] = None
-  datetime: Optional[str] = None
-  exposure_time: Optional[float] = None
-  f_number: Optional[float] = None
-
-  # Tags used by Exif SubIFD
-  exposure_program: Optional[int] = None
-  iso_speed_ratings: Optional[int] = None
-  exif_version: Optional[str] = None
-  datetime_original: Optional[str] = None
-  datetime_digitized: Optional[str] = None
-  shutter_speed_value: Optional[float] = None
-  aperture_value: Optional[float] = None
-  brightness_value: Optional[float] = None
-  exposure_bias_value: Optional[float] = None
-  max_aperture_value: Optional[float] = None
-  subject_distance: Optional[float] = None
-  metering_mode: Optional[int] = None
-  light_source: Optional[int] = None
-  flash: Optional[int] = None
-  focal_length: Optional[int] = None
-  exif_image_width: Optional[int] = None
-  exif_image_height: Optional[int] = None
-  focal_plane_x_resolution: Optional[float] = None
-  focal_plane_y_resolution: Optional[float] = None
-
-  # Tags used by IFD1 (thumbnail image)
-  image_width: Optional[int] = None
-  image_height: Optional[int] = None
-  bits_per_sample: Optional[int] = None
-  compression: Optional[int] = None
-  photometric_interpretation: Optional[int] = None
+class MetadataValue:
+  value: str
+  type_id: int
 
   @classmethod
   def FromJSON(cls, data):
-    return ExifData(**(data or {}))
+    return MetadataValue(data["value"], data["type_id"])
 
   def ToJSON(self):
     return dataclasses.asdict(self)
 
 
+class ImageFileMetadata(dict[str, MetadataValue]):
+  @classmethod
+  def FromJSON(cls, data):
+    return ImageFileMetadata({
+        k: MetadataValue.FromJSON(v)
+        for k, v in data.items()
+    })
+
+  def ToJSON(self):
+    return {
+        k: v.ToJSON()
+        for k, v in self.items()
+    }
+  
 class FileColorTag(enum.IntEnum):
   NONE = 0
   GRAY = 1
@@ -98,12 +74,16 @@ class ImageFile:
   size: Size
   previews: List[ImageFilePreview]
 
-  file_size: int = 0
-  file_ctime: int = 0
-  file_mtime: int = 0
-  file_color_tag: FileColorTag = FileColorTag.NONE
+  file_size: int
+  file_ctime: int
+  file_mtime: int
+  file_color_tag: FileColorTag
 
-  exif_data: Optional[ExifData] = None
+  icc_profile_description: str
+  mime_type: str
+  exif_data: ImageFileMetadata
+  xmp_data: ImageFileMetadata
+  iptc_data: ImageFileMetadata
 
   @classmethod
   def FromV1(cls, v1: schema_0001.ImageFile):
@@ -115,7 +95,19 @@ class ImageFile:
         path=v1.path,
         uid=v1.uid,
         size=v1.size,
-        previews=previews)
+        previews=previews,
+        
+        file_size=0,
+        file_ctime=0,
+        file_mtime=0,
+        file_color_tag=FileColorTag.NONE,
+        
+        icc_profile_description="",
+        mime_type="",
+        exif_data=ImageFileMetadata(),
+        xmp_data=ImageFileMetadata(),
+        iptc_data=ImageFileMetadata(),
+        )
 
   @classmethod
   def FromJSON(cls, data):
@@ -124,10 +116,15 @@ class ImageFile:
         uid=data["uid"],
         size=Size.FromJSON(data["size"]) or Size(0, 0),
         previews=[ImageFilePreview.FromJSON(v) for v in data["previews"]],
+        file_size=data["file_size"],
         file_ctime=data["file_ctime"],
         file_mtime=data["file_mtime"],
         file_color_tag=FileColorTag(data["file_color_tag"]),
-        exif_data=ExifData.FromJSON(data["exif_data"]),
+        icc_profile_description=data["icc_profile_description"],
+        mime_type=data["mime_type"],
+        exif_data=ImageFileMetadata.FromJSON(data["exif_data"]),
+        xmp_data=ImageFileMetadata.FromJSON(data["xmp_data"]),
+        iptc_data=ImageFileMetadata.FromJSON(data["iptc_data"]),
     )
 
   def ToJSON(self):
