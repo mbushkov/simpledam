@@ -8,6 +8,14 @@ from aiohttp.web_ws import WebSocketResponse
 from newmedia.utils.json_type import JSON, ToJSONProtocol
 
 
+class Error(Exception):
+  pass
+
+
+class NoWebsocketsError(Error):
+  pass
+
+
 class Communicator(abc.ABC):
   @abc.abstractmethod
   async def ListenToWebSocket(self, ws: WebSocketResponse):
@@ -57,6 +65,15 @@ class WebSocketCommunicator(Communicator):
     if to_remove:
       logging.info("Found %d dead websockets, removing", len(to_remove))
       self._websockets.difference_update(to_remove)
+
+    try_num = 0
+    while not self._websockets:
+      logging.info(
+          "No websockets to send data to, most likely: the app is still starting and connection wasn't established yet. Waiting.")
+      await asyncio.sleep(1)
+      try_num += 1
+      if try_num > 30:
+        raise NoWebsocketsError("Timeout while waiting for websockets to connect.")
 
     coros = [asyncio.shield(ws.send_json(json_data)) for ws in self._websockets]
     asyncio.gather(*coros)
