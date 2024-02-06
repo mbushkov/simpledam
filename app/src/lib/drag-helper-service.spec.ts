@@ -37,7 +37,8 @@ describe('DragHelperService', () => {
         dataTransfer: {
           setData: sinon.stub(),
           effectAllowed: '',
-        }
+        },
+        preventDefault: sinon.stub(),
       };
     });
 
@@ -87,7 +88,8 @@ describe('DragHelperService', () => {
             }),
           },
           dropEffect: undefined,
-        }
+        },
+        preventDefault: sinon.stub(),
       };
     });
 
