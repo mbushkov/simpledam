@@ -31,6 +31,7 @@ export class DragHelperService {
   }
 
   startDrag(event: DragEvent, files: UidAndPath[], thumbnailUrl: string) {
+    event.preventDefault();
     if (!event.dataTransfer) {
       log.warn('[DragHelperService] Unexpected empty dataTransfer property.');
       return
