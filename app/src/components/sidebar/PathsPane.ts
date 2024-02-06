@@ -42,59 +42,10 @@ export default defineComponent({
       store.changePathFilter(entry.path, !entry.selected, event.metaKey);
     }
 
-    function rowDragEntered(path: string, event: DragEvent) {
-      log.info('[PathsPane] Row drag entered:', path, event.dataTransfer?.dropEffect);
-    }
-
-    function rowDraggedOver(path: string, event: DragEvent) {
-      if (dragHelperServiceSingleton().eventHasFiles(event)) {
-        highlights[path] = true;
-      }
-    }
-
-    function rowDragLeft(path: string) {
-      highlights[path] = false;
-    }
-
-    function rowDropped(path: string, event: DragEvent) {
-      log.info('[PathsPane] Row dropped:', path, event.dataTransfer?.dropEffect);
-
-      highlights[path] = false;
-
-      const dragResult = dragHelperServiceSingleton().finishDrag(event);
-      if (!dragResult) {
-        return;
-      }
-      let srcPaths: string[];
-      if (dragResult.contents.kind === 'internal') {
-        srcPaths = dragResult.contents.uids.map(uid => store.state.images[uid].path);
-      } else {
-        throw new Error('Dragging external files onto a folder not implemented yet.')
-      }
-
-      let destPathRoot = path;
-      if (!destPathRoot.endsWith('/')) {
-        destPathRoot += '/';
-      }
-
-      log.info(`[PathsPane] Will move ${srcPaths.length} files to:`, destPathRoot)
-      for (const srcPath of srcPaths) {
-        log.info('[PathsPane] Processing path move:', srcPath)
-        const srcComponents = srcPath.split('/');
-        const destPath = destPathRoot + srcComponents[srcComponents.length - 1];
-
-        apiService.movePath(srcPath, destPath);
-      }
-    }
-
     return {
       highlights,
       entries,
       pathClicked,
-      rowDragEntered,
-      rowDraggedOver,
-      rowDragLeft,
-      rowDropped,
     };
   }
 });

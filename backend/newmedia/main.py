@@ -77,28 +77,6 @@ async def ScanPathsHandler(request: web.Request) -> web.Response:
   return web.Response(text="ok", content_type="text", headers=CORS_HEADERS)
 
 
-async def MovePathHandler(request: web.Request) -> web.Response:
-  data = await request.json()
-  src: str = data["src"]
-  dest: str = data["dest"]
-
-  communicator = cast(Communicator, request.app["communicator"])
-
-  try:
-    image_file = await store.DATA_STORE.MoveFile(pathlib.Path(src), pathlib.Path(dest))
-    await communicator.SendWebSocketData({
-        "action": "FILE_REGISTERED",
-        "image": image_file.ToJSON(),
-    })
-
-    return web.Response(text="ok", content_type="text", headers=CORS_HEADERS)
-  except store.Error as e:
-    return web.Response(status=520,
-                        text=f"{e.__class__.__name__}:{str(e)}",
-                        content_type="text",
-                        headers=CORS_HEADERS)
-
-
 async def ExportToPathHandler(request: web.Request) -> web.Response:
   data = await request.json()
 
@@ -222,7 +200,6 @@ def main():
       web.options("/save", AllowCorsHandler),
       web.post("/save", SecretCheckWrapper(SaveHandler)),
       web.options("/move-path", AllowCorsHandler),
-      web.post("/move-path", SecretCheckWrapper(MovePathHandler)),
       web.options("/export-to-path", AllowCorsHandler),
       web.post("/export-to-path", SecretCheckWrapper(ExportToPathHandler)),
       web.get("/images/{uid}", GetImageHandler),

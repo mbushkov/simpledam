@@ -6,10 +6,6 @@
         v-for="entry in entries"
         :key="entry.path"
         :class="{'drag-highlighted': highlights[entry.path]}"
-        @dragenter.prevent="rowDragEntered(entry.path, $event)"
-        @dragover.prevent="rowDraggedOver(entry.path, $event)"
-        @dragleave="rowDragLeft(entry.path)"
-        @drop="rowDropped(entry.path, $event)"
       >
         <div class="path-name">
           <span class="path-title">{{ entry.path }}</span>

@@ -55,11 +55,6 @@ export class ApiService {
     log.info('[API] Scan path response: ', response);
   }
 
-  async movePath(src: string, dest: string): Promise<void> {
-    const response = await axios.post(this.ROOT + '/move-path', { src, dest }, { headers: this.HEADERS });
-    log.info('[API] Move path response: ', response);
-  }
-
   async exportToPath(srcs: string[], dest: string, options: ExportToPathOptions): Promise<void> {
     const response = await axios.post(this.ROOT + '/export-to-path', { srcs, dest, options }, { headers: this.HEADERS });
     log.info('[API] Export to path response: ', response);
