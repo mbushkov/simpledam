@@ -1,13 +1,13 @@
 import { App, defineComponent } from "vue";
-import { VueFinalModalProperty } from "vue-final-modal";
+import { Vfm, useModal } from "vue-final-modal";
 
 export class ModalHelperService {
-  private $vfm: VueFinalModalProperty | undefined;
+  private $vfm: Vfm | undefined;
 
   constructor(private readonly app: App) {
   }
 
-  setVfm($vfm?: VueFinalModalProperty) {
+  setVfm($vfm?: Vfm) {
     this.$vfm = $vfm;
   }
 
@@ -16,12 +16,10 @@ export class ModalHelperService {
       return;
     }
 
-    if (!this.app.component(component.constructor.name)) {
-      this.app.component(component.constructor.name, component);
-    }
-    this.$vfm.show({
-      component: component.constructor.name,
+    const { open } = useModal({
+      component,
     });
+    open();
   }
 }
 

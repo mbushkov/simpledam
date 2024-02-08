@@ -1,13 +1,13 @@
 import { Action, FileRegisteredAction } from '@/backend/actions';
 import { ApiService } from '@/backend/api';
 import { FilterSettings, ImageFile, ImageList, ImageMetadata, Label, Rating, ReadonlyState, Rotation, State, ThumbnailRatio } from '@/store/schema';
+import moment from 'moment';
 import { bufferTime, catchError, filter, map } from 'rxjs/operators';
 import { reactive } from 'vue';
 import { dirName } from './helpers/filesystem';
 import { filterSettingsInvariant, listForFilterSettingsInvariant, updateItemInList, updateListsPresence, updateListsWithFilter } from './helpers/filtering';
 import { Direction, moveAdditionalSelection, movePrimarySelection, selectAll, selectPrimary, selectPrimaryPreservingAdditionalIfPossible, selectRange, toggleAdditionalSelection } from './helpers/selection';
 import { TransientStore } from './transient-store';
-import moment from 'moment';
 
 export { Direction } from './helpers/selection';
 
@@ -353,7 +353,7 @@ export class Store {
           let am: moment.Moment;
           let bm: moment.Moment;
           if (a.exif_data?.datetime_original) {
-            am = moment(a.exif_data?.datetime_original, 'YYYY:MM:DD HH:mm:ss')
+            am = moment(a.exif_data['datetime_original']?.value, 'YYYY:MM:DD HH:mm:ss')
             if (!am.isValid()) {
               am = moment(a.file_ctime);
             }
@@ -361,7 +361,7 @@ export class Store {
             am = moment(a.file_ctime);
           }
           if (b.exif_data?.datetime_original) {
-            bm = moment(b.exif_data?.datetime_original, 'YYYY:MM:DD HH:mm:ss')
+            bm = moment(b.exif_data['datetime_original']?.value, 'YYYY:MM:DD HH:mm:ss')
             if (!bm.isValid()) {
               bm = moment(b.file_ctime);
             }

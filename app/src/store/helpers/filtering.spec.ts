@@ -1,6 +1,6 @@
 import { createJSONWrapper, setupTestEnv } from "@/lib/test-utils";
 import { expect } from 'chai';
-import { FilterSettings, ImageFile, ImageList, FileColorTag, ImageMetadata, Label } from '../schema';
+import { FileColorTag, FilterSettings, ImageFile, ImageList, ImageMetadata, Label } from '../schema';
 import { filterSettingsInvariant, isMatchingFilterSettings, syncListWithPresenceMap, updateItemInList, updateListsPresence, updateListsWithFilter } from './filtering';
 
 setupTestEnv();
@@ -15,6 +15,11 @@ function imageFile(f: Partial<ImageFile> = {}): ImageFile {
     file_color_tag: FileColorTag.NONE,
     size: { width: 0, height: 0 },
     uid: 'a',
+    icc_profile_description: '',
+    mime_type: '',
+    exif_data: {},
+    xmp_data: {},
+    iptc_data: {},
     ...f
   };
 }

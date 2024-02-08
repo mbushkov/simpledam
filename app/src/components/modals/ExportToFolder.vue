@@ -1,5 +1,5 @@
 <template>
-  <vue-final-modal :esc-to-close="true" :focus-trap="true" :lock-scroll="true" :fit-parent="true" v-slot="{ close }" classes="modal-container" content-class="export-to-folder">
+  <VueFinalModal :esc-to-close="true" :focus-trap="true" :lock-scroll="true" :fit-parent="true" v-slot="{ close }" class="modal-container" :content-class="'export-to-folder'">
     <!-- TODO: dirty - this all should be encapsulated in an independent component. -->
     <div class="top" :set="closeFn = close">
       Export Selection To Folder
@@ -23,18 +23,28 @@
       <button class="button is-light is-small" :disabled="inProgress" @click="close()">Close</button>
       <button class="button is-primary is-small" :disabled="inProgress || !destinationPath" @click="startExport">Export</button>
     </div>
-  </vue-final-modal>
+  </VueFinalModal>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import "../../styles/variables";
-:deep(.modal-container) {
+
+.modal-container {
   display: flex;
   justify-content: center;
   align-items: center;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  top: 0;
 }
 
-:deep(.export-to-folder) {
+.export-to-folder {
+  &:focus {
+    outline: none;
+  }
+
   width: 80%;
   max-width: 800px;
   min-width: 500px;

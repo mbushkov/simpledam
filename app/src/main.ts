@@ -3,12 +3,12 @@ import * as log from 'loglevel';
 import { Pane, Splitpanes } from 'splitpanes';
 import 'splitpanes/dist/splitpanes.css';
 import { createApp } from 'vue';
-import VueFinalModal from 'vue-final-modal';
+import { createVfm } from 'vue-final-modal';
 import VueObserveVisibility from 'vue-observe-visibility'; // required by the virual scroller
 import VueVirtualScroller from 'vue-virtual-scroller';
+import App from './App.vue';
 import { registerAllActions, setActionServiceSingleton } from './actions';
 import { ActionService } from './actions/action-service';
-import App from './App.vue';
 import { ApiService, setApiServiceSingleton } from './backend/api';
 import { BackendMirror, setBackendMirrorSingleton } from './backend/backend-mirror';
 import { DragHelperService, setDragHelperServiceSingleton } from './lib/drag-helper-service';
@@ -26,7 +26,7 @@ const app = createApp(App);
 
 app.use(VueVirtualScroller);
 app.use(VueObserveVisibility); // required by the virual scroller
-app.use(VueFinalModal);
+app.use(createVfm());
 
 app.component('splitpane-container', Splitpanes);
 // eslint-disable-next-line vue/multi-word-component-names

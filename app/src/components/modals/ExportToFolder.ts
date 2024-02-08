@@ -4,11 +4,13 @@ import NmProgress from '@/components/core/Progress.vue';
 import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
 import { storeSingleton } from '@/store';
 import { computed, defineComponent, ref } from 'vue';
+import { VueFinalModal } from 'vue-final-modal';
 
 export default defineComponent({
   components: {
     NmCheckbox,
     NmProgress,
+    VueFinalModal,
   },
 
   setup() {
