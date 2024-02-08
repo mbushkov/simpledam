@@ -3,7 +3,6 @@
 .venv3.bak
 __pycache__
 *.egg-info
-.vscode
 .mypy_cache
 backend/build
 backend/dist

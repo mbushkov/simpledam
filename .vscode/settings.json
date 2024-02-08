@@ -1,0 +1,62 @@
+{
+  "files.exclude": {
+    ".lsp": true,
+    ".venv3": true,
+    "app/bin/**": true,
+    "**/dist/**": true,
+    "**/.pytest_cache": true,
+    "**/__pycache__": true,
+    "**/.mypy_cache": true,
+    "**/*.egg-info": true,
+    "**/node_modules": true    
+  },
+  "search.exclude": {
+    ".venv3": true,
+    "**/bin": true,    
+    "**/package-lock.json": true
+  },
+  "[markdown]": {
+    "editor.wordWrap": "bounded",
+    "editor.wordWrapColumn": 120,
+    "editor.quickSuggestions": {
+      "comments": "off",
+      "strings": "off",
+      "other": "off"
+    }
+  },
+  "[python]": {
+    "diffEditor.ignoreTrimWhitespace": false,
+    "editor.formatOnType": false,
+    "editor.formatOnSave": false,
+    "editor.defaultFormatter": "ms-python.autopep8",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports.ruff": "explicit"
+    },
+  },
+  "[typescript]": {
+    "editor.formatOnSave": false,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit",
+    }
+  },
+  "[vue]": {
+    "editor.formatOnSave": false
+  },  
+  "vetur.format.defaultFormatter.html": "prettier",
+  "vetur.format.defaultFormatter.ts": "vscode-typescript",
+  "editor.tabSize": 2,
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.diagnosticMode": "workspace",
+  "python.analysis.extraPaths": [
+    "./backend"
+  ],
+  "autopep8.args": [
+    "--max-line-length=120",
+    "--indent-size=2",
+  ],
+  "pylint.args": [
+    "pylint.args: [\"indent-string=  \"]",
+    "--enable=W0614",
+    "--enable=W0611"
+  ],
+}
