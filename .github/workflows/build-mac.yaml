@@ -25,6 +25,11 @@ jobs:
         run: |
           cd ${{ github.workspace }}/backend
           ${{ github.workspace }}/.venv3/bin/pyinstaller ./backend.spec
+      - name: Install Node dependencies
+        run: |
+          cd ${{ github.workspace }}/app
+          npm ci
+          cd -
       - name: Check TS code
         run: |
           cd ${{ github.workspace }}/app
@@ -33,7 +38,6 @@ jobs:
       - name: Build Electron app
         run: |
           cd ${{ github.workspace }}/app
-          npm ci
           ./node_modules/.bin/vite build
           ./node_modules/.bin/electron-builder
       - name: Run the backend unit tests
@@ -101,6 +105,11 @@ jobs:
         run: |
           cd ${{ github.workspace }}/backend
           ${{ github.workspace }}/.venv3/bin/pyinstaller ./backend.spec
+      - name: Install Node dependencies
+        run: |
+          cd ${{ github.workspace }}/app
+          npm ci
+          cd -
       - name: Check TS code
         run: |
           cd ${{ github.workspace }}/app
@@ -121,7 +130,6 @@ jobs:
           security add-trusted-cert -p codeSign ./simpledam-self-signed.cert
           # Build the app.
           cd ${{ github.workspace }}/app
-          npm ci
           ./node_modules/.bin/vite build
           ./node_modules/.bin/electron-builder
       - name: Run the backend unit tests
