@@ -118,8 +118,10 @@ class ExifData:
 
   def _AdaptJSON(self, data:Any) -> Any:
     for k, v in data.items():
-      if isinstance(v, (fractions.Fraction, datetime.datetime)):
+      if isinstance(v, fractions.Fraction):
         data[k] = str(v)
+      elif isinstance(v, datetime.datetime):
+        data[k] = v.strftime("%Y:%m:%d %H:%M:%S")
       elif isinstance(v, (tuple, list)):
         data[k] = [self._AdaptJSON(i) for i in v]
 
