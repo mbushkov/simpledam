@@ -1,6 +1,8 @@
 import asyncio
 import concurrent.futures
 import dataclasses
+import datetime
+import fractions
 import io
 import logging
 import os
@@ -9,12 +11,13 @@ import time
 import uuid
 from typing import Any, Dict, List, Optional, Tuple, cast
 
-import exiv2
+import exifread
+import exifread.utils
 import numpy
 import rawpy
 import tifffile  # allows low-level TIFF manipulation. Needed for formats not yet handled by PIL (16-bit color TIFFS)
 import xattr
-from PIL import Image, ImageCms, ImageMath
+from PIL import Image, ImageCms, ImageFile, ImageMath, ExifTags, TiffImagePlugin
 
 from newmedia import store_schema
 
@@ -43,65 +46,130 @@ _SUPPORTED_RAWPY_EXTENSIONS = frozenset([
 SUPPORTED_EXTENSIONS = _SUPPORTED_PILLOW_EXTENSIONS | _SUPPORTED_RAWPY_EXTENSIONS
 
 
-def _Exiv2DataToImageMetadata(data: Any) -> store_schema.ImageFileMetadata:
-  t = exiv2.TypeId
-  return store_schema.ImageFileMetadata({
-      v.tagName(): store_schema.MetadataValue(
-          value=v.toString(),
-          type_id=v.typeId(),
-      )
-      for v in data
-      if v.typeId() in [
-          t.asciiString,
-          t.date,
-          t.signedLong,
-          t.signedRational,
-          t.signedShort,
-          t.string,
-          t.tiffDouble,
-          t.tiffFloat,
-          t.tiffIfd,
-          t.time,
-          t.unsignedLong,
-          t.unsignedRational,
-          t.unsignedShort,
-          t.xmpText,
-      ] and v.count() <= 4
-  })
-
-
-def _GetFileInfo(path: pathlib.Path, prev_info: Optional[store_schema.ImageFile]) -> store_schema.ImageFile:
+def _GetFileInfo(path: pathlib.Path, prev_info: Optional[store_schema.ImageFile]) -> Tuple[store_schema.ImageFile, bytes]:
   _, ext = os.path.splitext(path.name)
   ext = ext.lower()
 
   start_time = time.time()
   try:
-    try:
-      image = exiv2.ImageFactory.open(str(path))
-      image.readMetadata()
-    except exiv2.Exiv2Error as e:
-      raise ImageProcessingError(e) from e
+    if ext in _SUPPORTED_PILLOW_EXTENSIONS:
+      return _GetPillowFileInfo(path, prev_info=prev_info)
+    elif ext in _SUPPORTED_RAWPY_EXTENSIONS:
+      return _GetRawPyFileInfo(path, prev_info=prev_info)
+    else:
+      raise ValueError(f"Path {path} does not have a supported extension.")
+  except Exception as e:
+    logging.exception(e)
+    raise
+  finally:
+    end_time = time.time()
+    logging.info("GetFileInfo %s took %.2fs", path, end_time - start_time)
 
+
+_EXIF_TAGS = dict((v, k) for k, v in ExifTags.TAGS.items())
+
+
+def _ParseExifRationalTuple(val: Optional[Tuple[str, str, str]]) -> Optional[Tuple[fractions.Fraction, fractions.Fraction, fractions.Fraction]]:
+  if val is None:
+    return None
+  return (fractions.Fraction(val[0]), fractions.Fraction(val[1]), fractions.Fraction(val[2]))
+
+
+def _ParseExifRational(val: Optional[str]) -> Optional[fractions.Fraction]:
+  if val is None:
+    return None
+  return fractions.Fraction(val)
+
+
+def _ParseExifDateTime(val: Optional[str]) -> Optional[datetime.datetime]:
+  if val is None:
+    return None
+  return datetime.datetime.strptime(val, "%Y:%m:%d %H:%M:%S")
+
+
+def _PillowExifToExifData(tags: Image.Exif) -> store_schema.ExifData:
+  result = store_schema.ExifData(
+      make=tags.get(_EXIF_TAGS["Make"]),
+      model=tags.get(_EXIF_TAGS["Model"]),
+      orientation=tags.get(_EXIF_TAGS["Orientation"]),
+      x_resolution=tags.get(_EXIF_TAGS["XResolution"]),
+      y_resolution=tags.get(_EXIF_TAGS["YResolution"]),
+      resolution_unit=tags.get(_EXIF_TAGS["ResolutionUnit"]),
+      software=tags.get(_EXIF_TAGS["Software"]),
+      date_time=_ParseExifDateTime(tags.get(_EXIF_TAGS["DateTime"])),
+      exposure_time=tags.get(_EXIF_TAGS["ExposureTime"]),
+      f_number=tags.get(_EXIF_TAGS["FNumber"]),
+      image_width=tags.get(_EXIF_TAGS["ImageWidth"]),
+      image_height=tags.get(_EXIF_TAGS["ImageLength"]),
+      compression=tags.get(_EXIF_TAGS["Compression"]),
+      photometric_interpretation=tags.get(_EXIF_TAGS["PhotometricInterpretation"]),
+
+      # Tags used by Exif SubIFD
+      exposure_program=tags.get(_EXIF_TAGS["ExposureProgram"]),
+      iso_speed_ratings=tags.get(_EXIF_TAGS["ISOSpeedRatings"]),
+      exif_version=tags.get(_EXIF_TAGS["ExifVersion"]),
+      date_time_original=_ParseExifDateTime(tags.get(_EXIF_TAGS["DateTimeOriginal"])),
+      date_time_digitized=_ParseExifDateTime(tags.get(_EXIF_TAGS["DateTimeDigitized"])),
+      shutter_speed_value=tags.get(_EXIF_TAGS["ShutterSpeedValue"]),
+      aperture_value=tags.get(_EXIF_TAGS["ApertureValue"]),
+      brightness_value=tags.get(_EXIF_TAGS["BrightnessValue"]),
+      exposure_bias_value=tags.get(_EXIF_TAGS["ExposureBiasValue"]),
+      max_aperture_value=tags.get(_EXIF_TAGS["MaxApertureValue"]),
+      subject_distance=tags.get(_EXIF_TAGS["SubjectDistance"]),
+      metering_mode=tags.get(_EXIF_TAGS["MeteringMode"]),
+      light_source=tags.get(_EXIF_TAGS["LightSource"]),
+      flash=tags.get(_EXIF_TAGS["Flash"]),
+      focal_length=tags.get(_EXIF_TAGS["FocalLength"]),
+      exif_image_width=tags.get(_EXIF_TAGS["ExifImageWidth"]),
+      exif_image_height=tags.get(_EXIF_TAGS["ExifImageHeight"]),
+      focal_plane_x_resolution=tags.get(_EXIF_TAGS["FocalPlaneXResolution"]),
+      focal_plane_y_resolution=tags.get(_EXIF_TAGS["FocalPlaneYResolution"]),
+
+      # Tags used by IFD1 (thumbnail image)
+      # Temporary don't set this - we have to deal with tuples.
+      # bits_per_sample=tags.get(_EXIF_TAGS["BitsPerSample"]),
+  )
+
+  # Ensure that no wrapper classes are used (critical for JSON serialization).
+  for f in dataclasses.fields(result):
+    val = getattr(result, f.name)
+    if isinstance(val, TiffImagePlugin.IFDRational):
+      setattr(result, f.name, float(val))
+  return result
+
+
+def _GetPillowFileInfo(path: pathlib.Path,
+                       prev_info: Optional[store_schema.ImageFile]) -> Tuple[store_schema.ImageFile, bytes]:
+  try:
+    im = Image.open(path)
     stat = os.stat(path)
-    uid = prev_info and prev_info.uid or uuid.uuid4().hex
+  except IOError as e:
+    raise ImageProcessingError(e)
 
-    attrs = xattr.xattr(path)
-    try:
-      finder_attrs = attrs['com.apple.FinderInfo']
-      file_color_tag = store_schema.FileColorTag(finder_attrs[9] >> 1 & 7)
-    except KeyError:
-      file_color_tag = store_schema.FileColorTag.NONE
+  uid = prev_info and prev_info.uid or uuid.uuid4().hex
+  if prev_info and prev_info.previews and max(p.preview_timestamp for p in prev_info.previews) < stat.st_mtime * 1000:
+    prev_info = None
 
-    icc_profile_description = ""
-    if image.iccProfileDefined():
-      with io.BytesIO(image.iccProfile().data().tobytes()) as f:
-        profile = ImageCms.ImageCmsProfile(f)
-      icc_profile_description = profile.profile.profile_description
+  attrs = xattr.xattr(path)
+  try:
+    finder_attrs = attrs['com.apple.FinderInfo']
+    file_color_tag = store_schema.FileColorTag(finder_attrs[9] >> 1 & 7)
+  except KeyError:
+    file_color_tag = store_schema.FileColorTag.NONE
 
+  icc_profile_description = ""
+  icc_profile = im.info.get("icc_profile")
+  if icc_profile is not None:
+    f = io.BytesIO(icc_profile)
+    prf = ImageCms.ImageCmsProfile(f)
+    icc_profile_description = ImageCms.getProfileName(prf)
+  
+  try:
+    width, height = im.size
     return store_schema.ImageFile(
         path=str(path),
         uid=uid,
-        size=store_schema.Size(image.pixelWidth(), image.pixelHeight()),
+        size=store_schema.Size(width, height),
         previews=[],
 
         file_size=stat.st_size,
@@ -110,17 +178,142 @@ def _GetFileInfo(path: pathlib.Path, prev_info: Optional[store_schema.ImageFile]
         file_color_tag=store_schema.FileColorTag(file_color_tag),
 
         icc_profile_description=icc_profile_description,
-        mime_type=image.mimeType(),
-        exif_data=_Exiv2DataToImageMetadata(image.exifData()),
-        xmp_data=_Exiv2DataToImageMetadata(image.xmpData()),
-        iptc_data=_Exiv2DataToImageMetadata(image.iptcData()),
-    )
-  except Exception as e:
-    logging.exception(e)
-    raise
+        mime_type=im.format or "",
+        exif_data=_PillowExifToExifData(im.getexif())
+    ), b""
   finally:
-    end_time = time.time()
-    logging.info("GetFileInfo %s took %.2fs", path, end_time - start_time)
+    im.close()
+
+
+def _ExifReadToExifData(tags: Dict[str, Any]) -> store_schema.ExifData:
+
+  def _Get(key: str) -> Any:
+    ret = tags.get(key)
+    if ret is None:
+      return None
+
+    if isinstance(ret.values, list):
+      result = ret.values[0]
+    else:
+      result = ret.values
+
+    if isinstance(result, exifread.utils.Ratio):
+      result = float(result)
+
+    return result
+
+  return store_schema.ExifData(
+      make=_Get("Image Make"),
+      model=_Get("Image Model"),
+      orientation=_Get("Image Orientation"),
+      x_resolution=_Get("Image XResolution"),
+      y_resolution=_Get("Image YResolution"),
+      resolution_unit=_Get("Image ResolutionUnit"),
+      software=_Get("Image Software"),
+      date_time=_ParseExifDateTime(_Get("Image DateTime")),
+      exposure_time=_Get("Image ExposureTime"),
+      f_number=_Get("Image FNumber"),
+      image_width=_Get("Image ImageWidth"),
+      image_height=_Get("Image ImageHeight"),
+      bits_per_sample=_Get("Image BitsPerSample"),
+      compression=_Get("Image Compression"),
+      photometric_interpretation=_Get("Image PhotometricInterpretation"),
+
+      # Tags used by Exif SubIFD
+      exposure_program=_Get("EXIF ExposureProgram"),
+      iso_speed_ratings=_Get("EXIF ISOSpeedRatings"),
+      exif_version=_Get("EXIF ExifVersion"),
+      date_time_original=_ParseExifDateTime(_Get("EXIF DateTimeOriginal")),
+      date_time_digitized=_ParseExifDateTime(_Get("EXIF DateTimeDigitized")),
+      shutter_speed_value=_Get("EXIF ShutterSpeedValue"),
+      aperture_value=_Get("EXIF ApertureValue"),
+      brightness_value=_Get("EXIF BrightnessValue"),
+      exposure_bias_value=_Get("EXIF ExposureBiasValue"),
+      max_aperture_value=_Get("EXIF MaxApertureValue"),
+      subject_distance=_Get("EXIF SubjectDistance"),
+      metering_mode=_Get("EXIF MeteringMode"),
+      light_source=_Get("EXIF LightSource"),
+      flash=_Get("EXIF Flash"),
+      focal_length=_Get("EXIF FocalLength"),
+      exif_image_width=_Get("EXIF ExifImageWidth"),
+      exif_image_height=_Get("EXIF ExifImageHeight"),
+      focal_plane_x_resolution=_Get("EXIF FocalPlaneXResolution"),
+      focal_plane_y_resolution=_Get("EXIF FocalPlaneYResolution"),
+  )
+
+
+def _GetRawPyFileInfo(path: pathlib.Path,
+                      prev_info: Optional[store_schema.ImageFile]) -> Tuple[store_schema.ImageFile, bytes]:
+  try:
+    stat = os.stat(path)
+    with rawpy.imread(str(path)) as raw:
+      sizes = raw.sizes
+
+      preview_bytes = b""
+      try:
+        thumb = raw.extract_thumb()
+      except rawpy.LibRawNoThumbnailError:  # type: ignore
+        logging.info("No RAW thumbnail found: %s", path)
+      except rawpy.LibRawUnsupportedThumbnailError:  # type: ignore
+        logging.info("Unsupported RAW thumbnail: %s", path)
+      else:
+        if thumb.format == rawpy.ThumbFormat.JPEG:  # type: ignore
+          preview_bytes = thumb.data
+        elif thumb.format == rawpy.ThumbFormat.BITMAP:  # type: ignore
+          logging.info("Ignoring non-JPEG RAW thumbnail: %s", path)
+  except (IOError, rawpy.LibRawError) as e:  # type: ignore
+    raise ImageProcessingError(e)
+
+  attrs = xattr.xattr(path)
+  try:
+    finder_attrs = attrs['com.apple.FinderInfo']
+    file_color_tag = store_schema.FileColorTag(finder_attrs[9] >> 1 & 7)
+  except KeyError:
+    file_color_tag = store_schema.FileColorTag.NONE
+
+  with open(path, "rb") as fd:
+    exif_tags = exifread.process_file(fd, details=False)
+  exif_data = _ExifReadToExifData(exif_tags)
+
+  preview_size = None
+  if preview_bytes:
+    preview_bytes_io = io.BytesIO(preview_bytes)
+    with Image.open(preview_bytes_io) as preview_img:
+      preview_img.thumbnail((MAX_DIMENSION, MAX_DIMENSION))
+      preview_size = store_schema.Size(preview_img.width, preview_img.height)
+      out = io.BytesIO()
+      preview_img.save(out, format='JPEG')
+      preview_bytes = out.getvalue()
+
+    logging.info("Found existing RAW preview, %dx%d (original %dx%d)", preview_size.width,
+                 preview_size.height, sizes.width, sizes.height)
+
+  uid = prev_info and prev_info.uid or uuid.uuid4().hex
+  if prev_info and prev_info.previews and max(p.preview_timestamp for p in prev_info.previews) < stat.st_mtime * 1000:
+    prev_info = None
+
+  previews = []
+  if preview_bytes and preview_size:
+    previews.append(store_schema.ImageFilePreview(
+        preview_size=preview_size,
+        preview_timestamp=int(time.time() * 1000)
+    ))
+  return store_schema.ImageFile(
+      str(path),
+      uid,
+      store_schema.Size(sizes.width, sizes.height),
+      previews=previews,
+
+      file_size=stat.st_size,
+      file_ctime=int(stat.st_ctime * 1000),
+      file_mtime=int(stat.st_mtime * 1000),
+      file_color_tag=store_schema.FileColorTag(file_color_tag),
+
+      icc_profile_description="",
+      mime_type="image/x-raw",
+
+      exif_data=exif_data,
+  ), preview_bytes
 
 
 def _ThumbnailFile(image_file: store_schema.ImageFile) -> Tuple[store_schema.ImageFile, Tuple[bytes]]:
@@ -186,13 +379,28 @@ def _ThumbnailPillowFile(image_file: store_schema.ImageFile) -> Tuple[store_sche
     out = io.BytesIO()
     im.save(out, format='JPEG')
 
-    return dataclasses.replace(image_file,
-                               size=store_schema.Size(width, height),
-                               previews=[
-                                   store_schema.ImageFilePreview(
-                                       preview_size=store_schema.Size(target_width, target_height),
-                                       preview_timestamp=int(time.time() * 1000))
-                               ]), (out.getvalue(),)
+    return (
+        store_schema.ImageFile(
+            path=image_file.path,
+            uid=image_file.uid,
+            size=store_schema.Size(width, height),
+            previews=[
+                store_schema.ImageFilePreview(
+                    preview_size=store_schema.Size(target_width, target_height),
+                    preview_timestamp=int(time.time() * 1000))
+            ],
+
+            file_color_tag=image_file.file_color_tag,
+            file_size=stat.st_size,
+            file_ctime=image_file.file_ctime,
+            file_mtime=image_file.file_mtime,
+
+            mime_type=image_file.mime_type,
+            icc_profile_description=image_file.icc_profile_description,
+            exif_data=image_file.exif_data,
+        ),
+        (out.getvalue(),),
+    )
   finally:
     im.close()
 
@@ -205,55 +413,49 @@ def _ThumbnailRawPyFile(image_file: store_schema.ImageFile) -> Tuple[store_schem
 
   try:
     with rawpy.imread(image_file.path) as raw:
-      preview_bytes = b""
-      target_width = 0
-      target_height = 0
-      try:
-        thumb = raw.extract_thumb()
-      except rawpy.LibRawNoThumbnailError:  # type: ignore
-        logging.info("No RAW thumbnail found: %s", image_file.path)
-      except rawpy.LibRawUnsupportedThumbnailError:  # type: ignore
-        logging.info("Unsupported RAW thumbnail: %s", image_file.path)
-      else:
-        if thumb.format == rawpy.ThumbFormat.JPEG:  # type: ignore
-          preview_bytes = thumb.data
-        elif thumb.format == rawpy.ThumbFormat.BITMAP:  # type: ignore
-          logging.info("Ignoring non-JPEG RAW thumbnail: %s", image_file.path)
-
-      if preview_bytes:
-        preview_bytes_io = io.BytesIO(preview_bytes)
-        with Image.open(preview_bytes_io) as preview_img:
-          preview_img.thumbnail((MAX_DIMENSION, MAX_DIMENSION))
-          target_width = preview_img.width
-          target_height = preview_img.height
-          out = io.BytesIO()
-          preview_img.save(out, format='JPEG')
-          preview_bytes = out.getvalue()        
-      else:
-        rgb = raw.postprocess(
-            half_size=True,
-            output_bps=8,
-            use_camera_wb=True,
-        )
-        with Image.fromarray(rgb) as im:
-          im.thumbnail((MAX_DIMENSION, MAX_DIMENSION))
-          out = io.BytesIO()
-          im.save(out, format='JPEG')
-          preview_bytes = out.getvalue()
+      rgb = raw.postprocess(
+          half_size=True,
+          output_bps=8,
+          use_camera_wb=True,
+      )
+      im = Image.fromarray(rgb)
   except (IOError, rawpy.LibRawError) as e:  # type: ignore
     logging.exception(e)
     raise ImageProcessingError(e)
 
-  return (
-      dataclasses.replace(image_file,
-                          previews=[
-                              store_schema.ImageFilePreview(
-                                  preview_size=store_schema.Size(target_width, target_height),
-                                  preview_timestamp=int(time.time() * 1000))
-                          ],
-                          ),
-      (out.getvalue(),),
-  )
+  try:
+    width, height = im.size
+    im.thumbnail((MAX_DIMENSION, MAX_DIMENSION))
+    target_width, target_height = im.size
+
+    out = io.BytesIO()
+    im.save(out, format='JPEG')
+
+    return (
+        store_schema.ImageFile(
+            path=image_file.path,
+            uid=image_file.uid,
+            size=store_schema.Size(width, height),
+            previews=[
+                store_schema.ImageFilePreview(
+                    preview_size=store_schema.Size(target_width, target_height),
+                    preview_timestamp=int(time.time() * 1000))
+            ],
+
+            file_color_tag=image_file.file_color_tag,
+            file_size=stat.st_size,
+            file_ctime=image_file.file_ctime,
+            file_mtime=image_file.file_mtime,
+
+            mime_type="image/x-raw",
+            icc_profile_description="",
+
+            exif_data=image_file.exif_data,
+        ),
+        (out.getvalue(),),
+    )
+  finally:
+    im.close()
 
 
 class ImageProcessor:
@@ -261,7 +463,7 @@ class ImageProcessor:
     self._info_thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=4)
     self._thumbnail_thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=2)
 
-  async def GetFileInfo(self, path: pathlib.Path, prev_info: Optional[store_schema.ImageFile]) -> store_schema.ImageFile:
+  async def GetFileInfo(self, path: pathlib.Path, prev_info: Optional[store_schema.ImageFile]) -> Tuple[store_schema.ImageFile, bytes]:
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(self._info_thread_pool, _GetFileInfo, path,
                                       prev_info)

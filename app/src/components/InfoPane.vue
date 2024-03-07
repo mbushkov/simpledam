@@ -43,24 +43,6 @@
         <td>{{ key }}</td>
         <td>{{ value }}</td>
       </tr>
-      <tr class="section" v-if="selectedXmpData.length > 0">
-        <td colspan="2">
-          XMP
-        </td>
-      </tr>
-      <tr v-for="[key, value] in selectedXmpData" :key="key">
-        <td>{{ key }}</td>
-        <td>{{ value }}</td>
-      </tr>
-      <tr class="section" v-if="selectedIptcData.length > 0">
-        <td colspan="2">
-          IPTC
-        </td>
-      </tr>
-      <tr v-for="[key, value] in selectedIptcData" :key="key">
-        <td>{{ key }}</td>
-        <td>{{ value }}</td>
-      </tr>
     </table>
 
     <span v-if="selectedImageData === undefined">

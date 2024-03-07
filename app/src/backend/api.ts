@@ -87,7 +87,7 @@ export class ApiService {
   }
 
   async fetchState(): Promise<State | undefined> {
-    const response = await axios.get(this.ROOT + '/saved-state', { responseType: 'text', headers: this.HEADERS });
+    const response = await axios.get(this.ROOT + '/saved-state', { responseType: 'json', headers: this.HEADERS });
     log.info('[API] Fetch state response status: ', response.status);
     if (response.data['state'] == null) {
       return undefined;

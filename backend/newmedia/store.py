@@ -155,7 +155,7 @@ VALUES ('state', ?)
       async for row in cursor:
         prev_info = store_schema.ImageFile.FromJSON(bson.loads(row[0]))
 
-    result = await image_processor.IMAGE_PROCESSOR.GetFileInfo(path, prev_info)
+    result, preview_bytes = await image_processor.IMAGE_PROCESSOR.GetFileInfo(path, prev_info)
     serialized = bson.dumps(result.ToJSON())
 
     await conn.execute_insert(
@@ -163,6 +163,12 @@ VALUES ('state', ?)
 INSERT OR REPLACE INTO ImageData(uid, path, info)
 VALUES (?, ?, ?)
       """, (result.uid, str(result.path), serialized))
+    if result.previews:
+      await conn.execute_insert(
+          """
+  INSERT OR REPLACE INTO ImagePreview(uid, width, height, blob)
+  VALUES (?, ?, ?, ?)
+        """, (result.uid, result.previews[0].preview_size.width, result.previews[0].preview_size.height, preview_bytes))      
     await conn.commit()
 
     return result

@@ -352,16 +352,16 @@ export class Store {
         comparator = (a, b) => {
           let am: moment.Moment;
           let bm: moment.Moment;
-          if (a.exif_data?.datetime_original) {
-            am = moment(a.exif_data['datetime_original']?.value, 'YYYY:MM:DD HH:mm:ss')
+          if (a.exif_data?.date_time_original) {
+            am = moment(a.exif_data.date_time_original, 'YYYY:MM:DD HH:mm:ss')
             if (!am.isValid()) {
               am = moment(a.file_ctime);
             }
           } else {
             am = moment(a.file_ctime);
           }
-          if (b.exif_data?.datetime_original) {
-            bm = moment(b.exif_data['datetime_original']?.value, 'YYYY:MM:DD HH:mm:ss')
+          if (b.exif_data?.date_time_original) {
+            bm = moment(b.exif_data.date_time_original, 'YYYY:MM:DD HH:mm:ss')
             if (!bm.isValid()) {
               bm = moment(b.file_ctime);
             }
