@@ -99,7 +99,7 @@ jobs:
       - name: Check TS code
         run: |
           cd ${{ github.workspace }}/app
-          npx tsc --noEmit
+          ./node_modules/typescript/bin/tsc --noEmit
           cd -
       - name: Build Electron app
         env:
