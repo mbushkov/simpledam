@@ -45,7 +45,11 @@
   "vetur.format.defaultFormatter.html": "prettier",
   "vetur.format.defaultFormatter.ts": "vscode-typescript",
   "editor.tabSize": 2,
-  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.typeCheckingMode": "standard",
+  "python.analysis.exclude": [
+    "**/vendor/**",
+    "**/setup.py",
+  ],
   "python.analysis.diagnosticMode": "workspace",
   "python.analysis.extraPaths": [
     "./backend"

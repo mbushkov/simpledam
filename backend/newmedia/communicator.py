@@ -18,11 +18,11 @@ class NoWebsocketsError(Error):
 
 class Communicator(abc.ABC):
   @abc.abstractmethod
-  async def ListenToWebSocket(self, ws: WebSocketResponse):
+  async def ListenToWebSocket(self, ws: WebSocketResponse) -> None:
     raise NotImplemented()
 
   @abc.abstractmethod
-  async def SendWebSocketData(self, data: Union[JSON, ToJSONProtocol]):
+  async def SendWebSocketData(self, data: Union[JSON, ToJSONProtocol]) -> None:
     raise NotImplemented()
 
 

@@ -272,7 +272,7 @@ def _GetRawPyFileInfo(path: pathlib.Path,
     file_color_tag = store_schema.FileColorTag.NONE
 
   with open(path, "rb") as fd:
-    exif_tags = exifread.process_file(fd, details=False)
+    exif_tags = exifread.process_file(fd, details=False) # type: ignore
   exif_data = _ExifReadToExifData(exif_tags)
 
   preview_size = None
