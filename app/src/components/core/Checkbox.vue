@@ -4,7 +4,7 @@
     ref="label"
     :class="[size, { 'is-disabled': disabled }]"
     @click="focus"
-    @keydown.prevent.enter="$refs.label.click()">
+    @keydown.prevent.enter="($refs.label as any).click()">
     <input
         v-model="inputValue"
         type="checkbox"

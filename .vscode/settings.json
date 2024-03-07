@@ -63,4 +63,5 @@
     "--enable=W0614",
     "--enable=W0611"
   ],
+  "typescript.tsserver.experimental.enableProjectDiagnostics": true,
 }

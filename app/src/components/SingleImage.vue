@@ -1,5 +1,5 @@
 <template>
-  <div class="single-image" ref="el" @dblclick.stop.prevent="doubleClicked($event)" @contextmenu.prevent="contextClicked()">
+  <div class="single-image" ref="el" @dblclick.stop.prevent="doubleClicked()" @contextmenu.prevent="contextClicked()">
     <img
       ref="img"
       v-if="imageUrl"

@@ -6,7 +6,7 @@
     @dragenter.prevent="containerDragEntered($event)"
     @dragleave.prevent="containerDragLeft($event)"
     @dragover.prevent="containerDraggedOver($event)"
-    @dragleave="containerDragEnded($event)"
+    @dragleave="containerDragEnded()"
     @drop="containerDropped($event)"
   >
     <RecycleScroller

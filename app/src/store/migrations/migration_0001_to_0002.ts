@@ -1,5 +1,5 @@
-import { State as OldState, ImageFile as OldImageFile } from '@/store/schema/version_0001';
-import { State as NewState, ImageFile as NewImageFile, FileColorTag } from '@/store/schema/version_0002';
+import { ImageFile as OldImageFile, State as OldState } from '@/store/schema/version_0001';
+import { FileColorTag, ImageFile as NewImageFile, State as NewState } from '@/store/schema/version_0002';
 
 function convertImages(oldImages: { [key: string]: OldImageFile }): { [key: string]: NewImageFile } {
   const result: { [key: string]: NewImageFile } = {};
@@ -24,8 +24,6 @@ function convertImages(oldImages: { [key: string]: OldImageFile }): { [key: stri
       icc_profile_description: '',
       mime_type: '',
       exif_data: {},
-      xmp_data: {},
-      iptc_data: {},
     }
   }
 
