@@ -1,8 +1,8 @@
-import { RotateCCWAction, RotateCWAction, ExportToFolderAction, ShowMediaFileAction } from '@/actions/selection';
+import { ExportToFolderAction, RotateCCWAction, RotateCWAction, ShowMediaFileAction } from '@/actions/selection';
+import Icon from '@/components/core/Icon.vue';
 import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
 import { ImageViewerTab, storeSingleton, transientStoreSingleton } from '@/store';
 import { computed, defineComponent } from 'vue';
-import Icon from '@/components/core/Icon.vue';
 
 export default defineComponent({
   components: {
@@ -65,6 +65,14 @@ export default defineComponent({
       electronHelperServiceSingleton().showRatingMenu();
     }
 
+    function isListActive() {
+      return currentTab.value === ImageViewerTab.LIST;
+    }
+
+    function setListActive() {
+      currentTab.value = ImageViewerTab.LIST;
+    }
+
     function isThumbnailsActive() {
       return currentTab.value === ImageViewerTab.THUMBNAILS;
     }
@@ -85,6 +93,8 @@ export default defineComponent({
       leftPaneWidth,
       selectionPresent,
 
+      isListActive,
+      setListActive,
       isThumbnailsActive,
       setThumbnailsActive,
       isMediaActive,

@@ -8,6 +8,7 @@ import { reactive } from 'vue';
 export enum ImageViewerTab {
   THUMBNAILS = 0,
   MEDIA = 1,
+  LIST = 2,
 }
 
 export interface SingleImageViewerOptions {

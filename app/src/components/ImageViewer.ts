@@ -1,13 +1,15 @@
-import { defineComponent, computed, ref } from 'vue';
-import ImageGrid from './ImageGrid.vue';
-import SingleImage from './SingleImage.vue';
 import Icon from '@/components/core/Icon.vue';
+import { ImageViewerTab, storeSingleton, transientStoreSingleton } from '@/store';
+import { computed, defineComponent, ref } from 'vue';
+import ImageGrid from './ImageGrid.vue';
+import ImageList from './ImageList.vue';
 import InfoPane from './InfoPane.vue';
-import { transientStoreSingleton, ImageViewerTab, storeSingleton } from '@/store';
+import SingleImage from './SingleImage.vue';
 
 
 export default defineComponent({
   components: {
+    ImageList,
     ImageGrid,
     SingleImage,
     Icon,
@@ -16,6 +18,7 @@ export default defineComponent({
   setup() {
     const transientStore = transientStoreSingleton();
 
+    const imageListRef = ref(undefined);
     const imageGridRef = ref(undefined);
     const singleImageRef = ref(undefined);
 
@@ -43,6 +46,7 @@ export default defineComponent({
     }
 
     return {
+      imageListRef,
       imageGridRef,
       singleImageRef,
 

@@ -24,7 +24,7 @@ export enum SortOrder {
 
 function _initialState(): State {
   return {
-    version: 2,
+    version: 3,
 
     filterSettings: {
       selectedLabels: [],
@@ -36,6 +36,40 @@ function _initialState(): State {
     thumbnailSettings: {
       ratio: ThumbnailRatio.RATIO_4x3,
       size: 200,
+    },
+    listSettings: {
+      columns: [
+        {
+          name: 'preview',
+          width: 60,
+        },
+        {
+          name: 'fileName',
+          width: 200,
+        },
+        {
+          name: 'label',
+          width: 40,
+        },
+        {
+          name: 'rating',
+          width: 120,
+        },
+        {
+          name: 'width',
+          width: 60,
+        },
+        {
+          name: 'height',
+          width: 60,
+        },
+        {
+          name: 'filePath',
+          width: 100,
+          grow: true,
+        },
+      ],
+      rowHeight: 40,
     },
     selection: {
       primary: undefined,

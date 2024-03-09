@@ -5,6 +5,7 @@
     <div class="right-pane">
       <div class="mode-panel top-tabs tabs">
         <ul>
+          <li :class="{'is-active': isListActive()}" @click="setListActive()"><a>List</a></li>
           <li :class="{'is-active': isThumbnailsActive()}" @click="setThumbnailsActive()"><a>Thumbnails</a></li>
           <li :class="{'is-active': isMediaActive()}" @click="setMediaActive()"><a>Media</a></li>
         </ul>
