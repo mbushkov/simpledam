@@ -1,9 +1,9 @@
-import { ImageAdjustments, Label, Rotation } from '@/store/schema';
-import { expect } from 'chai';
-import { ImageData, Props } from './ImageBox';
-import ImageBox from './ImageBox.vue';
 import { setupComponentTestEnv, shallowMount } from '@/lib/test-utils';
+import { Label, Rotation, type ImageAdjustments } from '@/store/schema';
+import { expect } from 'chai';
 import { reactive } from 'vue';
+import { type ImageData, type Props } from './ImageBox';
+import ImageBox from './ImageBox.vue';
 
 setupComponentTestEnv();
 

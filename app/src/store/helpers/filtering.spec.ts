@@ -1,6 +1,6 @@
 import { createJSONWrapper, setupTestEnv } from "@/lib/test-utils";
 import { expect } from 'chai';
-import { FileColorTag, FilterSettings, ImageFile, ImageList, ImageMetadata, Label } from '../schema';
+import { FileColorTag, Label, type FilterSettings, type ImageFile, type ImageList, type ImageMetadata } from '../schema';
 import { filterSettingsInvariant, isMatchingFilterSettings, syncListWithPresenceMap, updateItemInList, updateListsPresence, updateListsWithFilter } from './filtering';
 
 setupTestEnv();

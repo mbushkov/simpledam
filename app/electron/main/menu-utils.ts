@@ -1,5 +1,4 @@
-import { MenuItemConstructorOptions, NativeImage, nativeImage } from "electron";
-import { BrowserWindow } from 'electron';
+import { BrowserWindow, MenuItemConstructorOptions, NativeImage, nativeImage } from "electron";
 
 declare interface MenuItemsParams {
   readonly id: string;

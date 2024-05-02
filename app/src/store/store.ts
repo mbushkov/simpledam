@@ -1,6 +1,6 @@
-import { Action, FileRegisteredAction } from '@/backend/actions';
+import { type Action, type FileRegisteredAction } from '@/backend/actions';
 import { ApiService } from '@/backend/api';
-import { FilterSettings, ImageFile, ImageList, ImageMetadata, Label, ListColumnName, Rating, ReadonlyState, Rotation, State, ThumbnailRatio } from '@/store/schema';
+import { Label, Rotation, ThumbnailRatio, type FilterSettings, type ImageFile, type ImageList, type ImageMetadata, type ListColumnName, type Rating, type ReadonlyState, type State } from '@/store/schema';
 import moment from 'moment';
 import { bufferTime, catchError, filter, map } from 'rxjs/operators';
 import { reactive } from 'vue';

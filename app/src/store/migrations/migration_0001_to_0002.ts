@@ -1,5 +1,5 @@
-import { ImageFile as OldImageFile, State as OldState } from '@/store/schema/version_0001';
-import { FileColorTag, ImageFile as NewImageFile, State as NewState } from '@/store/schema/version_0002';
+import { type ImageFile as OldImageFile, type State as OldState } from '@/store/schema/version_0001';
+import { FileColorTag, type ImageFile as NewImageFile, type State as NewState } from '@/store/schema/version_0002';
 
 function convertImages(oldImages: { [key: string]: OldImageFile }): { [key: string]: NewImageFile } {
   const result: { [key: string]: NewImageFile } = {};

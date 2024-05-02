@@ -1,7 +1,7 @@
 import { ElectronHelperService } from '@/lib/electron-helper-service';
 import log from 'loglevel';
 import { reactive, watchEffect } from 'vue';
-import { Action } from './action';
+import { type Action } from './action';
 
 export class ActionService {
   private readonly _actions: { [key: string]: Action } = {};

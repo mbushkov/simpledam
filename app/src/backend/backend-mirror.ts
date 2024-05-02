@@ -1,4 +1,4 @@
-import { BackendStateUpdateAction } from '@/backend/actions';
+import { type BackendStateUpdateAction } from '@/backend/actions';
 import * as log from 'loglevel';
 import { filter, map } from 'rxjs/operators';
 import { reactive } from 'vue';

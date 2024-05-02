@@ -2,7 +2,7 @@ import { PORT } from '@/backend/api';
 import LabelIcon from '@/components/core/LabelIcon.vue';
 import Rating from '@/components/core/Rating.vue';
 import { storeSingleton } from '@/store';
-import { ImageAdjustments, InferredImageMetadata, ListColumn } from '@/store/schema';
+import { type ImageAdjustments, type InferredImageMetadata, type ListColumn } from '@/store/schema';
 import { computed, defineComponent } from 'vue';
 import TransformedImage from './TransformedImage.vue';
 

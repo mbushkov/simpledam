@@ -1,7 +1,7 @@
 import { apiServiceSingleton } from '@/backend/api';
 import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
 import { Direction, ImageViewerTab, storeSingleton, transientStoreSingleton } from '@/store';
-import { ImageAdjustments, InferredImageMetadata, Label, ListColumn } from '@/store/schema';
+import { Label, type ImageAdjustments, type InferredImageMetadata, type ListColumn } from '@/store/schema';
 import * as log from 'loglevel';
 import { computed, defineComponent, onBeforeUnmount, onMounted, ref, watchEffect } from 'vue';
 import { dragHelperServiceSingleton } from '../lib/drag-helper-service';

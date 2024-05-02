@@ -4,7 +4,7 @@ import { modalHelperServiceSingleton } from '@/lib/modal-helper-service';
 import { storeSingleton } from '@/store';
 import { Label, type Rating } from "@/store/schema";
 import { computed } from 'vue';
-import { Action } from './action';
+import { type Action } from './action';
 
 function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();

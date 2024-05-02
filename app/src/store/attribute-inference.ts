@@ -1,5 +1,5 @@
 import moment from "moment";
-import { ImageFile, ImageMetadata, InferredAttributeGroup, InferredAttributeType } from "./schema";
+import { InferredAttributeType, type ImageFile, type ImageMetadata, type InferredAttributeGroup } from "./schema";
 
 type InferredFileAttributes = {
   name: string;

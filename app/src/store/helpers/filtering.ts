@@ -1,4 +1,4 @@
-import { FilterSettings, ImageFile, ImageList, ImageMetadata } from '../schema';
+import { type FilterSettings, type ImageFile, type ImageList, type ImageMetadata } from '../schema';
 import { dirName } from './filesystem';
 
 export function filterSettingsInvariant(fs: FilterSettings): string {

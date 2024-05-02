@@ -2,14 +2,14 @@ import { setActionServiceSingleton } from '@/actions';
 import { ActionService } from '@/actions/action-service';
 import { ApiService, setApiServiceSingleton } from '@/backend/api';
 import { BackendMirror, setBackendMirrorSingleton } from '@/backend/backend-mirror';
-import { Immutable } from '@/lib/type-utils';
+import { type Immutable } from '@/lib/type-utils';
 import { setStoreSingleton, setTransientStoreSingleton } from '@/store';
 import { Store } from '@/store/store';
 import { TransientStore } from '@/store/transient-store';
-import { mount as originalMount, shallowMount as originalShallowMount, VueWrapper } from '@vue/test-utils';
+import { VueWrapper, mount as originalMount, shallowMount as originalShallowMount } from '@vue/test-utils';
 import { Subject } from 'rxjs';
 import sinon from 'sinon';
-import { Component, computed, defineComponent, reactive, UnwrapNestedRefs } from 'vue';
+import { computed, defineComponent, reactive, type Component, type UnwrapNestedRefs } from 'vue';
 import { DragHelperService, setDragHelperServiceSingleton } from './drag-helper-service';
 import { ElectronHelperService, setElectronHelperServiceSingleton } from './electron-helper-service';
 

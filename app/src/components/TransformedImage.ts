@@ -1,5 +1,5 @@
-import { ImageAdjustments, Rotation } from "@/store/schema";
-import { SetupContext, computed, defineComponent } from "vue";
+import { Rotation, type ImageAdjustments } from "@/store/schema";
+import { computed, defineComponent, type SetupContext } from "vue";
 
 
 export interface Props {

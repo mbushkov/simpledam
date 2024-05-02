@@ -1,5 +1,5 @@
-import { createJSONWrapper, ObservableWrapper, setupTestEnv } from '@/lib/test-utils';
-import { ImageList, Selection } from "@/store/schema";
+import { createJSONWrapper, setupTestEnv, type ObservableWrapper } from '@/lib/test-utils';
+import { type ImageList, type Selection } from "@/store/schema";
 import { assert, expect } from 'chai';
 import { Direction, moveAdditionalSelection, movePrimarySelection, selectPrimary, selectPrimaryPreservingAdditionalIfPossible, selectRange, toggleAdditionalSelection } from './selection';
 

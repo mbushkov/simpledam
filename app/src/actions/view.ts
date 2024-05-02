@@ -1,9 +1,9 @@
 import { COLUMN_TITLES } from '@/components/ImageList';
 import { ImageViewerTab, storeSingleton, transientStoreSingleton } from '@/store';
-import { ListColumnName } from '@/store/schema';
+import { type ListColumnName } from '@/store/schema';
 import { SortAttribute, SortOrder } from "@/store/store";
 import { computed } from 'vue';
-import { Action } from './action';
+import { type Action } from './action';
 
 export class AddListColumn implements Action {
   readonly name = 'AddListColumn';

@@ -7,12 +7,12 @@
 import { release } from 'node:os';
 import { fileURLToPath } from 'node:url';
 
-import { OpenWithEntries } from '@/backend/api-model';
 import { ChildProcess, spawn } from 'child_process';
 import { BrowserWindow, IpcMainEvent, Menu, NativeImage, app, dialog, ipcMain, nativeImage, protocol, session, shell } from 'electron';
 import { readFile } from 'fs';
 import path from 'path';
 import { URL } from 'url';
+import { OpenWithEntries } from '../../src/backend/api-model';
 import { buildImageContextMenuTemplate } from './context-menu';
 
 const __filename = fileURLToPath(import.meta.url)

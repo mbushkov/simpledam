@@ -1,9 +1,9 @@
-import fs from 'node:fs'
-import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import fs from 'node:fs'
+import path from 'path'
+import { defineConfig } from 'vite'
 import electron from 'vite-plugin-electron/simple'
 import pkg from './package.json'
-import path from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => {

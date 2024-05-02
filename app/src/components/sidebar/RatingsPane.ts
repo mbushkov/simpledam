@@ -1,9 +1,9 @@
-import { defineComponent, computed, Ref, reactive, watchEffect } from 'vue';
-import { storeSingleton } from '@/store';
-import Pane from './Pane.vue';
 import Radio from '@/components/core/Radio.vue';
 import Rating from '@/components/core/Rating.vue';
-import { Rating as RatingEnum } from '@/store/schema';
+import { storeSingleton } from '@/store';
+import { type Rating as RatingEnum } from '@/store/schema';
+import { computed, defineComponent, reactive, watchEffect, type Ref } from 'vue';
+import Pane from './Pane.vue';
 
 declare interface RatingEntry {
   rating: RatingEnum;

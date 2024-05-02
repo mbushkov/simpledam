@@ -1,8 +1,8 @@
-import { ImageViewerTab, transientStoreSingleton } from '@/store';
-import { ImageAdjustments, Label, Rating as RatingEnum, Rotation } from '@/store/schema';
-import { computed, defineComponent, nextTick, onMounted, reactive, ref, SetupContext, watch, watchEffect } from 'vue';
 import Icon from '@/components/core/Icon.vue';
 import Rating from '@/components/core/Rating.vue';
+import { ImageViewerTab, transientStoreSingleton } from '@/store';
+import { Label, Rotation, type ImageAdjustments, type Rating as RatingEnum } from '@/store/schema';
+import { computed, defineComponent, nextTick, onMounted, reactive, ref, watch, watchEffect, type SetupContext } from 'vue';
 
 export interface ImageSize {
   width: number;

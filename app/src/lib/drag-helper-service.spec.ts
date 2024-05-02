@@ -1,7 +1,7 @@
 import chai, { expect } from 'chai';
-import sinon, { SinonStub } from 'sinon';
+import sinon, { type SinonStub } from 'sinon';
 import sinonChai from 'sinon-chai';
-import { DragHelperService, UidAndPath, DragResult } from "./drag-helper-service";
+import { DragHelperService, type DragResult, type UidAndPath } from "./drag-helper-service";
 import { ElectronHelperService } from './electron-helper-service';
 
 chai.use(sinonChai);

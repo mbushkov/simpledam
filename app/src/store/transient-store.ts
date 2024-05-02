@@ -1,5 +1,5 @@
-import { Action, LongOperationErrorAction, LongOperationLogAction, LongOperationStartAction, LongOperationStatusAction, LongOperationSuccessAction } from '@/backend/actions';
-import { Immutable } from '@/lib/type-utils';
+import { type Action, type LongOperationErrorAction, type LongOperationLogAction, type LongOperationStartAction, type LongOperationStatusAction, type LongOperationSuccessAction } from '@/backend/actions';
+import { type Immutable } from '@/lib/type-utils';
 import { Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { reactive } from 'vue';

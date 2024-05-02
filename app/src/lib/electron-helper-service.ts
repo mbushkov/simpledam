@@ -1,4 +1,4 @@
-import { OpenWithEntries } from "@/backend/api-model";
+import { type OpenWithEntries } from "@/backend/api-model";
 
 export class ElectronHelperService {
   dragStart(paths: string[], thumbnailUrl: string, callbackFn: () => void) {

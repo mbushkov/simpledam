@@ -1,9 +1,9 @@
 import Migration0001to0002 from '@/store/migrations/migration_0001_to_0002';
 import Migration0002to0003 from '@/store/migrations/migration_0002_to_0003';
-import { State as LastState } from '@/store/schema';
-import { State as State0001 } from '@/store/schema/version_0001';
-import { State as State0002 } from '@/store/schema/version_0002';
-import { State as State0003 } from '@/store/schema/version_0003';
+import { type State as LastState } from '@/store/schema';
+import { type State as State0001 } from '@/store/schema/version_0001';
+import { type State as State0002 } from '@/store/schema/version_0002';
+import { type State as State0003 } from '@/store/schema/version_0003';
 
 export type HistoricalState = State0001 | State0002 | State0003;
 

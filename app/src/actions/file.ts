@@ -4,7 +4,7 @@ import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
 import { storeSingleton } from '@/store';
 import log from 'loglevel';
 import { computed } from 'vue';
-import { Action } from './action';
+import { type Action } from './action';
 
 export class SaveAction implements Action {
   readonly name = 'Save';

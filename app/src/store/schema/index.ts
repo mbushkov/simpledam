@@ -1,4 +1,4 @@
-import { Immutable } from '@/lib/type-utils';
+import { type Immutable } from '@/lib/type-utils';
 
 import type { State } from './version_0003';
 export { FileColorTag, InferredAttributeType, Label, Rotation, ThumbnailRatio } from './version_0003';

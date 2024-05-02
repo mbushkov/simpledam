@@ -1,9 +1,9 @@
-import { defineComponent, computed, Ref, reactive, watchEffect } from 'vue';
-import { storeSingleton } from '@/store';
-import Pane from './Pane.vue';
 import Icon from '@/components/core/Icon.vue';
 import Radio from '@/components/core/Radio.vue';
+import { storeSingleton } from '@/store';
 import { Label } from '@/store/schema';
+import { computed, defineComponent, reactive, watchEffect, type Ref } from 'vue';
+import Pane from './Pane.vue';
 
 declare interface LabelEntry {
   title: string;

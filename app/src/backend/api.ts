@@ -1,12 +1,12 @@
 import { Migrate } from '@/store/migration';
-import { ReadonlyState, State } from '@/store/schema';
+import { type ReadonlyState, type State } from '@/store/schema';
 import axios from 'axios';
 import * as log from 'loglevel';
 import { Observable } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { webSocket } from 'rxjs/webSocket';
-import { Action } from './actions';
-import { OpenWithEntries } from './api-model';
+import { type Action } from './actions';
+import { type OpenWithEntries } from './api-model';
 
 const GLOBAL_URL_PARAMS = new URLSearchParams(window.location.search);
 export const PORT = Number(GLOBAL_URL_PARAMS.get('port'));

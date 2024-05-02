@@ -1,4 +1,4 @@
-import { ImageList, Selection } from '@/store/schema';
+import { type ImageList, type Selection } from '@/store/schema';
 
 export enum Direction {
   UP,

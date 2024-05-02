@@ -1,5 +1,5 @@
-import { OpenWithEntries } from "@/backend/api-model";
 import { MenuItemConstructorOptions } from "electron";
+import { OpenWithEntries } from '../../src/backend/api-model';
 import { menuItem } from "./menu-utils";
 
 export function buildImageContextMenuTemplate(openWithEntries?: OpenWithEntries): MenuItemConstructorOptions[] {

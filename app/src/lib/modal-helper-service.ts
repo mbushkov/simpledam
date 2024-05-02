@@ -1,5 +1,5 @@
-import { App, defineComponent } from "vue";
-import { Vfm, useModal } from "vue-final-modal";
+import { defineComponent, type App } from "vue";
+import { useModal, type Vfm } from "vue-final-modal";
 
 export class ModalHelperService {
   private $vfm: Vfm | undefined;

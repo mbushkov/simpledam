@@ -5,7 +5,7 @@ import { Label } from '@/store/schema';
 import * as log from 'loglevel';
 import { computed, defineComponent, onBeforeUnmount, onMounted, ref, watch, watchEffect } from 'vue';
 import { dragHelperServiceSingleton } from '../lib/drag-helper-service';
-import { ImageData, SelectionType } from './ImageBox';
+import { SelectionType, type ImageData } from './ImageBox';
 import ImageBox from './ImageBox.vue';
 
 interface Row {

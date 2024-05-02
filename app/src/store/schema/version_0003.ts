@@ -65,7 +65,7 @@ export declare interface ExifData {
   gps_date_stamp?: number;
 }
 
-export declare enum FileColorTag {
+export enum FileColorTag {
   NONE,
   GRAY,
   GREEN,
@@ -96,7 +96,7 @@ export declare interface ImageFile {
   city: string;
 }
 
-export declare enum Label {
+export enum Label {
   NONE,
   RED,
   GREEN,
@@ -109,7 +109,7 @@ export declare enum Label {
   GRAY,
 }
 
-export declare enum Rotation {
+export enum Rotation {
   NONE = 0,
   DEG_90 = 90,
   DEG_180 = 180,
@@ -151,7 +151,7 @@ export declare interface Selection {
   additional: { [key: ImageUid]: boolean };
 }
 
-export declare enum ThumbnailRatio {
+export enum ThumbnailRatio {
   NORMAL = 1,
   RATIO_4x3 = 4 / 3,
   RATIO_3x4 = 3 / 4,
@@ -162,7 +162,7 @@ export declare interface ThumbnailSettings {
   size: number;
 }
 
-export declare enum InferredAttributeType {
+export enum InferredAttributeType {
   INTEGER = 'INTEGER',
   FLOAT = 'FLOAT',
   RATIONAL = 'RATIONAL',

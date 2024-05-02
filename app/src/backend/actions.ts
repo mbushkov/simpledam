@@ -1,4 +1,4 @@
-import { ImageFile } from "@/store/schema";
+import { type ImageFile } from "@/store/schema";
 
 export declare interface Action {
   action: 'FILE_REGISTERED' | 'THUMBNAIL_UPDATED' | 'LONG_OPERATION_START' | 'LONG_OPERATION_LOG' | 'LONG_OPERATION_STATUS' | 'LONG_OPERATION_SUCCESS' | 'LONG_OPERATION_ERROR' | 'BACKEND_STATE_UPDATE';

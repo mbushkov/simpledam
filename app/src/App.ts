@@ -2,13 +2,13 @@ import { apiServiceSingleton } from "@/backend/api";
 import { storeSingleton, transientStoreSingleton } from "@/store";
 import * as log from "loglevel";
 import {
-  ComponentPublicInstance,
   defineComponent,
   onBeforeUnmount,
   onMounted,
   ref,
   watch,
-  watchEffect
+  watchEffect,
+  type ComponentPublicInstance
 } from "vue";
 import { ModalsContainer, useVfm } from 'vue-final-modal';
 import { actionServiceSingleton } from "./actions";

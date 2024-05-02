@@ -1,4 +1,4 @@
-import { Action } from '@/backend/actions';
+import { type Action } from '@/backend/actions';
 import { createJSONWrapper, setupTestEnv } from '@/lib/test-utils';
 import { ImageViewerTab, TransientStore } from '@/store/transient-store';
 import { expect } from 'chai';
