@@ -18,6 +18,8 @@ function imageFile(f: Partial<ImageFile> = {}): ImageFile {
     icc_profile_description: '',
     mime_type: '',
     exif_data: {},
+    country: '',
+    city: '',
     ...f
   };
 }

@@ -1,7 +1,7 @@
-import { Action } from "./action";
-import { computed } from 'vue';
 import { storeSingleton } from '@/store';
 import { SortAttribute, SortOrder } from "@/store/store";
+import { computed } from 'vue';
+import { Action } from "./action";
 
 
 export class SortByFileNameAscAction implements Action {

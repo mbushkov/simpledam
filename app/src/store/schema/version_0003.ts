@@ -1,4 +1,4 @@
-export type ImageUid = string;
+export declare type ImageUid = string;
 
 export declare interface Size {
   width: number;
@@ -52,9 +52,20 @@ export declare interface ExifData {
   bits_per_sample?: number;
   compression?: number;
   photometric_interprretation?: number;
+
+  // GPS Info
+  gps_version_id?: string;
+  gps_latitude_ref?: string;
+  gpa_latitude?: string[];
+  gps_longitude_ref?: string;
+  gps_longitude?: string[];
+  gps_altitude_ref?: number;
+  gps_altitude?: string;
+  gps_time_stamp?: string[];
+  gps_date_stamp?: number;
 }
 
-export enum FileColorTag {
+export declare enum FileColorTag {
   NONE,
   GRAY,
   GREEN,
@@ -80,9 +91,12 @@ export declare interface ImageFile {
   icc_profile_description: string;
   mime_type: string;
   exif_data: ExifData;
+
+  country: string;
+  city: string;
 }
 
-export enum Label {
+export declare enum Label {
   NONE,
   RED,
   GREEN,
@@ -95,7 +109,7 @@ export enum Label {
   GRAY,
 }
 
-export enum Rotation {
+export declare enum Rotation {
   NONE = 0,
   DEG_90 = 90,
   DEG_180 = 180,
@@ -108,7 +122,7 @@ export declare interface ImageAdjustments {
   verticalFlip: boolean;
 }
 
-export type Rating = 0 | 1 | 2 | 3 | 4 | 5;
+export declare type Rating = 0 | 1 | 2 | 3 | 4 | 5;
 
 export declare interface ImageMetadata {
   rating: Rating;
@@ -137,7 +151,7 @@ export declare interface Selection {
   additional: { [key: ImageUid]: boolean };
 }
 
-export enum ThumbnailRatio {
+export declare enum ThumbnailRatio {
   NORMAL = 1,
   RATIO_4x3 = 4 / 3,
   RATIO_3x4 = 3 / 4,
@@ -146,6 +160,54 @@ export enum ThumbnailRatio {
 export declare interface ThumbnailSettings {
   ratio: ThumbnailRatio;
   size: number;
+}
+
+export declare enum InferredAttributeType {
+  INTEGER = 'INTEGER',
+  FLOAT = 'FLOAT',
+  RATIONAL = 'RATIONAL',
+  STRING = 'STRING',
+  DATE_TIME = 'DATE_TIME',
+}
+
+export declare interface InferredAttributeBase {
+  name: string;
+  title: string
+  type: InferredAttributeType;
+}
+
+export declare interface InferredIntegerAttribute extends InferredAttributeBase {
+  type: InferredAttributeType.INTEGER;
+  value?: number;
+}
+
+export declare interface InferredFloatAttribute extends InferredAttributeBase {
+  type: InferredAttributeType.FLOAT;
+  value?: number;
+}
+
+export declare interface InferredRationalAttribute extends InferredAttributeBase {
+  type: InferredAttributeType.RATIONAL;
+  value?: [number, number];
+}
+
+
+export declare interface InferredStringAttribute extends InferredAttributeBase {
+  type: InferredAttributeType.STRING;
+  value?: string;
+}
+
+export declare interface InferredDateTimeAttribute extends InferredAttributeBase {
+  type: InferredAttributeType.DATE_TIME;
+  value?: string;  // "2014-09-08T08:02:17-05:00" (ISO 8601, no fractional seconds)
+}
+
+export declare type InferredAttribute = InferredIntegerAttribute | InferredFloatAttribute | InferredRationalAttribute | InferredStringAttribute | InferredDateTimeAttribute;
+
+export declare interface InferredAttributeGroup {
+  name: string;
+  title: string;
+  attributes: InferredAttribute[];
 }
 
 export declare interface InferredImageMetadata {
@@ -169,7 +231,7 @@ export declare interface InferredImageMetadata {
   city: string;
 }
 
-export type ListColumnName = "preview" | keyof InferredImageMetadata;
+export declare type ListColumnName = "preview" | keyof InferredImageMetadata;
 
 export declare interface ListColumn {
   name: ListColumnName;

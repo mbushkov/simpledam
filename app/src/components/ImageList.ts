@@ -26,7 +26,7 @@ interface ValueColumn extends ListColumn {
   value: string|number;
 }
 
-const columnTitles: {
+export const COLUMN_TITLES: {
   [Property in keyof InferredImageMetadata | "preview"]: string;
 } = {
   preview: '',
@@ -324,6 +324,35 @@ export default defineComponent({
       event.stopPropagation();      
     }
 
+    function separatorMouseDown(column: ListColumn, event: MouseEvent) {
+      log.info('[ImageList] Separator mouse down for column: ', column.name);
+      const originalX = event.screenX
+      const originalColumnWidth = column.width;
+      const separatorMouseMove = (event: MouseEvent) => {
+        const deltaX = event.screenX - originalX;
+        column.width = Math.max(30, originalColumnWidth + deltaX);
+      };
+
+      window.addEventListener('mousemove', separatorMouseMove);
+      window.addEventListener('mouseup', () => {
+        window.removeEventListener('mousemove', separatorMouseMove);
+      });
+    }
+
+    function headerCellContextClicked(column: ListColumn, event: MouseEvent) {
+      const usedColumns: {[key: string]: boolean} = {};
+      for (const c of headerColumns) {
+        usedColumns[c.name] = true;
+      }
+      const availableColumns = [];
+      for (const c in COLUMN_TITLES) {
+        if (!usedColumns[c]) {
+          availableColumns.push((COLUMN_TITLES as any)[c]);
+        }
+      }
+      electronHelperServiceSingleton().showListColumnMenu(headerColumns.indexOf(column), availableColumns);
+    }
+
     return {
       el,
       scroller,
@@ -337,7 +366,7 @@ export default defineComponent({
       currentList,
       rowStyle,
       headerColumns,
-      columnTitles,
+      COLUMN_TITLES,
 
       rowClicked,
       rowDoubleClicked,
@@ -349,6 +378,9 @@ export default defineComponent({
       containerDragEnded,
       containerDragEntered,
       containerDragLeft,
+
+      separatorMouseDown,
+      headerCellContextClicked,
     };
   }
 });

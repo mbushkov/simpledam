@@ -2,7 +2,7 @@ import ExportToFolder from '@/components/modals/ExportToFolder.vue';
 import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
 import { modalHelperServiceSingleton } from '@/lib/modal-helper-service';
 import { storeSingleton } from '@/store';
-import { Label, Rating } from "@/store/schema";
+import { Label, type Rating } from "@/store/schema";
 import { computed } from 'vue';
 import { Action } from './action';
 

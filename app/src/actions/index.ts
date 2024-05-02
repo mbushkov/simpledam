@@ -1,7 +1,8 @@
 import { ActionService } from './action-service';
 import { SaveAction, SaveAndCloseAction, SaveAsAction, ScanPathsAction } from './file';
-import { DefaultOrientationAction, DeselectAllAction, ExportToFolderAction, FlipHorizontalAction, FlipVerticalAction, labelActions, rateActions, RotateCCWAction, RotateCWAction, SelectAllAction, ShowMediaFileAction } from './selection';
+import { DefaultOrientationAction, DeselectAllAction, ExportToFolderAction, FlipHorizontalAction, FlipVerticalAction, RotateCCWAction, RotateCWAction, SelectAllAction, ShowMediaFileAction, labelActions, rateActions } from './selection';
 import { SortByFileCreationTimeAscAction, SortByFileCreationTimeDescAction, SortByFileNameAscAction, SortByFileNameDescAction, SortByOriginTimeAscAction, SortByOriginTimeDescAction } from './sort';
+import { AddListColumn, DeleteListColumn } from './view';
 
 let _actionServiceSingleton: ActionService | undefined;
 
@@ -34,6 +35,9 @@ export function registerAllActions(actionService: ActionService) {
   actionService.registerAction(new DefaultOrientationAction());
   actionService.registerAction(new ExportToFolderAction());
 
+  actionService.registerAction(new AddListColumn());
+  actionService.registerAction(new DeleteListColumn());
+  
   for (const action of labelActions()) {
     actionService.registerAction(action);
   }

@@ -1,6 +1,6 @@
 import { Action, FileRegisteredAction } from '@/backend/actions';
 import { ApiService } from '@/backend/api';
-import { FilterSettings, ImageFile, ImageList, ImageMetadata, Label, Rating, ReadonlyState, Rotation, State, ThumbnailRatio } from '@/store/schema';
+import { FilterSettings, ImageFile, ImageList, ImageMetadata, Label, ListColumnName, Rating, ReadonlyState, Rotation, State, ThumbnailRatio } from '@/store/schema';
 import moment from 'moment';
 import { bufferTime, catchError, filter, map } from 'rxjs/operators';
 import { reactive } from 'vue';
@@ -371,6 +371,25 @@ export class Store {
     for (const mdata of this.allSelectedMetadata()) {
       mdata.adjustments.verticalFlip = !mdata.adjustments.verticalFlip;
     }
+  }
+
+  public removeListColumn(index: number) {
+    const isLast = this._state.listSettings.columns.length === index + 1;
+    this._state.listSettings.columns.splice(index, 1);
+    if (isLast) {
+      this._state.listSettings.columns[this._state.listSettings.columns.length - 1].grow = true;
+    }
+  }
+
+  public addListColumn(index: number, columnName: ListColumnName) {
+    this._state.listSettings.columns.splice(index, 0, {
+      name: columnName,
+      width: 50,
+    });
+    for (const c of this._state.listSettings.columns) {
+      c.grow = false;
+    }
+    this._state.listSettings.columns[this._state.listSettings.columns.length - 1].grow = true;
   }
 
   public sort(attr: SortAttribute, order: SortOrder) {

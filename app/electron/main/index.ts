@@ -4,15 +4,15 @@
 // https://www.metmuseum.org/art/collection/search/13325
 // Portrait of a Gentleman, attributed to Henry Williams
 //
-import { release } from 'node:os'
-import { fileURLToPath } from 'node:url'
+import { release } from 'node:os';
+import { fileURLToPath } from 'node:url';
 
-import { ChildProcess, spawn } from 'child_process';
-import { app, BrowserWindow, dialog, ipcMain, IpcMainEvent, Menu, NativeImage, nativeImage, protocol, session, shell } from 'electron';
-import { readFile } from 'fs'
-import path from 'path';
-import { URL } from 'url'
 import { OpenWithEntries } from '@/backend/api-model';
+import { ChildProcess, spawn } from 'child_process';
+import { BrowserWindow, IpcMainEvent, Menu, NativeImage, app, dialog, ipcMain, nativeImage, protocol, session, shell } from 'electron';
+import { readFile } from 'fs';
+import path from 'path';
+import { URL } from 'url';
 import { buildImageContextMenuTemplate } from './context-menu';
 
 const __filename = fileURLToPath(import.meta.url)
@@ -516,7 +516,7 @@ ipcMain.on('show-media-file', async (_event: IpcMainEvent, path: string) => {
   shell.showItemInFolder(path);
 });
 
-function menuItem(id: string, label: string, accelerator?: string, iconBase64?: string) {
+function menuItem(id: string, label: string, accelerator?: string, iconBase64?: string, ...actionArgs: readonly any[]) {
   let icon: NativeImage | undefined;
   if (iconBase64) {
     icon = nativeImage.createFromDataURL('data:image/png;base64,' + iconBase64).resize({
@@ -532,7 +532,7 @@ function menuItem(id: string, label: string, accelerator?: string, iconBase64?: 
     accelerator,
     click: function () {
       const win = BrowserWindow.getFocusedWindow();
-      win?.webContents.send('action', id);
+      win?.webContents.send('action', id, ...actionArgs);
     }
   }
 }
@@ -578,6 +578,31 @@ ipcMain.on('show-rating-menu', async () => {
   const menu = Menu.buildFromTemplate(template as any);
   menu.popup();
 });
+
+ipcMain.on('show-list-column-menu', async (_, currentIndex: number, availableColumns: string[]) => {
+  const template = [
+    menuItem('DeleteListColumn', 'Delete Column', null, null, currentIndex),
+    { type: 'separator' },
+    {
+      label: 'Add Column Left',
+      submenu: availableColumns.map((col) => {
+        return menuItem('AddListColumn', col, null, null, currentIndex, col);
+      }),
+    },
+    {
+      label: 'Add Column Right',
+      submenu: availableColumns.map((col) => {
+        return menuItem('AddListColumn', col, null, null, currentIndex + 1, col);
+      }),
+    },
+    { type: 'separator' },
+    menuItem('SortListColumnAscending', 'Sort Ascending', null, null, currentIndex),
+    menuItem('SortListColumnDescending', 'Sort Descending', null, null, currentIndex),
+  ];
+
+  const menu = Menu.buildFromTemplate(template);
+  menu.popup();
+});  
 
 ipcMain.on('update-menu-action-status', async (_, statusMap: { readonly [key: string]: boolean }) => {
   const menu = Menu.getApplicationMenu();

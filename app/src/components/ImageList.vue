@@ -10,8 +10,9 @@
     @drop="containerDropped($event)"
   >
     <div class="header" :style="rowStyle">
-      <div class="cell" v-for="column in headerColumns" :key="column.name" :style="{'width': `${column.width}px`, 'min-width': `${column.width}px`, 'flex-grow': column.grow ? 1 : 0}">
-        {{ columnTitles[column.name] }}
+      <div class="cell" v-for="(column, index) in headerColumns" :key="column.name" :style="{'width': `${column.width}px`, 'min-width': `${column.width}px`, 'flex-grow': column.grow ? 1 : 0}" @contextmenu="headerCellContextClicked(column, $event)">
+        {{ COLUMN_TITLES[column.name] }}
+        <div class="separator" v-if="index !== headerColumns.length - 1" @mousedown.prevent="separatorMouseDown(column, $event)"></div>
       </div>
     </div>
     <div class="body">
@@ -52,9 +53,24 @@
 }
 
 .header {
+  position: relative;
   display: flex;
   background-color: $nm-dark-color;
   color: $nm-text-color;
+
+  .cell {
+    position: relative;
+
+    .separator {
+      position: absolute;
+      width: 2px;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      background-color: $nm-background-color-lighter-tone-up;
+      cursor: col-resize;
+    }
+  }
 }
 
 .body {

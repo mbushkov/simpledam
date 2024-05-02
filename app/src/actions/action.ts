@@ -5,5 +5,5 @@ export interface Action {
   readonly title: string;
   readonly enabled: Readonly<Ref<Readonly<boolean>>>;
 
-  perform(): Promise<void>;
+  perform(...args: any): Promise<void>;
 }

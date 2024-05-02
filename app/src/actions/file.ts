@@ -2,8 +2,8 @@ import { apiServiceSingleton } from '@/backend/api';
 import { backendMirrorSingleton } from "@/backend/backend-mirror";
 import { electronHelperServiceSingleton } from '@/lib/electron-helper-service';
 import { storeSingleton } from '@/store';
-import { computed } from 'vue';
 import log from 'loglevel';
+import { computed } from 'vue';
 import { Action } from './action';
 
 export class SaveAction implements Action {

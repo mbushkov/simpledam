@@ -29,6 +29,10 @@ export class ElectronHelperService {
     (window as any).electron.showRatingMenu();
   }
 
+  showListColumnMenu(currentIndex: number, availableColumns: string[]) {
+    (window as any).electron.showListColumnMenu(currentIndex, availableColumns);
+  }
+
   updateMenuActionStatus(statusMap: { readonly [key: string]: boolean }) {
     (window as any).electron.updateMenuActionStatus(statusMap);
   }

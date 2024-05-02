@@ -50,6 +50,10 @@ contextBridge.exposeInMainWorld(
       ipcRenderer.send('show-rating-menu');
     },
 
+    showListColumnMenu(columnIndex: number, availableColumns: string[]) {
+      ipcRenderer.send('show-list-column-menu', columnIndex, availableColumns);
+    },
+
     updateMenuActionStatus(statusMap) {
       ipcRenderer.send('update-menu-action-status', statusMap);
     },
